@@ -1,0 +1,15 @@
+entry
+
+    var a int8 = -7
+
+    a++
+
+    a = a / 2
+
+    if a < 0 
+
+
+       a=33
+
+    /if
+/entry

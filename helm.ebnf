@@ -1,0 +1,47 @@
+program = {declaration}
+
+declaration = entry
+
+entry = 'entry', newLine, body, newLine, '/entry'
+
+body = {stmts}
+
+stmts = {stmt}
+
+stmt = (if | declaration | expr), stmtEnd
+
+if = 'if', expr, newLine, body, newLine, '/if'
+declaration = 'var', (mulVarDecl | singleVarDecl)
+stmtEnd = newLine | ';'
+
+mulVarDecl = varDecl,{(',', varDecl)}, type
+singleVarDecl = assign | (id, type)
+
+varDecl = id | assign
+
+assign = id, '=', expr
+
+id = letter, {(letter | cipher)}
+
+expr = ('(', exprC, ')') | exprC
+
+exprC = inc | id | arithExp | assign | const
+
+arithExp = (expr, binOp, expr) | (unOp,expr)
+
+const = number
+
+number = decNumber | binNumber | hexNumber
+
+binOp = '+' | '-' | '*' | '/' | 'and' | 'or'
+unOp = '-' | '!' 
+inc = id, '++'
+
+decNumber = ? decimal number ?
+hexNumber = ? hexadecimal number like 456h, letters A-F can be both cases, h should be lowcase ?
+binNumber = ? binary number like 10101b, b should be lowcase ?
+
+letter = ? any Unicode letter ?
+cipher = ? any cipher ?
+newLine = ? new line delimiter ?
+
