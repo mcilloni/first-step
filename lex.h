@@ -1,6 +1,9 @@
 #if !defined(LEX_H)
 #define LEX_H
 
+#include "errors.h"
+#include "lines.h"
+
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -8,6 +11,7 @@
 enum token_type {
   NONE = 0,
   ASSIGN,
+  DIFFERENT,
   DIV,
   ENDENTRY,
   ENDIF,
@@ -27,12 +31,6 @@ enum token_type {
   VAR
 };
 
-enum lex_errc {
-  NOERR = 0,
-  ERROR = 1,
-  FILEEND = 2 //Expand me
-};
-
 static const char *const lex_errors[] = {
   "All good",
   "Error"
@@ -40,10 +38,12 @@ static const char *const lex_errors[] = {
 
 struct lexer {
   FILE *file;
-  enum lex_errc errcode;
+  enum errors errcode;
   const char *error;
-  
-  bool consider;
+
+  struct line current;
+  char peek;
+  bool newline;
 };
 
 struct token {

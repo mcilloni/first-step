@@ -24,18 +24,21 @@ bool isStrNum(const char *str) {
   }
 
   char first = *str;
+  bool firstDigit = isdigit(first);
 
-  if(first != '-' && !isdigit(first)) {
+  if(first != '-' && first != '+' && !firstDigit) {
     return false;
   }
 
-  for (size_t i = 1; i < len; ++i) {
-    if(!isdigit(str[0])) {
+  size_t i;
+
+  for (i = 1; i < len; ++i) {
+    if(!isdigit(str[i])) {
       return false;
     }
   }
 
-  return true;
+  return (i != 1) || firstDigit;
 
 }
 
@@ -45,6 +48,8 @@ const char* represent(enum token_type tok) {
     return "NONE";
   case ASSIGN:
     return "ASSIGN";
+  case DIFFERENT:
+    return "DIFFERENT";
   case DIV:
     return "DIV";
   case ENDENTRY:

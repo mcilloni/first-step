@@ -6,6 +6,10 @@ entry
 
     a = a / 2
 
+    if a != 3
+       a = !a
+    /if
+
     if a < 0 
 
 

@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+
+
 static inline struct lexer* err(struct lexer *lex, const char *error) {
   lex->errcode = ERROR;
   lex->error = error;
@@ -22,7 +24,16 @@ struct lexer* lexer_open(const char *path) {
     return err(lex, "Cannot open file");
   }
 
-  lex->consider = false;
+  lex->current = line_read(lex->file, &lex->errcode);
+  
+  if (lex->errcode == ERROR) {
+    lex->error = "Error, who knows why";
+  }
+
+  lex->peek = *(lex->current.val);
+  ++lex->current.position;
+  
+  lex->newline = false;
 
   return lex;
   
@@ -34,77 +45,63 @@ void lexer_close(struct lexer *lex) {
     fclose(lex->file);
   }
 
+  line_free(lex->current);
   free(lex);
   
-}
-
-bool isWhite(char ch) {
-  return ch == ' ' || ch == '\t';
 }
 
 bool stok(struct lexer *lex, char *data, size_t max) {
 
   char ch;
   size_t i;
-  bool sym = false;
-  for(i = 0; i < max; ++i) {
-    if(isWhite(ch = fgetc(lex->file))) {
+  bool eol = false;
+
+  if (lex->newline) {
+    lex->newline = false;
+    *data = '\n';
+    *(data + 1) = 0;
+    return true;
+  }
+
+  for (i = 0; i < max && !eol;) {
+    
+    ch = lex->peek;
+    ++lex->current.position;
+
+    if ((lex->current.len + 1) == lex->current.position) {
+      line_free(lex->current);
+      lex->current = line_read(lex->file, &lex->errcode);
+
+      if (lex->errcode == ERROR) {
+        lex->error = "Error, who knows why";
+        return false;
+      }
+
+      lex->peek = *lex->current.val;
+      ++lex->current.position;
+      lex->newline = eol = true;
+    } else {
+      lex->peek = lex->current.val[lex->current.position - 1];      
+    }
+
+    if (isblank(ch)) {
       if(i) {
         break;
       } else {
-        --i;
         continue;
       }
     }
 
-    if(ch == EOF) {
-      lex->errcode = FILEEND;
-      lex->error = "EOF";
-      break;
-    }
-    
-    if (ch == '\n') {
-      if (i) {
-        ungetc('\n', lex->file);
-        lex->consider = true;
-      } else {
-        if(lex->consider) {
-          *data = '\n';
-          ++i;
-          lex->consider = false;
-        } else {
-          --i;
-          continue;
-        }
-      }
-      break;
-    }
-
-    if (isalnum(ch)) { //if not symbol,
-      if (sym) { //and we are in a symbol sequence,
-        ungetc(ch, lex->file); //put this char back and then end this token
-        break;
-      } 
-    } else { //else if symbol,
-      if(!i) { //and start of token,
-        if(ch != '/') { //and not an end id slash,
-          sym = true; //we are now recognizing a string of symbols
-        }
-      } else { //else if in middle of operation, 
-        if (!sym) { //and a in a normal id sequence,
-          ungetc(ch, lex->file); //give char back and end this token
-          break;
-        }
-      }
-    } 
-       
-    if (ferror(lex->file)) {
-      lex->errcode = ERROR;
-      lex->error = strerror(errno);
-      return false;
-    }
-
     data[i] = ch;
+    ++i;
+
+    if (ch == '/' && (i == 1)) {
+      continue;
+    }
+
+    if ((isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek))) {
+      break;
+    }
 
   }
 
@@ -120,9 +117,9 @@ bool stok(struct lexer *lex, char *data, size_t max) {
 
 }
 
-struct token gettok(struct lexer *lex) {
+static const uint16_t max = 1024;
 
-  static const uint16_t max = 1024;
+struct token gettok(struct lexer *lex) {
 
   const char data[max];
 
@@ -154,6 +151,12 @@ struct token gettok(struct lexer *lex) {
   // ==
   if (!strcmp("==", data)) {
     res.type = EQUAL;
+    return res;
+  }
+
+  // !=
+  if (!strcmp("!=", data)) {
+    res.type = DIFFERENT;
     return res;
   }
 
