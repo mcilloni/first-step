@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 #include <jemalloc/jemalloc.h>
 
@@ -14,7 +15,7 @@ struct line line_read(FILE *file, enum errors *err) {
 
   *err = NOERR;
 
-  bool loop = true;
+  bool loop = true, linecomment = false;
 
   for(ret.len = ret.position = 0; loop; ) {
 
@@ -31,15 +32,29 @@ struct line line_read(FILE *file, enum errors *err) {
       }
       return ret;
     }
-    
+
     case '\n': {
+      linecomment = false;
       if(ret.len) {
         loop = false;
       } 
+
       break;  
     }
 
+    case '#': {
+      linecomment = true;
+      break;
+    }
+
     default: {
+      if (linecomment) {
+        break;
+      }
+
+      if(!ret.len && isblank(ch)) {
+        break;
+      }
 
       if ((ret.len + 1) % initSize == 0) {
         ret.val = realloc(ret.val, ret.len + initSize + 1);

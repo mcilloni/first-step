@@ -1,8 +1,12 @@
 entry
 
-    var a int8 = -7
+    var a int8 = -7 #comment!
+    
+    #comment of some sort.
+    #nothing important at all.
 
     a++
+    a--
 
     a = a / 2
 

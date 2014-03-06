@@ -9,26 +9,27 @@
 #include <stdbool.h>
 
 enum token_type {
-  NONE = 0,
-  ASSIGN,
-  DIFFERENT,
-  DIV,
-  ENDENTRY,
-  ENDIF,
-  ENTRY,
-  EQUAL,
-  ID,
-  IF,
-  INC,
-  MAJOR,
-  MINOR,
-  MINUS,
-  NEWLINE,
-  NOT,
-  NUMBER,
-  PLUS,
-  TIMES,
-  VAR
+  LEX_NONE = 0,
+  LEX_ASSIGN,
+  LEX_DEC,
+  LEX_DIFFERENT,
+  LEX_DIV,
+  LEX_ENDENTRY,
+  LEX_ENDIF,
+  LEX_ENTRY,
+  LEX_EQUAL,
+  LEX_ID,
+  LEX_IF,
+  LEX_INC,
+  LEX_MAJOR,
+  LEX_MINOR,
+  LEX_MINUS,
+  LEX_NEWLINE,
+  LEX_NOT,
+  LEX_NUMBER,
+  LEX_PLUS,
+  LEX_TIMES,
+  LEX_VAR
 };
 
 static const char *const lex_errors[] = {

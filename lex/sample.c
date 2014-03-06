@@ -19,11 +19,11 @@ int main(void) {
     fputs(represent(tok.type), stdout);
 
     switch (tok.type) {
-    case ID:
+    case LEX_ID:
       printf(": %s\n", (char*) tok.value);
       break;
 
-    case NUMBER:
+    case LEX_NUMBER:
       printf(": %ld\n", tok.value);
       break;
 

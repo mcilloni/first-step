@@ -1,6 +1,6 @@
-program = {declaration}
+program = { definition }
 
-declaration = entry
+definition = entry
 
 entry = 'entry', newLine, body, newLine, '/entry'
 
@@ -25,7 +25,7 @@ id = letter, {(letter | cipher)}
 
 expr = ('(', exprC, ')') | exprC
 
-exprC = inc | id | arithExp | assign | const
+exprC = dec | inc | id | arithExp | assign | const
 
 arithExp = (expr, binOp, expr) | (unOp,expr)
 
@@ -36,6 +36,7 @@ number = decNumber | binNumber | hexNumber
 binOp = '+' | '-' | '*' | '/' | 'and' | 'or'
 unOp = '-' | '!' 
 inc = id, '++'
+dec = id, '--'
 
 decNumber = ? decimal number ?
 hexNumber = ? hexadecimal number like 456h, letters A-F can be both cases, h should be lowcase ?

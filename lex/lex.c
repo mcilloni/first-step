@@ -55,7 +55,6 @@ bool stok(struct lexer *lex, char *data, size_t max) {
 
   char ch;
   size_t i;
-  bool eol = false;
 
   if (lex->newline) {
     lex->newline = false;
@@ -64,12 +63,16 @@ bool stok(struct lexer *lex, char *data, size_t max) {
     return true;
   }
 
-  for (i = 0; i < max && !eol;) {
+  for (i = 0; i < max && !lex->newline;) {
     
     ch = lex->peek;
     ++lex->current.position;
 
-    if ((lex->current.len + 1) == lex->current.position) {
+    lex->newline = (lex->current.len + 1) == lex->current.position;     
+
+    if (!lex->newline) {
+      lex->peek = lex->current.val[lex->current.position - 1];     
+    } else {
       line_free(lex->current);
       lex->current = line_read(lex->file, &lex->errcode);
 
@@ -80,9 +83,6 @@ bool stok(struct lexer *lex, char *data, size_t max) {
 
       lex->peek = *lex->current.val;
       ++lex->current.position;
-      lex->newline = eol = true;
-    } else {
-      lex->peek = lex->current.val[lex->current.position - 1];      
     }
 
     if (isblank(ch)) {
@@ -124,7 +124,7 @@ struct token gettok(struct lexer *lex) {
 
   const char data[MAX_TOKEN_LENGTH];
 
-  struct token res = {NONE, 0};
+  struct token res = {LEX_NONE, 0};
 
   if (!stok(lex, (char*) data, MAX_TOKEN_LENGTH)) {
     return res;
@@ -132,115 +132,121 @@ struct token gettok(struct lexer *lex) {
 
   // \n
   if (!strcmp("\n", data)) {
-    res.type = NEWLINE;
+    res.type = LEX_NEWLINE;
     return res;
   }
 
   // /
   if (!strcmp("/", data)) {
-    res.type = DIV;
+    res.type = LEX_DIV;
     return res;
   }
 
   // =
 
   if (!strcmp("=", data)) {
-    res.type = ASSIGN;
+    res.type = LEX_ASSIGN;
     return res;
   }
 
   // ==
   if (!strcmp("==", data)) {
-    res.type = EQUAL;
+    res.type = LEX_EQUAL;
     return res;
   }
 
   // !=
   if (!strcmp("!=", data)) {
-    res.type = DIFFERENT;
+    res.type = LEX_DIFFERENT;
     return res;
   }
 
   // >
   if (!strcmp(">", data)) {
-    res.type = MAJOR;
+    res.type = LEX_MAJOR;
     return res;
   }
 
   // <
   if (!strcmp("<", data)) {
-    res.type = MINOR;
+    res.type = LEX_MINOR;
     return res;
   }
 
   // *
   if (!strcmp("*", data)) {
-    res.type = TIMES;
+    res.type = LEX_TIMES;
     return res;
   }
 
   // +
   if (!strcmp("+", data)) {
-    res.type = PLUS;
+    res.type = LEX_PLUS;
     return res;
   }
   
   // -
   if (!strcmp("-", data)) {
-    res.type = MINUS;
+    res.type = LEX_MINUS;
     return res;
   }
 
   // ++
   if (!strcmp("++", data)) {
-    res.type = INC;
+    res.type = LEX_INC;
+    return res;
+  }
+
+  // --
+  if (!strcmp("--", data)) {
+    res.type = LEX_DEC;
     return res;
   }
 
   // !
   if (!strcmp("!", data)) {
-    res.type = NOT;
+    res.type = LEX_NOT;
     return res;
   }
 
   // entry
   if (!strcmp("entry", data)) {
-    res.type = ENTRY;
+    res.type = LEX_ENTRY;
     return res;
   }
 
   // /entry
   if (!strcmp("/entry", data)) {
-    res.type = ENDENTRY;
+    res.type = LEX_ENDENTRY;
     return res;
   }
 
   // if
   if (!strcmp("if", data)) {
-    res.type = IF;
+    res.type = LEX_IF;
     return res;
   }
 
   // /if
   if (!strcmp("/if", data)) {
-    res.type = ENDIF;
+    res.type = LEX_ENDIF;
     return res;
   }
 
   if (!strcmp("var", data)) {
-    res.type = VAR;
+    res.type = LEX_VAR;
     return res;
   }
 
   // number
   if (isStrNum(data)) {
-    res.type = NUMBER;
+    res.type = LEX_NUMBER;
     res.value = atoll(data);
     return res;
   }
 
   //generic id
-  res.type = ID;
+  res.type = LEX_ID;
   res.value = (intmax_t) strdup(data);
   
   return res;
@@ -248,7 +254,7 @@ struct token gettok(struct lexer *lex) {
 
 void freetok(struct token tok) {
 
-  if (tok.type == ID) {
+  if (tok.type == LEX_ID) {
     free( (void*) tok.value);
   }
 
@@ -256,45 +262,47 @@ void freetok(struct token tok) {
 
 const char* represent(enum token_type tok) {
   switch (tok) {
-  case NONE:
+  case LEX_NONE:
     return "NONE";
-  case ASSIGN:
+  case LEX_ASSIGN:
     return "ASSIGN";
-  case DIFFERENT:
+  case LEX_DEC:
+    return "DEC";
+  case LEX_DIFFERENT:
     return "DIFFERENT";
-  case DIV:
+  case LEX_DIV:
     return "DIV";
-  case ENDENTRY:
+  case LEX_ENDENTRY:
     return "ENDENTRY";
-  case ENDIF:
+  case LEX_ENDIF:
     return "ENDIF";
-  case ENTRY:
+  case LEX_ENTRY:
     return "ENTRY";
-  case EQUAL:
+  case LEX_EQUAL:
     return "EQUAL";
-  case ID:
+  case LEX_ID:
     return "ID";
-  case IF:
+  case LEX_IF:
     return "IF";
-  case INC:
+  case LEX_INC:
     return "INC";
-  case MAJOR:
+  case LEX_MAJOR:
     return "MAJOR";
-  case MINOR:
+  case LEX_MINOR:
     return "MINOR";
-  case MINUS:
+  case LEX_MINUS:
     return "MINUS";
-  case NEWLINE:
+  case LEX_NEWLINE:
     return "NEWLINE";
-  case NOT:
+  case LEX_NOT:
     return "NOT";
-  case NUMBER:
+  case LEX_NUMBER:
     return "NUMBER";
-  case PLUS:
+  case LEX_PLUS:
     return "PLUS";
-  case TIMES:
+  case LEX_TIMES:
     return "TIMES";
-  case VAR:
+  case LEX_VAR:
     return "VAR";
   default:
     return "UNKNOWN";
