@@ -3,7 +3,7 @@ AR=ar
 RANLIB=ranlib
 
 all:
-	$(CC) -c lex.c -g -Wall -pedantic -std=gnu11
+	$(CC) -c lex.c -g -Wall -pedantic -std=c11
 	$(AR) -rc liblex.a lex.o
 	$(RANLIB) liblex.a
 	cp liblex.a ..

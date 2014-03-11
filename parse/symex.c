@@ -21,7 +21,7 @@ int main(void) {
     symbols_register(symt, "ponye", "string");
 
     const char *t;
-    if(symbols_getType(symt, "ponye", &t)) {
+    if((t = symbols_getType(symt, "ponye"))) {
         printf("ponye is of type %s\n", t);
     }
 

@@ -1,5 +1,6 @@
 #include "lex.h"
 #include "../utils/utils.h"
+#include "../utils/env.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,22 +10,22 @@ int main(void) {
   struct lexer *lex = lexer_open("../base.helm");
 
   if (lex->errcode) {
-    puts(lex->error);
+    env.fail("Cannot init lexer, errcode=%d", lex->errcode);
   }
 
-  do {
-    
-    struct token tok = gettok(lex);
-    
-    fputs(represent(tok.type), stdout);
+  struct token *tok;
 
-    switch (tok.type) {
+  while((tok = token_get(lex))) {
+    
+    fputs(token_str(tok), stdout);
+
+    switch (tok->type) {
     case LEX_ID:
-      printf(": %s\n", (char*) tok.value);
+      printf(": %s\n", (char*) tok->value);
       break;
 
     case LEX_NUMBER:
-      printf(": %ld\n", tok.value);
+      printf(": %ld\n", tok->value);
       break;
 
     default:
@@ -32,15 +33,18 @@ int main(void) {
       break;
     }
 
-    freetok(tok);
+    token_free(tok);
     
-  } while (!lex->errcode);
+  } 
 
-  if (lex->errcode && lex->errcode != FILEEND) {
-    perror(lex->error);
+  int ret = EXIT_SUCCESS;
+
+  if (lexer_error(lex)) {
+    env.error("Errors during lexing of file");
+    ret = EXIT_FAILURE;
   }
 
   lexer_close(lex);
 
-  return EXIT_SUCCESS;
+  return ret;
 }

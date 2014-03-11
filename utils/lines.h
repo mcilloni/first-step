@@ -6,8 +6,14 @@
 #include <stdio.h>
 
 struct line{
-  size_t len, position;
+  size_t len;
+  size_t position;
+  size_t lineno;
   char *val;
+};
+
+struct lineno {
+  size_t no,pos;
 };
 
 struct line line_read(FILE *file, enum errors *err);

@@ -1,5 +1,6 @@
 #include "lex.h"
 #include "../utils/utils.h"
+#include "../utils/env.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -11,28 +12,22 @@
 #include <jemalloc/jemalloc.h>
 
 
-static inline struct lexer* err(struct lexer *lex, const char *error) {
-  lex->errcode = ERROR;
-  lex->error = error;
-  return lex;
-}
-
 struct lexer* lexer_open(const char *path) {
   struct lexer *lex = calloc(1,sizeof(struct lexer)); 
   
   lex->file = fopen(path, "r");
   if (!lex->file) {
-    return err(lex, "Cannot open file");
+    env.fail("Cannot open file %s: %s", path, strerror(errno));
   }
 
-  lex->current = line_read(lex->file, &lex->errcode);
+  env_setLine(line_read(lex->file, &lex->errcode));
   
-  if (lex->errcode == ERROR) {
-    lex->error = "Error, who knows why";
+  if (lexer_error(lex)) {
+    env.fail("Error while reading file %s: %s", strerror(errno));
   }
 
-  lex->peek = *(lex->current.val);
-  ++lex->current.position;
+  lex->peek = *(env.line.val);
+  ++env.line.position;
   
   lex->newline = false;
 
@@ -46,9 +41,18 @@ void lexer_close(struct lexer *lex) {
     fclose(lex->file);
   }
 
-  line_free(lex->current);
+  line_free(env.line);
   free(lex);
   
+}
+
+void lexer_discardLine(struct lexer *lex) {
+      env_setLine(line_read(lex->file, &lex->errcode));
+
+      if (!lexer_error(lex)) {
+        lex->peek = *env.line.val;
+        ++env.line.position;
+      }
 }
 
 bool stok(struct lexer *lex, char *data, size_t max) {
@@ -66,23 +70,17 @@ bool stok(struct lexer *lex, char *data, size_t max) {
   for (i = 0; i < max && !lex->newline;) {
     
     ch = lex->peek;
-    ++lex->current.position;
+    ++env.line.position;
 
-    lex->newline = (lex->current.len + 1) == lex->current.position;     
+    lex->newline = (env.line.len + 1) == env.line.position;     
 
     if (!lex->newline) {
-      lex->peek = lex->current.val[lex->current.position - 1];     
+      lex->peek = env.line.val[env.line.position - 1];     
     } else {
-      line_free(lex->current);
-      lex->current = line_read(lex->file, &lex->errcode);
-
-      if (lex->errcode == ERROR) {
-        lex->error = "Error, who knows why";
+      lexer_discardLine(lex);
+      if (lexer_error(lex)) {
         return false;
       }
-
-      lex->peek = *lex->current.val;
-      ++lex->current.position;
     }
 
     if (isblank(ch)) {
@@ -108,7 +106,7 @@ bool stok(struct lexer *lex, char *data, size_t max) {
 
   if (i == max) {
     lex->errcode = ERROR;
-    lex->error = "Token too long";
+    env.error("Token too long");
     return false;
   }
 
@@ -120,194 +118,207 @@ bool stok(struct lexer *lex, char *data, size_t max) {
 
 #define MAX_TOKEN_LENGTH 1024 //fucking C messing VLAs with constant arrays
 
-struct token gettok(struct lexer *lex) {
+struct token* token_get(struct lexer *lex) {
+
+  if (lexer_error(lex) || lexer_eof(lex)) {
+    return NULL;
+  }
 
   const char data[MAX_TOKEN_LENGTH];
 
-  struct token res = {LEX_NONE, 0};
-
   if (!stok(lex, (char*) data, MAX_TOKEN_LENGTH)) {
-    return res;
+    return NULL;
   }
+
+  struct token *res = calloc(1, sizeof(struct token));
 
   // \n
   if (!strcmp("\n", data)) {
-    res.type = LEX_NEWLINE;
+    res->type = LEX_NEWLINE;
     return res;
   }
 
   // /
   if (!strcmp("/", data)) {
-    res.type = LEX_DIV;
+    res->type = LEX_DIV;
     return res;
   }
 
   // =
 
   if (!strcmp("=", data)) {
-    res.type = LEX_ASSIGN;
+    res->type = LEX_ASSIGN;
     return res;
   }
 
   // ==
   if (!strcmp("==", data)) {
-    res.type = LEX_EQUAL;
+    res->type = LEX_EQUAL;
     return res;
   }
 
   // !=
   if (!strcmp("!=", data)) {
-    res.type = LEX_DIFFERENT;
+    res->type = LEX_DIFFERENT;
     return res;
   }
 
   // >
   if (!strcmp(">", data)) {
-    res.type = LEX_MAJOR;
+    res->type = LEX_MAJOR;
     return res;
   }
 
   // <
   if (!strcmp("<", data)) {
-    res.type = LEX_MINOR;
+    res->type = LEX_MINOR;
     return res;
   }
 
   // *
   if (!strcmp("*", data)) {
-    res.type = LEX_TIMES;
+    res->type = LEX_TIMES;
     return res;
   }
 
   // +
   if (!strcmp("+", data)) {
-    res.type = LEX_PLUS;
+    res->type = LEX_PLUS;
     return res;
   }
   
   // -
   if (!strcmp("-", data)) {
-    res.type = LEX_MINUS;
+    res->type = LEX_MINUS;
     return res;
   }
 
   // ++
   if (!strcmp("++", data)) {
-    res.type = LEX_INC;
+    res->type = LEX_INC;
     return res;
   }
 
   // --
   if (!strcmp("--", data)) {
-    res.type = LEX_DEC;
+    res->type = LEX_DEC;
     return res;
   }
 
   // !
   if (!strcmp("!", data)) {
-    res.type = LEX_NOT;
+    res->type = LEX_NOT;
     return res;
   }
 
   // entry
   if (!strcmp("entry", data)) {
-    res.type = LEX_ENTRY;
+    res->type = LEX_ENTRY;
     return res;
   }
 
   // /entry
   if (!strcmp("/entry", data)) {
-    res.type = LEX_ENDENTRY;
+    res->type = LEX_ENDENTRY;
     return res;
   }
 
   // if
   if (!strcmp("if", data)) {
-    res.type = LEX_IF;
+    res->type = LEX_IF;
     return res;
   }
 
   // /if
   if (!strcmp("/if", data)) {
-    res.type = LEX_ENDIF;
+    res->type = LEX_ENDIF;
     return res;
   }
 
   if (!strcmp("var", data)) {
-    res.type = LEX_VAR;
+    res->type = LEX_VAR;
     return res;
   }
 
   // number
   if (isStrNum(data)) {
-    res.type = LEX_NUMBER;
-    res.value = atoll(data);
+    res->type = LEX_NUMBER;
+    res->value = atoll(data);
     return res;
   }
 
   //generic id
-  res.type = LEX_ID;
-  res.value = (intmax_t) strdup(data);
+  res->type = LEX_ID;
+  res->value = (uintptr_t) str_clone(data);
   
   return res;
 }
 
-void freetok(struct token tok) {
+void token_free(struct token *tok) {
 
-  if (tok.type == LEX_ID) {
-    free( (void*) tok.value);
+  if (tok->type == LEX_ID) {
+    free( (void*) tok->value);
   }
+
+  free(tok);
 
 }
 
-const char* represent(enum token_type tok) {
-  switch (tok) {
+const char* token_str(struct token *tok) {
+  switch (tok->type) {
   case LEX_NONE:
     return "NONE";
   case LEX_ASSIGN:
-    return "ASSIGN";
+    return "=";
   case LEX_DEC:
-    return "DEC";
+    return "--";
   case LEX_DIFFERENT:
-    return "DIFFERENT";
+    return "!=";
   case LEX_DIV:
-    return "DIV";
+    return "/ (Division)";
   case LEX_ENDENTRY:
-    return "ENDENTRY";
+    return "/entry";
   case LEX_ENDIF:
-    return "ENDIF";
+    return "/if";
   case LEX_ENTRY:
-    return "ENTRY";
+    return "entry";
   case LEX_EQUAL:
-    return "EQUAL";
+    return "==";
   case LEX_ID:
-    return "ID";
+    return "an identifier";
   case LEX_IF:
-    return "IF";
+    return "if";
   case LEX_INC:
-    return "INC";
+    return "++";
   case LEX_MAJOR:
-    return "MAJOR";
+    return ">";
   case LEX_MINOR:
-    return "MINOR";
+    return "<";
   case LEX_MINUS:
-    return "MINUS";
+    return "-";
   case LEX_NEWLINE:
-    return "NEWLINE";
+    return "a new line";
   case LEX_NOT:
-    return "NOT";
+    return "!";
   case LEX_NUMBER:
-    return "NUMBER";
+    return "a number";
   case LEX_PLUS:
-    return "PLUS";
+    return "+";
   case LEX_TIMES:
-    return "TIMES";
+    return "*";
   case LEX_VAR:
-    return "VAR";
+    return "var";
   default:
-    return "UNKNOWN";
+    return "unknown";
   }
 
   return "";
 }
 
+bool lexer_eof(struct lexer *lex) {
+  return lex->errcode == FILEEND;
+}
+
+bool lexer_error(struct lexer *lex) {
+  return lex->errcode == ERROR;
+}

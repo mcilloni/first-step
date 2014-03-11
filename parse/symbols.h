@@ -21,7 +21,7 @@ typedef StringMap Symbols;
 extern Symbols* (*symbols_new) (void);
 enum symbols_resp symbols_register(Symbols *symt, const char *id, const char *type);
 extern bool (*symbols_defined)(Symbols *symt, const char *id);
-extern bool (*symbols_getType)(Symbols *symt, const char *id, const char **type);
+const char* symbols_getType(Symbols *symt, const char *id);
 extern void (*symbols_free)(Symbols *symt);
 
 #endif

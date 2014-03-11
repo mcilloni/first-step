@@ -2,15 +2,13 @@ program = { definition }
 
 definition = entry
 
-entry = 'entry', newLine, body, newLine, '/entry'
+entry = 'entry', stmtEnd, body, '/entry'
 
-body = {stmts}
-
-stmts = {stmt}
+body = {stmt}
 
 stmt = (if | declaration | expr), stmtEnd
 
-if = 'if', expr, newLine, body, newLine, '/if'
+if = 'if', expr, stmtEnd, body, '/if'
 declaration = 'var', (mulVarDecl | singleVarDecl)
 stmtEnd = newLine | ';'
 
@@ -25,15 +23,13 @@ id = letter, {(letter | cipher)}
 
 expr = ('(', exprC, ')') | exprC
 
-exprC = dec | inc | id | arithExp | assign | const
-
-arithExp = (expr, binOp, expr) | (unOp,expr)
+exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const
 
 const = number
 
 number = decNumber | binNumber | hexNumber
 
-binOp = '+' | '-' | '*' | '/' | 'and' | 'or'
+binOp = '+' | '-' | '*' | '/' | 'and' | 'or' | '==' | '!='
 unOp = '-' | '!' 
 inc = id, '++'
 dec = id, '--'

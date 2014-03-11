@@ -1,5 +1,5 @@
-#if !defined(LEX_H)
-#define LEX_H
+#if !defined(_LEX_H)
+#define _LEX_H
 
 #include "../utils/errors.h"
 #include "../utils/lines.h"
@@ -40,23 +40,25 @@ static const char *const lex_errors[] = {
 struct lexer {
   FILE *file;
   enum errors errcode;
-  const char *error;
 
-  struct line current;
   char peek;
   bool newline;
 };
 
 struct token {
   enum token_type type;
-  intmax_t value;
+  uintptr_t value;
 };
 
-struct lexer* lexer_open(const char *path);
-void lexer_close(struct lexer *lex);
-struct token gettok(struct lexer *lex);
-void freetok(struct token tok);
+struct token* token_get(struct lexer *lex);
+void token_free(struct token* tok);
 
-const char* represent(enum token_type tok);
+void lexer_close(struct lexer *lex);
+void lexer_discardLine(struct lexer *lex);
+bool lexer_eof(struct lexer *lex);
+bool lexer_error(struct lexer *lex);
+struct lexer* lexer_open(const char *path);
+
+const char* token_str(struct token *tok);
 
 #endif

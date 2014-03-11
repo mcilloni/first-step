@@ -3,12 +3,17 @@ AR=ar
 RANLIB=ranlib
 
 all: clean
-	$(CC) -c symbols.c pnleaves.c -g -Wall -pedantic -std=gnu11
-	$(AR) -rc libparse.a symbols.o pnleaves.o
+	$(CC) -c symbols.c -g -Wall -pedantic -std=c11
+	$(CC) -c pnleaves.c -g -Wall -pedantic -std=c11
+	$(CC) -c ptree.c -g -Wall -pedantic -std=c11
+	$(CC) -c parse.c -g -Wall -pedantic -std=c11
+	$(CC) -c expr.c -g -Wall -pedantic -std=c11
+	$(AR) -rc libparse.a *.o
 	$(RANLIB) libparse.a
 	cp libparse.a ..
-	rm *.o
 	$(CC) -o symex symex.c -L.. -ljemalloc -lparse -ltreemap -lutils -g -Wall -pedantic	
+	$(CC) -o treex treex.c -L.. -ljemalloc -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
 
 clean:
 	rm -f *.{o,a,so,gch}
+	rm -f *ex
