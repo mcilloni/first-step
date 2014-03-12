@@ -1,6 +1,0 @@
-[submodule "treemap"]
-	path = treemap
-	url = git@github.com:mcilloni/treemap.git
-[submodule "array"]
-	path = array
-	url = git@github.com:mcilloni/array.git
