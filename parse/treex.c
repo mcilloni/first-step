@@ -26,7 +26,7 @@ int main(void) {
     puts((resp == SYM_ADDED) ? "Added" : "Exists");
   }
 
-  puts(pnode_symbolType(plus, "motato"));
+  puts(pnode_symbolType(plus, "motato")->name);
 
   puts(pnode_isInCurrentScope(plus, "motato") ? "Yup" : "Nope");
 

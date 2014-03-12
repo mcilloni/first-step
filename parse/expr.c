@@ -14,30 +14,59 @@ enum operator_assoc {
   ASSOC_RIGHT
 };
 
-bool expr_nextIsEnd(void) {
-  if (!next) {
-    env.fail("Unexpected end of file in expression body");
-  }
-
-  switch (next->type) {
-  case LEX_NEWLINE:
-    return true;
-
-  default:
-    return false;
-  }
-}
-
 struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnode *right) {
-  return NULL;
+  struct pnode *ret = NULL; 
+  int64_t lval = pnode_getval(left);
+  int64_t rval = pnode_getval(right);
+
+  switch (tok->type) {
+  case LEX_PLUS: 
+    ret = pnode_newval(PR_NUMBER, lval + rval);
+    break;
+  case LEX_TIMES:
+    ret = pnode_newval(PR_NUMBER, lval * rval);
+    break;
+  case LEX_DIV:
+    ret = pnode_newval(PR_NUMBER, lval / rval);
+    break;
+  case LEX_EQUAL:
+    ret = pnode_newval(PR_NUMBER, lval == rval);
+    break;
+  case LEX_DIFFERENT:
+    ret = pnode_newval(PR_NUMBER, lval != rval);
+    break;
+  case LEX_MAJOR:
+    ret = pnode_newval(PR_NUMBER, lval > rval);
+    break;
+  case LEX_MINOR:
+    ret = pnode_newval(PR_NUMBER, lval < rval);
+    break;
+  default:
+    env.fail("A wrong token finished into constant evaluation: %s", token_str(tok));
+    break;
+  }
+
+  return ret;
 }
 
 struct pnode* expr_evalUnary(struct token *tok, struct pnode *operand) {
-  return NULL;
-}
+  struct pnode *ret = NULL;
 
-void expr_fixMinusConst(Array *expr) {
+  int64_t value = pnode_getval(operand);
 
+  switch (tok->type) {
+  case LEX_NOT:
+    ret = pnode_newval(PR_NUMBER, !lval);
+  case LEX_INC:
+  case LEX_DEC:
+    env.fail("Cannot apply %s to a constant value", token_str(tok));
+    break;
+  default:
+    env.fail("A wrong token finished into constant evaluation: %s", token_str(tok));
+    break;
+  }
+
+  return ret;
 }
 
 size_t expr_findLowPriorityOp(Array *expr) {
@@ -60,13 +89,25 @@ bool expr_isUnaryOp(struct token *tok) {
   return false;
 }
 
+bool expr_nextIsEnd(void) {
+  if (!next) {
+    env.fail("Unexpected end of file in expression body");
+  }
+
+  switch (next->type) {
+  case LEX_NEWLINE:
+    return true;
+
+  default:
+    return false;
+  }
+}
+
 enum nonterminals expr_ntFromTokVal(enum token_type type) {
   return PR_PROGRAM;
 }
 
-struct pnode* expr_treeize(Array *expr) {
-
-  expr_fixMinusConst(expr);
+struct pnode* expr_treeize(struct pnode *root, Array *expr) {
 
   struct pnode *ret = NULL;
 
@@ -74,9 +115,13 @@ struct pnode* expr_treeize(Array *expr) {
     struct token *tok = *array_get(expr, 0);
 
     switch (tok->type) {
-    case LEX_ID:
-      ret = pnode_newval(PR_ID, (uintptr_t) str_clone((const char*) tok->value));
+    case LEX_ID: {
+
+      const char *id = str_clone((const char*) tok->value);
+
+      ret = pnode_newval(PR_ID, (uintptr_t) id);
       break;
+    }
     case LEX_NUMBER:
       ret = pnode_newval(PR_NUMBER, tok->value);
       break;
@@ -92,9 +137,13 @@ struct pnode* expr_treeize(Array *expr) {
     struct token *tok = *array_get(expr, pos);
     if (expr_isBinaryOp(tok)) {
 
-      struct pnode *left = expr_treeize(array_slice(expr, 0, pos));
-      struct pnode *right = expr_treeize(array_slice(expr, pos, -1));
-  
+      struct pnode *left = expr_treeize(root, array_slice(expr, 0, pos));
+      struct pnode *right = expr_treeize(root, array_slice(expr, pos, -1));
+
+      if (tok->type == LEX_ASSIGN) {
+        pnode_verifyNodesAreCompatible(left, right);
+      }
+
       if (pnode_isConst(left) && pnode_isConst(right)) {
 
         ret = expr_evalBinary(tok, left, right);
@@ -104,6 +153,7 @@ struct pnode* expr_treeize(Array *expr) {
       } else {
 
         ret = pnode_new(expr_ntFromTokVal(tok->type));
+
         pnode_addLeaf(ret, left);
         pnode_addLeaf(ret, right);
 
@@ -118,13 +168,13 @@ struct pnode* expr_treeize(Array *expr) {
             env.fail("Operator %s cannot bind to anything on its left", token_str(tok));
           }
 
-          operand = expr_treeize(array_slice(expr, 0, pos));
+          operand = expr_treeize(root, array_slice(expr, 0, pos));
         } else {
           if (pos + 1 == array_len(expr)) {
             env.fail("Operator %s cannot bind to anything on its right", token_str(tok));
           }
 
-          operand = expr_treeize(array_slice(expr, pos, -1));
+          operand = expr_treeize(root, array_slice(expr, pos, -1));
         }
 
         if (!expr_isOpCompatible(tok, operand)) {
@@ -167,7 +217,7 @@ struct pnode* expr(struct pnode *root, struct lexer *lex) {
     env.fail("Empty expression body");
   }
 
-  return expr_treeize(arr);
+  return expr_treeize(root, arr);
 
 }
 

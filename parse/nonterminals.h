@@ -17,7 +17,6 @@ enum nonterminals {
   PR_MULVARDECL,
   PR_SINGLEVARDECL,
   PR_VARDECL,
-  PR_ASSIGN,
   PR_ID,
   PR_EXPR,
   PR_EXPRC,

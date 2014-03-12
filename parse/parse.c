@@ -62,7 +62,7 @@ void decl(struct pnode *this, struct lexer *lex) {
   }
 
   const char *id = (const char*) tok->value;
-  const char *declType = pnode_symbolType(this,id);
+  struct type *declType = pnode_symbolType(this,id);
 
   enum symbols_resp resp;
 
@@ -73,9 +73,9 @@ void decl(struct pnode *this, struct lexer *lex) {
   //declType will not be null if symbol is defined somewhere; resp will be SYM_EXISTS only if it is in current scope
   if (declType) {
     if (resp == SYM_EXISTS) {
-      env.fail("Error, %s is already defined in this scope with type %s", id, declType);
+      env.fail("Error, %s is already defined in this scope with type %s", id, declType->name);
     } else {
-      env.info("Declaration hides id %s with type %s", id, declType);
+      env.info("Declaration hides id %s with type %s", id, declType->name);
     }
   }
 

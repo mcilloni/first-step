@@ -1,4 +1,7 @@
 #include "ptree.h"
+#include "types.h"
+
+#include "../utils/env.h"
 
 #include <jemalloc/jemalloc.h>
 
@@ -6,6 +9,12 @@ struct pscope {
   struct pnode node;                                                                                                               
   Symbols *symbols;                                                                                        
 };       
+
+struct pexpr {
+  struct pnode node;
+  uintptr_t value;
+  struct type *type;
+};
 
 void pnode_addLeaf(struct pnode *pnode, struct pnode *leaf) {
   leaf->root = pnode;
@@ -34,7 +43,98 @@ bool pnode_addSymbol(struct pnode *pnode, const char *id, const char *type, enum
   return true;
 }
 
-const char* pnode_symbolType(struct pnode *pnode, const char *id) {
+uintptr_t pnode_getval(struct pnode *pnode) {
+  if (!pnode_isValue(pnode)) {
+    return 0;
+  }
+
+  return ((struct pexpr*) pnode)->value;
+}
+
+void pnode_verifyNodesAreCompatible(struct pnode *assign, struct pnode *assigned) {
+
+  struct type *first = pnode_evalType(assign);
+  struct type *second = pnode_evalType(assigned);
+
+  switch(type_areCompatible(first, second)) {
+  case TYPECOMP_NO:
+    env.fail("Cannot assign an expression of type %s to a location of type %s", second->name, first->name);
+    break;
+  case TYPECOMP_SMALLER:
+    env.warning("Coercing an expression of type %s to smaller type %s", second->name, first->name);
+    break;
+  default:
+    break;
+  }
+
+}
+
+struct type* pnode_evalType(struct pnode *pnode) {
+
+  if (!(pnode && pnode_isValue(pnode))) {
+    return NULL;
+  }
+
+  struct pexpr *pexpr = (struct pexpr*) pnode;
+  struct type *ret = NULL;
+
+  if (pexpr->type) {
+    return pexpr->type; 
+  } 
+
+  switch (pnode->id){ 
+  case PR_BINOP: {
+  
+    struct type *firstType = pnode_evalType(*leaves_get(pnode->leaves, 0));
+    struct pnode *second = *leaves_get(pnode->leaves, 1);
+
+    if (pexpr->value == LEX_ASSIGN) {
+      ret = firstType; //only the destination type matters
+    } else {
+      ret = type_evalLarger(firstType, pnode_evalType(second));
+    }
+
+    break;
+  }
+
+  case PR_ID: {
+    ret = pnode_symbolType(pnode, (const char*) pexpr->value);
+    break;
+  }
+                
+  case PR_UNOP: {
+    ret = pnode_evalType(*leaves_get(pnode->leaves, 0));
+    break;
+  }
+
+  case PR_NUMBER: {
+    ret = type_evalNumberType(pexpr->value);
+    break;
+  }
+ 
+  default: 
+    ret = NULL;
+  }
+
+  pexpr->type = ret;
+
+  return ret;
+
+}
+
+bool pnode_getValue(struct pnode *pnode, uintptr_t *val) {
+
+  if (!pnode_isValue(pnode)) {
+    return false;
+  }
+  
+  *val = ((struct pexpr*) pnode)->value;
+
+  return true;
+
+}
+
+struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
 
   if (!pnode) {
     return NULL;
@@ -46,7 +146,7 @@ const char* pnode_symbolType(struct pnode *pnode, const char *id) {
     return pnode_symbolType(pnode->root, id);
   }
 
-  return type;
+  return type_getTypeDef(NULL, type);
 
 }
 
@@ -118,7 +218,12 @@ struct pnode* pnode_new(enum nonterminals id) {
     ret = malloc(sizeof(struct pscope));
     ((struct pscope*) ret)->symbols = symbols_new();
   } else { 
-    ret = malloc(sizeof(struct pnode));
+    if (value) {
+      //so the type should be NULL
+      ret = calloc(1, sizeof(struct pexpr));
+    } else {
+      ret = malloc(sizeof(struct pnode));
+    }
   }
 
   ret->id = id;
@@ -129,13 +234,13 @@ struct pnode* pnode_new(enum nonterminals id) {
 }
 
 struct pnode* pnode_newval(enum nonterminals id, uintptr_t val) {
-  struct pnode *ret = pnode_new(id);
+  struct pexpr *ret = (struct pexpr*) pnode_new(id);
   
-  if (pnode_isValue(ret)) {
-    ret->leaves = (void*) val;
+  if (pnode_isValue(&(ret->node))) {
+    ret->value = val;
   }
   
-  return ret;
+  return (struct pnode*) ret;
 }
 
 void pnode_free(struct pnode *pnode) {
@@ -143,13 +248,13 @@ void pnode_free(struct pnode *pnode) {
     symbols_free(((struct pscope*) pnode)->symbols);
   } 
 
-  if (!pnode_isValue(pnode) || (pnode->id == PR_ID)) {
-    if (pnode->id != PR_ID) {
-      array_freeContents(pnode->leaves, (void (*) (void*)) pnode_free);
+  if (!pnode_isConst(pnode)) {
+    if (pnode->id == PR_ID) {
+      free((void*)((struct pexpr*) pnode)->value);
     }
-
+    array_freeContents(pnode->leaves, (void (*) (void*)) pnode_free);
     array_free(pnode->leaves);
-  }
+  } 
 
   free(pnode);
 }
