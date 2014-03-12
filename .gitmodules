@@ -1,0 +1,6 @@
+[submodule "treemap"]
+	path = treemap
+	url = https://github.com/mcilloni/treemap.git
+[submodule "array"]
+	path = array
+	url = https://github.com/mcilloni/array.git
