@@ -7,7 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <jemalloc/jemalloc.h>
+
 
 static const size_t initSize = 512;
 size_t lineno = -1;

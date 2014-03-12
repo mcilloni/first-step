@@ -3,7 +3,7 @@
 
 #include "../utils/env.h"
 
-#include <jemalloc/jemalloc.h>
+#include <stdlib.h>
 
 struct pscope {                                                                                         
   struct pnode node;                                                                                                               

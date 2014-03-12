@@ -1,9 +1,10 @@
 #include "utils.h"
 
 #include <ctype.h>
+#include <stdlib.h>
 #include <string.h>
 
-#include <jemalloc/jemalloc.h>
+
 
 bool isStrAlnum(const char *str) {
   size_t len = strlen(str);

@@ -12,9 +12,9 @@ all: clean
 	$(AR) -rc libparse.a *.o
 	$(RANLIB) libparse.a
 	cp libparse.a ..
-	$(CC) -o symex symex.c -L.. -ljemalloc -lparse -ltreemap -lutils -g -Wall -pedantic	
-	$(CC) -o treex treex.c -L.. -ljemalloc -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
-	$(CC) -o typex typex.c -L.. -ljemalloc -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
+	$(CC) -o symex symex.c -L..  -lparse -ltreemap -lutils -g -Wall -pedantic	
+	$(CC) -o treex treex.c -L..  -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
+	$(CC) -o typex typex.c -L..  -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
 
 clean:
 	rm -f *.{o,a,so,gch}

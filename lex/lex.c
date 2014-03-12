@@ -9,9 +9,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <jemalloc/jemalloc.h>
-
-
 struct lexer* lexer_open(const char *path) {
   struct lexer *lex = calloc(1,sizeof(struct lexer)); 
   
