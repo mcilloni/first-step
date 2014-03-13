@@ -4,3 +4,6 @@
 [submodule "array"]
 	path = array
 	url = https://github.com/mcilloni/array.git
+[submodule "list"]
+	path = list
+	url = https://github.com/mcilloni/list
