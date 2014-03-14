@@ -50,6 +50,12 @@ struct token {
   uintptr_t value;
 };
 
+enum optype {
+  OPTYPE_NOTOP = 0,
+  OPTYPE_BINARY,
+  OPTYPE_UNARY
+};
+
 struct token* token_get(struct lexer *lex);
 void token_free(struct token* tok);
 
@@ -58,7 +64,11 @@ void lexer_discardLine(struct lexer *lex);
 bool lexer_eof(struct lexer *lex);
 bool lexer_error(struct lexer *lex);
 struct lexer* lexer_open(const char *path);
+struct lexer* lexer_fromFile(FILE *file);
 
+int8_t token_comparePriority(struct token *tok1, struct token *tok2);
+int8_t token_getPriority(struct token *tok);
+enum optype token_getOpType(struct token *tok);
 const char* token_str(struct token *tok);
 
 #endif

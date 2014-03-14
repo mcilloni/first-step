@@ -12,6 +12,7 @@ all: clean
 	$(AR) -rc libparse.a *.o
 	$(RANLIB) libparse.a
 	cp libparse.a ..
+	$(CC) -o posex posex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
 	$(CC) -o symex symex.c -L..  -lparse -ltreemap -lutils -g -Wall -pedantic	
 	$(CC) -o treex treex.c -L..  -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
 	$(CC) -o typex typex.c -L..  -lparse -ltreemap -lutils -larray -g -Wall -pedantic	

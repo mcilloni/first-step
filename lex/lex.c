@@ -10,13 +10,23 @@
 #include <string.h>
 
 struct lexer* lexer_open(const char *path) {
-  struct lexer *lex = calloc(1,sizeof(struct lexer)); 
-  
-  lex->file = fopen(path, "r");
-  if (!lex->file) {
+  FILE *file = fopen(path, "r");
+
+  if (!file) {
     env.fail("Cannot open file %s: %s", path, strerror(errno));
   }
 
+  return lexer_fromFile(file);
+}
+
+struct lexer* lexer_fromFile(FILE *file) {
+  struct lexer *lex = calloc(1,sizeof(struct lexer)); 
+  
+  if (!file) {
+    env.fail("NULL file given for lexer");
+  }
+
+  lex->file = file;
   env_setLine(line_read(lex->file, &lex->errcode));
   
   if (lexer_error(lex)) {
@@ -31,7 +41,6 @@ struct lexer* lexer_open(const char *path) {
   return lex;
   
 }
-
 void lexer_close(struct lexer *lex) {
   
   if (lex->file) {
@@ -319,3 +328,73 @@ bool lexer_eof(struct lexer *lex) {
 bool lexer_error(struct lexer *lex) {
   return lex->errcode == ERROR;
 }
+
+int8_t token_comparePriority(struct token *tok1, struct token *tok2) {
+  uint8_t p1 = token_getPriority(tok1);
+  uint8_t p2 = token_getPriority(tok2);
+
+  return (p1 > p2) - (p1 < p2);
+}
+
+int8_t token_getPriority(struct token *tok) {
+  switch(tok->type) {
+  case LEX_ASSIGN:
+    return 1;
+ /* 
+  case LEX_OR:
+    return 2;
+
+  case LEX_AND:
+    return 3;
+*/
+  case LEX_DIFFERENT:
+  case LEX_EQUAL:
+    return 4;
+
+  case LEX_MAJOR:
+  case LEX_MINOR:
+    return 5;
+
+  case LEX_PLUS:
+    return 6;
+
+  case LEX_DIV:
+  case LEX_TIMES:
+    return 7;
+
+  case LEX_MINUS:
+  case LEX_NOT:
+    return 8;
+
+  case LEX_INC:
+  case LEX_DEC:
+    return 9;
+
+  default:
+    return -1;
+  }
+}
+
+enum optype token_getOpType(struct token *tok) {
+  switch (tok->type) {
+  case LEX_DEC:
+  case LEX_INC:
+  case LEX_MINUS:
+  case LEX_NOT:
+    return OPTYPE_UNARY;
+
+  case LEX_ASSIGN:
+  case LEX_DIFFERENT:
+  case LEX_DIV:
+  case LEX_EQUAL:
+  case LEX_MAJOR:
+  case LEX_MINOR:
+  case LEX_PLUS:
+  case LEX_TIMES:
+    return OPTYPE_BINARY;
+
+  default:
+    return OPTYPE_NOTOP;
+  }
+}
+
