@@ -37,17 +37,19 @@ static const char *const lex_errors[] = {
   "Error"
 };
 
+struct token {
+  enum token_type type;
+  uintptr_t value;
+};
+
 struct lexer {
   FILE *file;
   enum errors errcode;
 
   char peek;
   bool newline;
-};
 
-struct token {
-  enum token_type type;
-  uintptr_t value;
+  char *saved;
 };
 
 enum optype {

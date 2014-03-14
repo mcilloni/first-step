@@ -130,10 +130,16 @@ struct token* token_get(struct lexer *lex) {
     return NULL;
   }
 
-  const char data[MAX_TOKEN_LENGTH];
+  char data[MAX_TOKEN_LENGTH];
 
-  if (!stok(lex, (char*) data, MAX_TOKEN_LENGTH)) {
-    return NULL;
+  if (lex->saved) {
+    strcpy(data, lex->saved);
+    free(lex->saved);
+    lex->saved = NULL;
+  } else {
+    if (!stok(lex, (char*) data, MAX_TOKEN_LENGTH)) {
+      return NULL;
+    }
   }
 
   struct token *res = calloc(1, sizeof(struct token));
@@ -144,14 +150,7 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
-  // /
-  if (!strcmp("/", data)) {
-    res->type = LEX_DIV;
-    return res;
-  }
-
   // =
-
   if (!strcmp("=", data)) {
     res->type = LEX_ASSIGN;
     return res;
@@ -238,6 +237,15 @@ struct token* token_get(struct lexer *lex) {
   // /if
   if (!strcmp("/if", data)) {
     res->type = LEX_ENDIF;
+    return res;
+  }
+
+  // /
+  if (*data == '/') {
+    res->type = LEX_DIV;
+    if (strlen(data) > 1) {
+      lex->saved = str_clone(data + 1);
+    }
     return res;
   }
 

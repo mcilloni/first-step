@@ -8,6 +8,7 @@
 #include <string.h>
 
 extern size_t expr_findLowPriorityOp(List *expr);
+extern void expr_fixMinus(List *expr);
 
 void printlist(List *list) {
   bool inside = false;
@@ -43,7 +44,10 @@ void printlist(List *list) {
 }
  
 int main(void) {
-  char *toLex = "3+4+7/3-2";
+  char *toLex = "-5-6-7-8";
+
+  printf("Expr: %s\n", toLex);
+
   struct lexer *lex = lexer_fromFile(fmemopen(toLex, strlen(toLex), "r"));
 
   if (lex->errcode) {
@@ -69,9 +73,13 @@ int main(void) {
 
   size_t pos = expr_findLowPriorityOp(list);
 
-  printf("Lowest rightest low priority op: %lu\n", pos);
+  printf("Lowest rightest low priority op: %lu (%s)\n", pos, token_str(*list_get(list, pos)));
 
   puts(token_str((struct token*) *list_get(list, pos)));
+
+  expr_fixMinus(list);
+
+  printlist(list);
 
   lexer_close(lex);
 

@@ -11,6 +11,7 @@
 extern struct token *next;
 
 enum operator_assoc {
+  ASSOC_NOTOP,
   ASSOC_LEFT,
   ASSOC_RIGHT
 };
@@ -110,13 +111,35 @@ void expr_fixMinus(List *expr) {
         aux = calloc(1, sizeof(struct token));
         aux->type = LEX_PLUS;
         list_add(expr, i, aux);
+        ++len;
+        ++i;
       }
     }
   } 
 }
 
 enum operator_assoc expr_getOpAssociation(struct token *tok) {
-  return ASSOC_LEFT;
+  switch(token_getOpType(tok)) {
+  case OPTYPE_BINARY: {
+    switch(tok->value) {
+    case LEX_ASSIGN:
+      return ASSOC_RIGHT;
+    default:
+      return ASSOC_LEFT;
+    }
+  }
+  case OPTYPE_UNARY: {
+    switch(tok->value) {
+    case LEX_MINUS:
+    case LEX_NOT:
+      return ASSOC_RIGHT;
+    default:
+      return ASSOC_LEFT;
+    }
+  }
+  default:
+    return ASSOC_NOTOP;
+  }
 }
 
 struct pnode* expr_handleSingle(List *expr) {
@@ -142,8 +165,37 @@ struct pnode* expr_handleSingle(List *expr) {
     return ret;
 }
 
-bool expr_isOpCompatible(struct token *tok, struct pnode *operand) {
-  return false;
+bool expr_isBinOpCompatible(struct token *tok, struct pnode *left, struct pnode *right) {
+  
+  switch (tok->type) {
+  case LEX_DIFFERENT:
+  case LEX_DIV:
+  case LEX_EQUAL:
+  case LEX_MAJOR:
+  case LEX_MINOR:
+  case LEX_PLUS:
+  case LEX_TIMES:
+    return pnode_evalType(left)->kind == pnode_evalType(right)->kind == TYPE_NUMERIC;
+  default:
+    env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
+    return false;
+  }
+
+}
+
+bool expr_isUnOpCompatible(struct token *tok, struct pnode *operand) {
+  
+  switch (tok->type) {
+  case LEX_DEC:
+  case LEX_INC:
+  case LEX_MINUS:
+  case LEX_NOT:
+    return pnode_evalType(operand)->kind == TYPE_NUMERIC;
+  default:
+    env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
+    return false;
+  }
+  
 }
 
 bool expr_nextIsEnd(void) {
@@ -160,8 +212,19 @@ bool expr_nextIsEnd(void) {
   }
 }
 
-enum nonterminals expr_ntFromTokVal(enum token_type type) {
-  return PR_PROGRAM;
+enum nonterminals expr_ntFromTokVal(struct token *tok) {
+
+  switch (token_getOpType(tok)) {
+  case OPTYPE_BINARY:
+    return PR_BINOP;
+
+  case OPTYPE_UNARY:
+    return PR_UNOP;
+  default:
+    env.fail("I have no idea of what I am doing");
+    return PR_PROGRAM;
+  }
+  
 }
 
 
@@ -190,6 +253,10 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         pnode_verifyNodesAreCompatible(left, right);
       }
 
+      if (!expr_isBinOpCompatible(tok, left, right)) {
+        env.fail("Cannot apply operator %s to types %s and %s", pnode_evalType(left)->name, pnode_evalType(right)->name);
+      }
+
       if (pnode_isConst(left) && pnode_isConst(right)) {
 
         ret = expr_evalBinary(tok, left, right);
@@ -198,7 +265,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
       } else {
 
-        ret = pnode_new(expr_ntFromTokVal(tok->type));
+        ret = pnode_new(expr_ntFromTokVal(tok));
 
         pnode_addLeaf(ret, left);
         pnode_addLeaf(ret, right);
@@ -224,7 +291,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         operand = expr_treeize(root, list_extract(expr, pos, -1));
       }
 
-      if (!expr_isOpCompatible(tok, operand)) {
+      if (!expr_isUnOpCompatible(tok, operand)) {
         env.fail("Operator %s cannot be applied to an incompatible expression", token_str(tok));
       }
 
@@ -233,7 +300,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         pnode_free(operand);
       } else {
 
-        ret = pnode_new(expr_ntFromTokVal(tok->type));
+        ret = pnode_new(expr_ntFromTokVal(tok));
         pnode_addLeaf(ret, operand);
 
       }
