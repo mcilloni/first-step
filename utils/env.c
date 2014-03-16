@@ -1,4 +1,7 @@
+#include "colors.h"
 #include "env.h"
+
+#include <execinfo.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -8,9 +11,10 @@ static bool debug_on = false;
 static uintmax_t errors = 0;
 static const uintmax_t MAX_ERRORS = 20;
 
-int std_printout(FILE *out, const char *level, const char *fmt, va_list va) {
+int std_printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va) {
 
-  int ret = fprintf(out, "(%s, line %lu, pos %lu): ", level, env.line.lineno, env.line.position) + vfprintf(out, fmt, va);
+  int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET ", line %lu, pos %lu): ", color, level, env.line.lineno, env.line.position);
+  ret += vfprintf(out, fmt, va);
 
   putc('\n', out);
 
@@ -25,7 +29,7 @@ int default_print_debug(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
 
-    ret = std_printout(stderr, "DEBUG", fmt, va);
+    ret = std_printout(stderr, "DEBUG", ANSI_COLOR_GREEN, fmt, va);
 
     va_end(va);
   }
@@ -39,7 +43,7 @@ int default_print_error(const char *fmt, ...) {
   va_list va;
   va_start(va, fmt);
 
-  int ret = std_printout(stderr, "ERROR", fmt, va);
+  int ret = std_printout(stderr, "ERROR", ANSI_COLOR_RED, fmt, va);
 
   va_end(va);
 
@@ -56,9 +60,19 @@ int default_print_fail(const char *fmt, ...) {
   va_list va;
   va_start(va, fmt);
 
-  std_printout(stderr, "FAIL", fmt, va);
+  std_printout(stderr, "FAIL", ANSI_COLOR_MAGENTA, fmt, va);
 
   va_end(va);
+
+  void *array[10];
+  size_t size = backtrace(array, 10);
+  char** strings = backtrace_symbols(array, size);
+
+  for (size_t i = 0; i < size; ++i) {
+    puts(strings[i]);
+  }
+  
+  free(strings);
 
   exit(EXIT_FAILURE);
 
@@ -71,7 +85,7 @@ int default_print_info(const char *fmt, ...) {
   va_list va;
   va_start(va, fmt);
 
-  int ret = std_printout(stderr, "INFO", fmt, va);
+  int ret = std_printout(stderr, "INFO", ANSI_COLOR_CYAN, fmt, va);
 
   va_end(va);
 
@@ -84,7 +98,7 @@ int default_print_warning(const char *fmt, ...) {
   va_list va;
   va_start(va, fmt);
 
-  int ret = std_printout(stderr, "WARNING", fmt, va);
+  int ret = std_printout(stderr, "WARNING", ANSI_COLOR_YELLOW, fmt, va);
 
   va_end(va);
 

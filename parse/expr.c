@@ -121,7 +121,7 @@ void expr_fixMinus(List *expr) {
 enum operator_assoc expr_getOpAssociation(struct token *tok) {
   switch(token_getOpType(tok)) {
   case OPTYPE_BINARY: {
-    switch(tok->value) {
+    switch(tok->type) {
     case LEX_ASSIGN:
       return ASSOC_RIGHT;
     default:
@@ -129,7 +129,7 @@ enum operator_assoc expr_getOpAssociation(struct token *tok) {
     }
   }
   case OPTYPE_UNARY: {
-    switch(tok->value) {
+    switch(tok->type) {
     case LEX_MINUS:
     case LEX_NOT:
       return ASSOC_RIGHT;
@@ -175,7 +175,7 @@ bool expr_isBinOpCompatible(struct token *tok, struct pnode *left, struct pnode 
   case LEX_MINOR:
   case LEX_PLUS:
   case LEX_TIMES:
-    return pnode_evalType(left)->kind == pnode_evalType(right)->kind == TYPE_NUMERIC;
+    return (pnode_evalType(left)->kind == TYPE_NUMERIC) && (pnode_evalType(right)->kind == TYPE_NUMERIC);
   default:
     env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
     return false;
@@ -202,6 +202,8 @@ bool expr_nextIsEnd(void) {
   if (!next) {
     env.fail("Unexpected end of file in expression body");
   }
+
+  env.debug("next@%p: %s", next, token_str(next));
 
   switch (next->type) {
   case LEX_NEWLINE:
@@ -235,7 +237,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
   struct pnode *ret = NULL;
 
   if (list_len(expr) == 1) {
-    return expr_handleSingle(expr);
+    ret = expr_handleSingle(expr);
   } else {
 
     size_t pos = expr_findLowPriorityOp(expr);  
@@ -254,7 +256,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
       }
 
       if (!expr_isBinOpCompatible(tok, left, right)) {
-        env.fail("Cannot apply operator %s to types %s and %s", pnode_evalType(left)->name, pnode_evalType(right)->name);
+        env.fail("Cannot apply operator %s to types %s and %s", token_str(tok), pnode_evalType(left)->name, pnode_evalType(right)->name);
       }
 
       if (pnode_isConst(left) && pnode_isConst(right)) {
@@ -288,7 +290,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
           env.fail("Operator %s cannot bind to anything on its right", token_str(tok));
         }
 
-        operand = expr_treeize(root, list_extract(expr, pos, -1));
+        operand = expr_treeize(root, list_extract(expr, pos + 1, -1));
       }
 
       if (!expr_isUnOpCompatible(tok, operand)) {
@@ -304,6 +306,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         pnode_addLeaf(ret, operand);
 
       }
+      break;
     } 
 
     default:    
@@ -322,9 +325,9 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 struct pnode* expr(struct pnode *root, struct lexer *lex) {
   List *list = list_new();
 
-  while(!expr_nextIsEnd()) {
+  do {
     list_append(list, token_getOrDie(lex));
-  } 
+  } while(!expr_nextIsEnd());
 
   if (!list_len(list)) {
     env.fail("Empty expression body");
