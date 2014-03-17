@@ -12,21 +12,29 @@ else
 	EXEPREFIX=
 endif
 
+UNAME := $(shell uname -s)
+
+ifeq ($(UNAME),FreeBSD)
+	MAKE=gmake
+else
+	MAKE=make
+endif
+
 all: clean
-	make -C array
-	make -C list
-	make -C treemap
-	make -C utils
+	$(MAKE) -C array
+	$(MAKE) -C list
+	$(MAKE) -C treemap
+	$(MAKE) -C utils
 	cp */*.a .
-	make -C lex
-	make -C parse	
+	$(MAKE) -C lex
+	$(MAKE) -C parse	
 	cp */*.a .
 
 clean:
-	make -C array clean
-	make -C list clean
-	make -C treemap clean
-	make -C utils clean
-	make -C lex clean
-	make -C parse clean
+	$(MAKE) -C array clean
+	$(MAKE) -C list clean
+	$(MAKE) -C treemap clean
+	$(MAKE) -C utils clean
+	$(MAKE) -C lex clean
+	$(MAKE) -C parse clean
 	rm -f *.a
