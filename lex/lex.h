@@ -10,6 +10,7 @@
 
 enum token_type {
   LEX_NONE = 0,
+  LEX_AND,
   LEX_ASSIGN,
   LEX_DEC,
   LEX_DIFFERENT,
@@ -27,7 +28,9 @@ enum token_type {
   LEX_NEWLINE,
   LEX_NOT,
   LEX_NUMBER,
+  LEX_OR,
   LEX_PLUS,
+  LEX_POW,
   LEX_TIMES,
   LEX_VAR
 };

@@ -16,6 +16,16 @@ enum operator_assoc {
   ASSOC_RIGHT
 };
 
+uintptr_t uintptrpow(uintptr_t base, uintptr_t exp) {
+  uintptr_t ret = 1U;
+
+  for (uintptr_t i = 1; i < exp; ++i) {
+    ret *= base;
+  }
+
+  return ret;
+}
+
 struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnode *right) {
   struct pnode *ret = NULL; 
   int64_t lval = pnode_getval(left);
@@ -27,6 +37,9 @@ struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnod
     break;
   case LEX_TIMES:
     ret = pnode_newval(PR_NUMBER, lval * rval);
+    break;
+  case LEX_POW:
+    ret = pnode_newval(PR_NUMBER, uintptrpow(lval, rval));
     break;
   case LEX_DIV:
     ret = pnode_newval(PR_NUMBER, lval / rval);
@@ -42,6 +55,12 @@ struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnod
     break;
   case LEX_MINOR:
     ret = pnode_newval(PR_NUMBER, lval < rval);
+    break;
+  case LEX_AND:
+    ret = pnode_newval(PR_NUMBER, lval && rval);
+    break;
+  case LEX_OR:
+    ret = pnode_newval(PR_NUMBER, lval || rval);
     break;
   default:
     env.fail("A wrong token finished into constant evaluation: %s", token_str(tok));
@@ -168,12 +187,15 @@ struct pnode* expr_handleSingle(List *expr) {
 bool expr_isBinOpCompatible(struct token *tok, struct pnode *left, struct pnode *right) {
   
   switch (tok->type) {
+  case LEX_AND:
   case LEX_DIFFERENT:
   case LEX_DIV:
   case LEX_EQUAL:
   case LEX_MAJOR:
   case LEX_MINOR:
+  case LEX_OR:
   case LEX_PLUS:
+  case LEX_POW:
   case LEX_TIMES:
     return (pnode_evalType(left)->kind == TYPE_NUMERIC) && (pnode_evalType(right)->kind == TYPE_NUMERIC);
   default:

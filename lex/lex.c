@@ -168,6 +168,18 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // and
+  if (!strcmp("and", data)) {
+    res->type = LEX_AND;
+    return res;
+  }
+
+  //or
+  if (!strcmp("or", data)) {
+    res->type = LEX_OR;
+    return res;
+  }
+
   // >
   if (!strcmp(">", data)) {
     res->type = LEX_MAJOR;
@@ -177,6 +189,12 @@ struct token* token_get(struct lexer *lex) {
   // <
   if (!strcmp("<", data)) {
     res->type = LEX_MINOR;
+    return res;
+  }
+
+  // ^
+  if (!strcmp("^", data)) {
+    res->type = LEX_POW;
     return res;
   }
 
@@ -348,13 +366,13 @@ int8_t token_getPriority(struct token *tok) {
   switch(tok->type) {
   case LEX_ASSIGN:
     return 1;
- /* 
+
   case LEX_OR:
     return 2;
 
   case LEX_AND:
     return 3;
-*/
+
   case LEX_DIFFERENT:
   case LEX_EQUAL:
     return 4;
@@ -370,13 +388,16 @@ int8_t token_getPriority(struct token *tok) {
   case LEX_TIMES:
     return 7;
 
+  case LEX_POW:
+    return 8;
+
   case LEX_MINUS:
   case LEX_NOT:
-    return 8;
+    return 9;
 
   case LEX_INC:
   case LEX_DEC:
-    return 9;
+    return 10;
 
   default:
     return -1;
@@ -391,13 +412,16 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_NOT:
     return OPTYPE_UNARY;
 
+  case LEX_AND:
   case LEX_ASSIGN:
   case LEX_DIFFERENT:
   case LEX_DIV:
   case LEX_EQUAL:
   case LEX_MAJOR:
   case LEX_MINOR:
+  case LEX_OR:
   case LEX_PLUS:
+  case LEX_POW:
   case LEX_TIMES:
     return OPTYPE_BINARY;
 
