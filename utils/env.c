@@ -13,7 +13,7 @@ static const uintmax_t MAX_ERRORS = 20;
 
 int std_printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va) {
 
-  int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET ", line %lu, pos %lu): ", color, level, env.line->lineno, env.line->position);
+  int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET ", line %zu, pos %zu): ", color, level, env.line->lineno, env.line->position);
   ret += vfprintf(out, fmt, va);
 
   putc('\n', out);

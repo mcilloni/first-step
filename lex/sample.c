@@ -25,7 +25,7 @@ int main(void) {
       break;
 
     case LEX_NUMBER:
-      printf(": %ld\n", tok->value);
+      printf(": %lu\n", tok->value);
       break;
 
     default:

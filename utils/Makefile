@@ -1,4 +1,7 @@
-CC=clang
+ifndef CC
+	CC=clang
+endif 
+
 AR=ar
 RANLIB=ranlib
 CFLAGS=
