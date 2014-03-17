@@ -19,7 +19,7 @@ enum operator_assoc {
 uintptr_t uintptrpow(uintptr_t base, uintptr_t exp) {
   uintptr_t ret = 1U;
 
-  for (uintptr_t i = 1; i < exp; ++i) {
+  for (uintptr_t i = 1; i <= exp; ++i) {
     ret *= base;
   }
 
