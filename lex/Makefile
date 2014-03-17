@@ -3,7 +3,11 @@ ifndef CC
 endif
 
 AR=ar
-RANLIB=ranlib
+
+ifndef RANLIB
+	RANLIB=ranlib
+endif
+
 CFLAGS=
 
 UNAME := $(shell uname -s)

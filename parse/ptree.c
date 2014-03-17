@@ -12,7 +12,7 @@ struct pscope {
 
 struct pexpr {
   struct pnode node;
-  uintptr_t value;
+  uintmax_t value;
   struct type *type;
 };
 
@@ -38,12 +38,16 @@ bool pnode_addSymbol(struct pnode *pnode, const char *id, const char *type, enum
     return ret;
   }
 
-  *resp = symbols_register(((struct pscope*) pnode)->symbols, id, type);
+  res = symbols_register(((struct pscope*) pnode)->symbols, id, type);
+  
+  if (resp) {
+    *resp = res;
+  }
 
   return true;
 }
 
-uintptr_t pnode_getval(struct pnode *pnode) {
+uintmax_t pnode_getval(struct pnode *pnode) {
   if (!pnode_isValue(pnode)) {
     return 0;
   }
@@ -53,8 +57,8 @@ uintptr_t pnode_getval(struct pnode *pnode) {
 
 void pnode_verifyNodesAreCompatible(struct pnode *assign, struct pnode *assigned) {
 
-  struct type *first = pnode_evalType(assign);
-  struct type *second = pnode_evalType(assigned);
+  struct type *first = pnode_evalType(assign, NULL);
+  struct type *second = pnode_evalType(assigned, NULL);
 
   switch(type_areCompatible(first, second)) {
   case TYPECOMP_NO:
@@ -69,7 +73,11 @@ void pnode_verifyNodesAreCompatible(struct pnode *assign, struct pnode *assigned
 
 }
 
-struct type* pnode_evalType(struct pnode *pnode) {
+struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
+
+  if (!scope) {
+    scope = pnode;
+  }
 
   if (!(pnode && pnode_isValue(pnode))) {
     return NULL;
@@ -85,25 +93,25 @@ struct type* pnode_evalType(struct pnode *pnode) {
   switch (pnode->id){ 
   case PR_BINOP: {
   
-    struct type *firstType = pnode_evalType(*leaves_get(pnode->leaves, 0));
+    struct type *firstType = pnode_evalType(*leaves_get(pnode->leaves, 0), scope);
     struct pnode *second = *leaves_get(pnode->leaves, 1);
 
     if (pexpr->value == LEX_ASSIGN) {
       ret = firstType; //only the destination type matters
     } else {
-      ret = type_evalLarger(firstType, pnode_evalType(second));
+      ret = type_evalLarger(firstType, pnode_evalType(second, scope));
     }
 
     break;
   }
 
   case PR_ID: {
-    ret = pnode_symbolType(pnode, (const char*) pexpr->value);
+    ret = pnode_symbolType(scope, (const char*) pexpr->value);
     break;
   }
                 
   case PR_UNOP: {
-    ret = pnode_evalType(*leaves_get(pnode->leaves, 0));
+    ret = pnode_evalType(*leaves_get(pnode->leaves, 0), scope);
     break;
   }
 
@@ -122,7 +130,7 @@ struct type* pnode_evalType(struct pnode *pnode) {
 
 }
 
-bool pnode_getValue(struct pnode *pnode, uintptr_t *val) {
+bool pnode_getValue(struct pnode *pnode, uintmax_t *val) {
 
   if (!pnode_isValue(pnode)) {
     return false;
@@ -228,12 +236,12 @@ struct pnode* pnode_new(enum nonterminals id) {
 
   ret->id = id;
   ret->root = NULL;
-  ret->leaves = value ? NULL : array_new(2);
+  ret->leaves = array_new(2);
 
   return ret;
 }
 
-struct pnode* pnode_newval(enum nonterminals id, uintptr_t val) {
+struct pnode* pnode_newval(enum nonterminals id, uintmax_t val) {
   struct pexpr *ret = (struct pexpr*) pnode_new(id);
   
   if (pnode_isValue(&(ret->node))) {

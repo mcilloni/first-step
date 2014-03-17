@@ -1,7 +1,9 @@
 #include "colors.h"
 #include "env.h"
 
-#include <execinfo.h>
+#if !(defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
+  #include <execinfo.h>
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -64,6 +66,7 @@ int default_print_fail(const char *fmt, ...) {
 
   va_end(va);
 
+#if !(defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
   void *array[10];
   size_t size = backtrace(array, 10);
   char** strings = backtrace_symbols(array, size);
@@ -73,6 +76,7 @@ int default_print_fail(const char *fmt, ...) {
   }
   
   free(strings);
+#endif
 
   exit(EXIT_FAILURE);
 

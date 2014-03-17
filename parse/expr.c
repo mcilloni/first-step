@@ -16,20 +16,32 @@ enum operator_assoc {
   ASSOC_RIGHT
 };
 
-uintptr_t uintptrpow(uintptr_t base, uintptr_t exp) {
-  uintptr_t ret = 1U;
+uintmax_t uintpow(uintmax_t base, uintmax_t exp) {
 
-  for (uintptr_t i = 1; i <= exp; ++i) {
-    ret *= base;
+  if (!exp) {
+    return 1U;
   }
 
-  return ret;
+  switch (base) {
+  case 1U:
+    return 1U;
+  case 0U:
+    return 0U;
+  default: {
+    uintmax_t ret = 1U;
+    for (uintmax_t i = 1; i <= exp; ++i) {
+      ret *= base;
+    }
+    return ret;
+  }
+  }
+
 }
 
 struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnode *right) {
   struct pnode *ret = NULL; 
-  int64_t lval = pnode_getval(left);
-  int64_t rval = pnode_getval(right);
+  intmax_t lval = pnode_getval(left);
+  intmax_t rval = pnode_getval(right);
 
   switch (tok->type) {
   case LEX_PLUS: 
@@ -39,7 +51,7 @@ struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnod
     ret = pnode_newval(PR_NUMBER, lval * rval);
     break;
   case LEX_POW:
-    ret = pnode_newval(PR_NUMBER, uintptrpow(lval, rval));
+    ret = pnode_newval(PR_NUMBER, uintpow(lval, rval));
     break;
   case LEX_DIV:
     ret = pnode_newval(PR_NUMBER, lval / rval);
@@ -161,7 +173,7 @@ enum operator_assoc expr_getOpAssociation(struct token *tok) {
   }
 }
 
-struct pnode* expr_handleSingle(List *expr) {
+struct pnode* expr_handleSingle(struct pnode *root, List *expr) {
     struct token *tok = *list_get(expr, 0);
     struct pnode *ret = NULL;
 
@@ -169,6 +181,10 @@ struct pnode* expr_handleSingle(List *expr) {
     case LEX_ID: {
 
       const char *id = str_clone((const char*) tok->value);
+      
+      if (!pnode_symbolType(root, id)) {
+        env.fail("Symbol %s not defined", id);
+      }
 
       ret = pnode_newval(PR_ID, (uintptr_t) id);
       break;
@@ -184,7 +200,7 @@ struct pnode* expr_handleSingle(List *expr) {
     return ret;
 }
 
-bool expr_isBinOpCompatible(struct token *tok, struct pnode *left, struct pnode *right) {
+bool expr_isBinOpCompatible(struct pnode *root, struct token *tok, struct pnode *left, struct pnode *right) {
   
   switch (tok->type) {
   case LEX_AND:
@@ -196,8 +212,11 @@ bool expr_isBinOpCompatible(struct token *tok, struct pnode *left, struct pnode 
   case LEX_OR:
   case LEX_PLUS:
   case LEX_POW:
-  case LEX_TIMES:
-    return (pnode_evalType(left)->kind == TYPE_NUMERIC) && (pnode_evalType(right)->kind == TYPE_NUMERIC);
+  case LEX_TIMES: {
+    struct type *tleft = pnode_evalType(left, root);
+    struct type *tright = pnode_evalType(right, root);
+    return (tleft->kind == TYPE_NUMERIC) && (tright->kind == TYPE_NUMERIC);
+  }
   default:
     env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
     return false;
@@ -205,14 +224,14 @@ bool expr_isBinOpCompatible(struct token *tok, struct pnode *left, struct pnode 
 
 }
 
-bool expr_isUnOpCompatible(struct token *tok, struct pnode *operand) {
+bool expr_isUnOpCompatible(struct pnode *root, struct token *tok, struct pnode *operand) {
   
   switch (tok->type) {
   case LEX_DEC:
   case LEX_INC:
   case LEX_MINUS:
   case LEX_NOT:
-    return pnode_evalType(operand)->kind == TYPE_NUMERIC;
+    return pnode_evalType(operand, root)->kind == TYPE_NUMERIC;
   default:
     env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
     return false;
@@ -259,7 +278,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
   struct pnode *ret = NULL;
 
   if (list_len(expr) == 1) {
-    ret = expr_handleSingle(expr);
+    ret = expr_handleSingle(root, expr);
   } else {
 
     size_t pos = expr_findLowPriorityOp(expr);  
@@ -269,6 +288,10 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
     struct token *tok = *list_get(expr, pos);
     switch (token_getOpType(tok)) {
     case OPTYPE_BINARY: {
+
+      if (!pos) {
+        env.fail("Binary operator %s found at expression start", token_str(tok));
+      }
 
       struct pnode *left = expr_treeize(root, list_extract(expr, 0, pos));
 
@@ -280,24 +303,26 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         pnode_verifyNodesAreCompatible(left, right);
       }
 
-      if (!expr_isBinOpCompatible(tok, left, right)) {
-        env.fail("Cannot apply operator %s to types %s and %s", token_str(tok), pnode_evalType(left)->name, pnode_evalType(right)->name);
-      }
-
       if (pnode_isConst(left) && pnode_isConst(right)) {
 
         ret = expr_evalBinary(tok, left, right);
         pnode_free(left);
         pnode_free(right);
-
-      } else {
-
-        ret = pnode_new(expr_ntFromTokVal(tok));
-
-        pnode_addLeaf(ret, left);
-        pnode_addLeaf(ret, right);
+        break;
 
       }
+
+      ret = pnode_newval(expr_ntFromTokVal(tok), tok->type);
+
+      pnode_addLeaf(ret, left);
+      pnode_addLeaf(ret, right);
+
+      if (!expr_isBinOpCompatible(root, tok, left, right)) {
+        struct type *ltype = pnode_evalType(left, root);
+        struct type *rtype = pnode_evalType(right, root);
+        env.fail("Cannot apply operator %s to types %s and %s", token_str(tok), ltype->name, rtype->name);
+      }
+
       break;
     } 
 
@@ -319,19 +344,20 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         operand = expr_treeize(root, list_extract(expr, pos + 1, -1));
       }
 
-      if (!expr_isUnOpCompatible(tok, operand)) {
-        env.fail("Operator %s cannot be applied to an incompatible expression", token_str(tok));
-      }
 
       if (pnode_isConst(operand)) {
         ret = expr_evalUnary(tok, operand);
         pnode_free(operand);
-      } else {
-
-        ret = pnode_new(expr_ntFromTokVal(tok));
-        pnode_addLeaf(ret, operand);
-
+        break;
       }
+
+      ret = pnode_new(expr_ntFromTokVal(tok));
+      pnode_addLeaf(ret, operand);
+
+      if (!expr_isUnOpCompatible(root, tok, operand)) {
+        env.fail("Operator %s cannot be applied to an incompatible expression", token_str(tok));
+      }
+
       break;
     } 
 

@@ -47,8 +47,17 @@ int main(void) {
   char *toLex = "-5-6-7-8";
 
   printf("Expr: %s\n", toLex);
-
-  struct lexer *lex = lexer_fromFile(fmemopen(toLex, strlen(toLex), "r"));
+  
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)       
+  FILE *crappyWin = fopen("crappyTempFile.win32crap", "w"); 
+  fputs(toLex, crappyWin);                                                                                                                   
+  fclose(crappyWin);                                                                                                                          
+  fflush(crappyWin);                                                                                                                         
+  freopen(NULL, "r", crappyWin);                                                                                                              
+  struct lexer *lex = lexer_fromFile(crappyWin);                                                                                               
+#else                                                                                                                                         
+  struct lexer *lex = lexer_fromFile(fmemopen(toLex, strlen(toLex), "r")); 
+#endif
 
   if (lex->errcode) {
     env.fail("Cannot init lexer, errcode=%d", lex->errcode);
@@ -84,6 +93,10 @@ int main(void) {
   lexer_close(lex);
 
   list_freeAll(list, (void (*)(void*)) token_free);
+
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)                                                                
+  remove("crappyTempFile.win32crap");                                                                                       
+#endif
 
   return ret;
 }

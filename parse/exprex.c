@@ -86,16 +86,35 @@ void printtree(struct pnode *root) {
   
 }
 
+const char *progName;
+
+void relaunch(void) {
+  if (!progName) {
+    return;
+  }
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)        
+    remove("crappyTempFile.win32crap");                    
+#define execl _execl
+#endif
+  if (execl(progName, progName, NULL) < 0) {
+    perror("Cannot relaunch: ");
+  }
+}
+
 int main(int argc, const char *argv[]) {
   char toLex[1024];
 
   fputs("> ", stdout);
 
+  progName = *argv;
+
+  atexit(relaunch); 
 
   fgets(toLex, 1023, stdin);
 
   if (feof(stdin)) {
     putchar('\n');
+    progName = NULL;
     return EXIT_SUCCESS;
   }
 
@@ -103,9 +122,16 @@ int main(int argc, const char *argv[]) {
 
   toLex[len] = 'a';
   toLex[len + 1] = 0;
-
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
+  FILE *crappyWin = fopen("crappyTempFile.win32crap", "w");
+  fputs(toLex, crappyWin);
+  fclose(crappyWin);
+  fflush(crappyWin);
+  freopen(NULL, "r", crappyWin);
+  struct lexer *lex = lexer_fromFile(crappyWin);
+#else
   struct lexer *lex = lexer_fromFile(fmemopen(toLex, strlen(toLex), "r"));
-
+#endif
   if (lex->errcode) {
     env.fail("Cannot init lexer, errcode=%d", lex->errcode);
   }
@@ -123,10 +149,6 @@ int main(int argc, const char *argv[]) {
   token_free(next);
   lexer_close(lex);
   pnode_free(res);
-
-  if (execl(*argv, *argv, NULL) < 0) {
-    perror("Cannot relaunch:");
-  }
 
   return EXIT_SUCCESS;
 }
