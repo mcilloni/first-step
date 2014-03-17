@@ -13,7 +13,7 @@ static const uintmax_t MAX_ERRORS = 20;
 
 int std_printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va) {
 
-  int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET ", line %lu, pos %lu): ", color, level, env.line.lineno, env.line.position);
+  int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET ", line %lu, pos %lu): ", color, level, env.line->lineno, env.line->position);
   ret += vfprintf(out, fmt, va);
 
   putc('\n', out);
@@ -106,14 +106,14 @@ int default_print_warning(const char *fmt, ...) {
 
 }
 
-struct env env = {default_print_debug, default_print_error, default_print_fail, default_print_info, default_print_warning, {0}};
+struct env env = {default_print_debug, default_print_error, default_print_fail, default_print_info, default_print_warning, NULL};
 
 bool env_error(void) {
   return errors;
 }
 
 struct lineno env_getLineno(void) {
-  struct lineno ret = {env.line.position,env.line.lineno}; 
+  struct lineno ret = {env.line->position, env.line->lineno}; 
   return ret;
 }
 
@@ -125,7 +125,7 @@ void env_setDebug(bool on) {
   debug_on = on;
 }
 
-void env_setLine(struct line line) {
+void env_setLine(struct line *line) {
   line_free(env.line);
   env.line = line;
 }

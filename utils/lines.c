@@ -12,8 +12,9 @@
 static const size_t initSize = 512;
 size_t lineno = -1;
 
-struct line line_read(FILE *file, enum errors *err) {
-  struct line ret = {0, 0, ++lineno, calloc(sizeof(char), initSize)};
+struct line* line_read(FILE *file, enum errors *err) {
+  struct line *ret = malloc(sizeof(struct line));
+  *ret = (struct line){0, 0, ++lineno, calloc(sizeof(char), initSize)};
 
   char ch;
 
@@ -31,7 +32,7 @@ struct line line_read(FILE *file, enum errors *err) {
         env.fail("Error while reading file, %s", strerror(errno));
         *err = ERROR;
       } else {
-        if(!ret.len) {
+        if(!ret->len) {
           *err = FILEEND;
         }
       }
@@ -40,7 +41,7 @@ struct line line_read(FILE *file, enum errors *err) {
 
     case '\n': {
       linecomment = false;
-      if(ret.len) {
+      if(ret->len) {
         loop = false;
       } 
 
@@ -57,17 +58,17 @@ struct line line_read(FILE *file, enum errors *err) {
         break;
       }
 
-      if(!ret.len && isblank(ch)) {
+      if(!ret->len && isblank(ch)) {
         break;
       }
 
-      if ((ret.len + 1) % initSize == 0) {
-        ret.val = realloc(ret.val, ret.len + initSize + 1);
+      if ((ret->len + 1) % initSize == 0) {
+        ret->val = realloc(ret->val, ret->len + initSize + 1);
       }
 
-      ret.val[ret.len] = ch;
+      ret->val[ret->len] = ch;
 
-      ++ret.len;
+      ++ret->len;
 
       break;
     }
@@ -76,15 +77,16 @@ struct line line_read(FILE *file, enum errors *err) {
 
   }
 
-  ret.val[ret.len] = 0;
+  ret->val[ret->len] = 0;
 
   return ret;
   
 }
 
-void line_free(struct line l) {
-  if (l.val) {
-    free(l.val);
+void line_free(struct line *l) {
+  if (l) {
+    free(l->val);
+    free(l);
   }
 }
 

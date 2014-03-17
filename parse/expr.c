@@ -249,7 +249,10 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
     case OPTYPE_BINARY: {
 
       struct pnode *left = expr_treeize(root, list_extract(expr, 0, pos));
-      struct pnode *right = expr_treeize(root, list_extract(expr, pos, -1));
+
+      pos = expr_findLowPriorityOp(expr);
+
+      struct pnode *right = expr_treeize(root, list_extract(expr, pos + 1, -1));
 
       if (tok->type == LEX_ASSIGN) {
         pnode_verifyNodesAreCompatible(left, right);
@@ -273,6 +276,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         pnode_addLeaf(ret, right);
 
       }
+      break;
     } 
 
     case OPTYPE_UNARY: {
@@ -316,7 +320,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
   }
 
   //this actually frees only the original listay
-  list_freeAll(expr, (freefunc) token_free);
+  list_freeAll(expr, (void (*)(void*)) token_free);
 
   return ret;
 
@@ -325,15 +329,18 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 struct pnode* expr(struct pnode *root, struct lexer *lex) {
   List *list = list_new();
 
+  struct token *tok;
   do {
-    list_append(list, token_getOrDie(lex));
+    tok = token_getOrDie(lex);
+    list_append(list, tok);
   } while(!expr_nextIsEnd());
 
   if (!list_len(list)) {
     env.fail("Empty expression body");
   }
 
-  return expr_treeize(root, list);
+  struct pnode *ret = expr_treeize(root, list);
 
+  return ret;
 }
 

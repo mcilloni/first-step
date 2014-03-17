@@ -33,8 +33,8 @@ struct lexer* lexer_fromFile(FILE *file) {
     env.fail("Error while reading file %s: %s", strerror(errno));
   }
 
-  lex->peek = *(env.line.val);
-  ++env.line.position;
+  lex->peek = *(env.line->val);
+  ++env.line->position;
   
   lex->newline = false;
 
@@ -56,8 +56,8 @@ void lexer_discardLine(struct lexer *lex) {
       env_setLine(line_read(lex->file, &lex->errcode));
 
       if (!lexer_error(lex)) {
-        lex->peek = *env.line.val;
-        ++env.line.position;
+        lex->peek = *env.line->val;
+        ++env.line->position;
       }
 }
 
@@ -76,12 +76,12 @@ bool stok(struct lexer *lex, char *data, size_t max) {
   for (i = 0; i < max && !lex->newline;) {
     
     ch = lex->peek;
-    ++env.line.position;
+    ++env.line->position;
 
-    lex->newline = (env.line.len + 1) == env.line.position;     
+    lex->newline = (env.line->len + 1) == env.line->position;     
 
     if (!lex->newline) {
-      lex->peek = env.line.val[env.line.position - 1];     
+      lex->peek = env.line->val[env.line->position - 1];     
     } else {
       lexer_discardLine(lex);
       if (lexer_error(lex)) {

@@ -16,8 +16,8 @@ struct lineno {
   size_t no,pos;
 };
 
-struct line line_read(FILE *file, enum errors *err);
+struct line* line_read(FILE *file, enum errors *err);
 
-void line_free(struct line l);
+void line_free(struct line *l);
 
 #endif

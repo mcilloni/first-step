@@ -14,7 +14,7 @@ struct env {
   printfmt fail;
   printfmt info;
   printfmt warning;
-  struct line line;
+  struct line *line;
 };
 
 extern struct env env;
@@ -22,6 +22,6 @@ extern struct env env;
 struct lineno env_getLineno(void);
 void env_set(struct env set);
 void env_setDebug(bool on);
-void env_setLine(struct line line);
+void env_setLine(struct line *line);
 
 #endif
