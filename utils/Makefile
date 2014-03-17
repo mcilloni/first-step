@@ -5,7 +5,7 @@ CFLAGS=
 
 UNAME := $(shell uname -s)
 
-ifeq ($(UNAME_S),FreeBSD)
+ifeq ($(UNAME),FreeBSD)
 	CFLAGS += "-lexecinfo"
 endif
 
