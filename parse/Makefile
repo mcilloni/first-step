@@ -1,6 +1,15 @@
-CC=clang -O0 -rdynamic
+CC=clang 
 AR=ar
 RANLIB=ranlib
+CFLAGS=-O0 -rdynamic
+
+UNAME := $(shell uname -s)
+
+ifeq ($(UNAME_S),FreeBSD)
+        CFLAGS += "-lexecinfo"
+endif                         
+
+CC += $(CFLAGS)
 
 all: clean
 	$(CC) -c symbols.c -g -Wall -pedantic -std=c11 
