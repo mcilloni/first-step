@@ -1,20 +1,12 @@
 #include "ptree.h"
 #include "types.h"
 
+#include "../lex/lex.h"
 #include "../utils/env.h"
 
+#include <inttypes.h>
+#include <stdio.h>
 #include <stdlib.h>
-
-struct pscope {                                                                                         
-  struct pnode node;                                                                                                               
-  Symbols *symbols;                                                                                        
-};       
-
-struct pexpr {
-  struct pnode node;
-  uintmax_t value;
-  struct type *type;
-};
 
 void pnode_addLeaf(struct pnode *pnode, struct pnode *leaf) {
   leaf->root = pnode;
@@ -265,4 +257,42 @@ void pnode_free(struct pnode *pnode) {
   free(pnode);
 }
 
+void pnode_dump(struct pnode *val, uint64_t depth) {
+  if (!val) {
+    return;
+  }
+
+  for(uint64_t i = 0; i < depth; ++i) {
+    fputs("| ", stdout);
+  }
+
+  fputs(nt_str(val->id), stdout);
+
+  switch(val->id) {
+  case PR_NUMBER:
+    printf(": %" PRIdMAX, (intmax_t) pnode_getval(val));
+    break;
+  case PR_ID:
+    printf(": %s, type %s", (const char*) pnode_getval(val), pnode_evalType(val, NULL)->name);
+    break;
+  case PR_BINOP:
+  case PR_UNOP:
+    printf(": %s", tokentype_str((enum token_type) pnode_getval(val)));
+    break;
+  default:
+    break;
+  }
+  putchar('\n');
+
+  size_t len = array_len(val->leaves);
+
+  for(size_t i = 0; i < len; ++i) {
+    pnode_dump(*leaves_get(val->leaves, i), depth + 1);
+  }
+}
+
+void ptree_dump(struct pnode *root) {
+
+  pnode_dump(root, 0);
+}
 

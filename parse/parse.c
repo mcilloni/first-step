@@ -8,7 +8,8 @@
 static bool firstTok = true;
 struct token *next = NULL;
 
-void body(struct pnode *this, struct lexer *lex);
+typedef bool (*bodyender)(struct token*);
+void body(struct pnode *this, struct lexer *lex, bodyender be);
 extern struct pnode* expr(struct pnode *root, struct lexer *lex);
 
 struct token* token_getOrDie(struct lexer *lex) {
@@ -41,16 +42,9 @@ void decl(struct pnode *this, struct lexer *lex) {
   struct token *tok = token_getOrDie(lex);
 
   if (!tok) {
-    env.fail("Unexpected eof, expected 'var'");
+    env.fail("Unexpected eof, expected an identifier");
   }
 
-  if (tok->type != LEX_VAR) {
-    env.fail("Unexpected token, got %s, expected 'var'", token_str(tok));
-  }
-
-  token_free(tok);
-
-  tok = token_getOrDie(lex);
   struct token *type = token_getOrDie(lex);
   
   if (!(tok && type)) {
@@ -84,6 +78,10 @@ void decl(struct pnode *this, struct lexer *lex) {
 
 }
 
+bool ifBe(struct token *tok) {
+  return tok->type == LEX_ENDIF;
+}
+
 struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
   struct pnode* ret = pnode_new(PR_IF);
@@ -104,7 +102,7 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
   ret->root = root;
 
-  body(ret, lex);
+  body(ret, lex, ifBe);
 
   tok = token_getOrDie(lex);
 
@@ -163,16 +161,21 @@ struct pnode* stmt(struct pnode *root, struct lexer *lex) {
 
 }
 
-void body(struct pnode *this, struct lexer *lex) {
+void body(struct pnode *this, struct lexer *lex, bodyender be) {
 
-  struct pnode *next;
+  struct pnode *nextStmt;
 
-  while((next = stmt(this, lex))) {
-    if (next != &declaration_fake_node) {
-      pnode_addLeaf(this, next);
+  while(!be(next)) {
+    nextStmt = stmt(this, lex);
+    if (nextStmt != &declaration_fake_node) {
+      pnode_addLeaf(this, nextStmt);
     }
   }
 
+}
+
+bool entryBe(struct token *tok) {
+  return tok->type == LEX_ENDENTRY;
 }
 
 struct pnode* entry(struct pnode *root, struct lexer *lex) {
@@ -192,7 +195,7 @@ struct pnode* entry(struct pnode *root, struct lexer *lex) {
 
   ret->root = root; //in this case, this is needed
 
-  body(ret, lex);
+  body(ret, lex, entryBe);
 
   tok = token_getOrDie(lex);
 
@@ -225,11 +228,11 @@ struct pnode* definition(struct pnode *root, struct lexer *lex) {
 
 struct pnode* parse(const char *filename) {
 
-  struct pnode *program = pnode_new(PR_PROGRAM), *next;  
+  struct pnode *program = pnode_new(PR_PROGRAM), *nextDef;  
   struct lexer *lex = lexer_open(filename);
 
-  while ((next = definition(program, lex))) {
-    pnode_addLeaf(program, next);    
+  while ((nextDef = definition(program, lex))) {
+    pnode_addLeaf(program, nextDef);    
   }
 
   if (!array_len(program->leaves)) {

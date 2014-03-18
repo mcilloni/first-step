@@ -297,7 +297,11 @@ void token_free(struct token *tok) {
 }
 
 const char* token_str(struct token *tok) {
-  switch (tok->type) {
+  return tokentype_str(tok->type);
+}
+
+const char* tokentype_str(enum token_type type) {
+  switch (type) {
   case LEX_NONE:
     return "NONE";
   case LEX_ASSIGN:

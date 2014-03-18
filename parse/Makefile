@@ -24,11 +24,12 @@ endif
 CC += $(CFLAGS)
 
 all: clean
-	$(CC) -c symbols.c -g -Wall -pedantic -std=c11 
+	$(CC) -c expr.c -g -Wall -pedantic -std=c11
+	$(CC) -c nonterminals.c -g -Wall -pedantic -std=c11 
 	$(CC) -c pnleaves.c -g -Wall -pedantic -std=c11
 	$(CC) -c ptree.c -g -Wall -pedantic -std=c11
 	$(CC) -c parse.c -g -Wall -pedantic -std=c11
-	$(CC) -c expr.c -g -Wall -pedantic -std=c11
+	$(CC) -c symbols.c -g -Wall -pedantic -std=c11 
 	$(CC) -c types.c -g -Wall -pedantic -std=c11
 	$(AR) -rc libparse.a *.o
 	$(RANLIB) libparse.a
@@ -36,9 +37,10 @@ all: clean
 	$(CC) -o evalex$(EXEPREFIX) evalex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
 	$(CC) -o exprex$(EXEPREFIX) exprex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic
 	$(CC) -o posex$(EXEPREFIX) posex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
+	$(CC) -o parsex$(EXEPREFIX) parsex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
 	$(CC) -o symex$(EXEPREFIX) symex.c -L..  -lparse -ltreemap -lutils -g -Wall -pedantic	
-	$(CC) -o treex$(EXEPREFIX) treex.c -L..  -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
-	$(CC) -o typex$(EXEPREFIX) typex.c -L..  -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
+	$(CC) -o treex$(EXEPREFIX) treex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
+	$(CC) -o typex$(EXEPREFIX) typex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
 	$(CC) -o varex$(EXEPREFIX) varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
 	$(CC) -o assignex$(EXEPREFIX) assignex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
 

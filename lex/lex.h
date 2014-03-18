@@ -76,4 +76,6 @@ int8_t token_getPriority(struct token *tok);
 enum optype token_getOpType(struct token *tok);
 const char* token_str(struct token *tok);
 
+const char* tokentype_str(enum token_type type);
+
 #endif

@@ -310,7 +310,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
       }
 
-      ret = pnode_newval(expr_ntFromTokVal(tok), tok->type);
+      ret = pnode_newval(expr_ntFromTokVal(tok), (uintmax_t) tok->type);
 
       pnode_addLeaf(ret, left);
       pnode_addLeaf(ret, right);
@@ -363,7 +363,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         break;
       }
 
-      ret = pnode_new(expr_ntFromTokVal(tok));
+      ret = pnode_newval(expr_ntFromTokVal(tok), (uintmax_t) tok->type);
       pnode_addLeaf(ret, operand);
 
       if (!expr_isUnOpCompatible(root, tok, operand)) {

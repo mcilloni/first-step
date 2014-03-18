@@ -1,6 +1,7 @@
 entry
 
-    var a int8 = -7 #comment!
+    var a int8 
+    a = -7+8-3 #comment!
     
     #comment of some sort.
     #nothing important at all.

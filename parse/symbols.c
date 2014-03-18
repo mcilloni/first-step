@@ -22,7 +22,7 @@ enum symbols_resp symbols_register(Symbols *symt, const char *id, const char *ty
     return SYM_EXISTS;
   }
 
-  map_put(symt, (void*) str_clone(id), (void*) type, FREE_KEY);
+  map_put(symt, (void*) str_clone(id), (void*) str_clone(type), FREE_KEY | FREE_VALUE);
   return SYM_ADDED;
 }
 

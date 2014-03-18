@@ -29,5 +29,7 @@ enum nonterminals {
   PR_DEC
 };
 
+const char* nt_str(enum nonterminals nt);
+
 #endif
 
