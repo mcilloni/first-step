@@ -40,6 +40,7 @@ all: clean
 	$(CC) -o treex$(EXEPREFIX) treex.c -L..  -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
 	$(CC) -o typex$(EXEPREFIX) typex.c -L..  -lparse -ltreemap -lutils -larray -g -Wall -pedantic	
 	$(CC) -o varex$(EXEPREFIX) varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
+	$(CC) -o assignex$(EXEPREFIX) assignex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
 
 clean:
 	rm -f *.{o,a,so,gch}

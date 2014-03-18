@@ -295,15 +295,13 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
       struct pnode *left = expr_treeize(root, list_extract(expr, 0, pos));
 
-      pos = expr_findLowPriorityOp(expr);
+      size_t posAfter = expr_findLowPriorityOp(expr);
 
-      struct pnode *right = expr_treeize(root, list_extract(expr, pos + 1, -1));
+      struct pnode *right = expr_treeize(root, list_extract(expr, posAfter + 1, -1));
 
-      if (tok->type == LEX_ASSIGN) {
-        pnode_verifyNodesAreCompatible(left, right);
-      }
+      bool assign = tok->type == LEX_ASSIGN;
 
-      if (pnode_isConst(left) && pnode_isConst(right)) {
+      if (pnode_isConst(left) && pnode_isConst(right) && !assign) {
 
         ret = expr_evalBinary(tok, left, right);
         pnode_free(left);
@@ -316,6 +314,20 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
       pnode_addLeaf(ret, left);
       pnode_addLeaf(ret, right);
+
+      if (assign) {
+        pnode_verifyNodesAreCompatible(root, left, right);
+        
+        if (pos != 1) {
+          env.fail("Only expressions in form a = expr are supported.");
+        }
+
+        if (left->id != PR_ID) {
+          env.fail("lvalue of assignment is not an identifier");
+        }
+
+        break;
+      }
 
       if (!expr_isBinOpCompatible(root, tok, left, right)) {
         struct type *ltype = pnode_evalType(left, root);

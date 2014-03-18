@@ -89,24 +89,15 @@ void printtree(struct pnode *root) {
 }
 
 int main(int argc, const char *argv[]) {
-  char *toLex = "a + 3 - 7\na";
+  char *toLex = "a = 7\na";
 
   fputs("Expr: ", stdout);
 
-  fwrite(toLex, sizeof(*toLex), 9, stdout);
+  fwrite(toLex, sizeof(*toLex), 5, stdout);
 
   putchar('\n');
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)            
-  FILE *crappyWin = fopen("crappyTempFile.win32crap", "w");                                                                                
-  fputs(toLex, crappyWin);                                                                                                    
-  fclose(crappyWin);                                                                                       
-  fflush(crappyWin);                                                                                                                             
-  freopen(NULL, "r", crappyWin);                                                                                                 
-  struct lexer *lex = lexer_fromFile(crappyWin);                                                                                        
-#else                                                                                                                                     
   struct lexer *lex = lexer_fromFile(fmemopen(toLex, strlen(toLex), "r"));                                                                 
-#endif 
 
   if (lex->errcode) {
     env.fail("Cannot init lexer, errcode=%d", lex->errcode);
@@ -128,10 +119,6 @@ int main(int argc, const char *argv[]) {
   token_free(next);
   lexer_close(lex);
   pnode_free(root);
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-  remove("crappyTempFile.win32crap");
-#endif
 
   return EXIT_SUCCESS;
 }

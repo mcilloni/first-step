@@ -16,7 +16,7 @@ struct pnode {
 
 void pnode_addLeaf(struct pnode *pnode, struct pnode *leaf);
 bool pnode_addSymbol(struct pnode *pnode, const char *id, const char *type, enum symbols_resp *resp);
-void pnode_verifyNodesAreCompatible(struct pnode *assign, struct pnode *assigned);
+void pnode_verifyNodesAreCompatible(struct pnode *root, struct pnode *assign, struct pnode *assigned);
 struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope);
 uintmax_t pnode_getval(struct pnode *pnode);
 bool pnode_isConst(struct pnode *pnode);

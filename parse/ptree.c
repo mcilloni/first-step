@@ -55,10 +55,10 @@ uintmax_t pnode_getval(struct pnode *pnode) {
   return ((struct pexpr*) pnode)->value;
 }
 
-void pnode_verifyNodesAreCompatible(struct pnode *assign, struct pnode *assigned) {
+void pnode_verifyNodesAreCompatible(struct pnode *root, struct pnode *assign, struct pnode *assigned) {
 
-  struct type *first = pnode_evalType(assign, NULL);
-  struct type *second = pnode_evalType(assigned, NULL);
+  struct type *first = pnode_evalType(assign, root);
+  struct type *second = pnode_evalType(assigned, root);
 
   switch(type_areCompatible(first, second)) {
   case TYPECOMP_NO:
@@ -256,13 +256,11 @@ void pnode_free(struct pnode *pnode) {
     symbols_free(((struct pscope*) pnode)->symbols);
   } 
 
-  if (!pnode_isConst(pnode)) {
-    if (pnode->id == PR_ID) {
-      free((void*)((struct pexpr*) pnode)->value);
-    }
-    array_freeContents(pnode->leaves, (void (*) (void*)) pnode_free);
-    array_free(pnode->leaves);
-  } 
+  if (pnode->id == PR_ID) {
+    free((void*)((struct pexpr*) pnode)->value);
+  }
+  array_freeContents(pnode->leaves, (void (*) (void*)) pnode_free);
+  array_free(pnode->leaves);
 
   free(pnode);
 }
