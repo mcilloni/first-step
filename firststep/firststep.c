@@ -82,6 +82,8 @@ int main(int argc, char *argv[]) {
     env.fail("Cannot create file %s", progname);
   }
 
+  puts(cprog);
+
   fputs(cprog, cfile);
   fclose(cfile);
   char *cpname = str_clone(progname);
