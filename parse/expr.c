@@ -111,14 +111,39 @@ size_t expr_findLowPriorityOp(List *expr) {
   size_t pos = 0;
   int8_t posPri = INT8_MAX, tmp;  
 
+  int16_t par = 0;
+
+  struct token *tok;
+
   for (int64_t i = beg; i > -1; --i) {
-    tmp = token_getPriority((struct token*) *list_get(expr, i));
-    if (tmp > 0) {
-      if (tmp < posPri) {
-        pos = i;
-        posPri = tmp;
+    tok = (struct token*) *list_get(expr, i);
+
+    switch (tok->type) {
+    case LEX_CPAR:
+      ++par;
+      break;
+    case LEX_OPAR:
+      if (!par) {
+        env.fail("Unmatched parentheses");
       }
+      --par;
+      break;
+    default:
+      if (!par) {
+        tmp = token_getPriority(tok);
+        if (tmp > 0) {
+          if (tmp < posPri) {
+            pos = i;
+            posPri = tmp;
+          }
+        }
+      }
+      break;
     }
+  }
+
+  if (par) {
+    env.fail("Unmatched parentheses in expression");
   }
 
   return pos;
@@ -130,11 +155,18 @@ void expr_fixMinus(List *expr) {
 
   struct token *current, *aux;
 
-  //skip fist and last, they are not cases to be fixed
-  for (size_t i = 1;  i < len; ++i) {
+  int64_t par = 0;
+
+  //skip the last one
+  for (size_t i = 0;  i < len; ++i) {
     current = *list_get(expr, i);
 
-    if (current->type == LEX_MINUS) {
+    switch(current->type) {
+    case LEX_MINUS: {
+      if (!i || par) {
+        break;
+      }
+
       aux = *list_get(expr, i - 1);
       enum optype ot = token_getOpType(aux);
 
@@ -145,8 +177,32 @@ void expr_fixMinus(List *expr) {
         ++len;
         ++i;
       }
+      break;
+    }
+    case LEX_CPAR:
+      --par;
+      break;
+    case LEX_OPAR:
+      ++par;
+      break;
+    default:
+      break;
     }
   } 
+}
+
+void expr_fixParentheses(List **expr) {
+  size_t len = list_len(*expr);
+
+  if (len > 2) {
+    enum token_type first = ((struct token*) *list_get(*expr, 0LU))->type;  
+    enum token_type last = ((struct token*) *list_get(*expr, len - 1))->type;
+
+    if ((first == LEX_OPAR) && (last == LEX_CPAR)) {
+      *expr = list_extract(*expr, 1LU, len - 2);
+    }
+  }
+
 }
 
 enum operator_assoc expr_getOpAssociation(struct token *tok) {
@@ -273,6 +329,7 @@ enum nonterminals expr_ntFromTokVal(struct token *tok) {
 
 struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
+  expr_fixParentheses(&expr);
   expr_fixMinus(expr);
 
   struct pnode *ret = NULL;

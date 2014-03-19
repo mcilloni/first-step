@@ -62,6 +62,10 @@ void lexer_discardLine(struct lexer *lex) {
       }
 }
 
+bool ch_isPar(char c) {
+  return ( c == '(') || ( c == ')');
+}
+
 bool stok(struct lexer *lex, char *data, size_t max) {
 
   char ch;
@@ -105,7 +109,7 @@ bool stok(struct lexer *lex, char *data, size_t max) {
       continue;
     }
 
-    if ((isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek))) {
+    if ((isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek)) || ch_isPar(ch)) {
       break;
     }
 
@@ -235,6 +239,18 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // )
+  if (!strcmp(")", data)) {
+    res->type = LEX_CPAR;
+    return res;
+  }
+
+  // (
+  if (!strcmp("(", data)) {
+    res->type = LEX_OPAR;
+    return res;
+  }
+
   // entry
   if (!strcmp("entry", data)) {
     res->type = LEX_ENTRY;
@@ -307,6 +323,8 @@ const char* tokentype_str(enum token_type type) {
     return "NONE";
   case LEX_ASSIGN:
     return "=";
+  case LEX_CPAR:
+    return ")";
   case LEX_DEC:
     return "--";
   case LEX_DIFFERENT:
@@ -339,6 +357,8 @@ const char* tokentype_str(enum token_type type) {
     return "!";
   case LEX_NUMBER:
     return "a number";
+  case LEX_OPAR:
+    return "(";
   case LEX_PLUS:
     return "+";
   case LEX_TIMES:
