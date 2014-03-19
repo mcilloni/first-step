@@ -4,6 +4,7 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -275,7 +276,7 @@ struct token* token_get(struct lexer *lex) {
   // number
   if (isStrNum(data)) {
     res->type = LEX_NUMBER;
-    res->value = atoll(data);
+    res->value = strtoumax(data, NULL, 10);
     return res;
   }
 
@@ -311,7 +312,7 @@ const char* tokentype_str(enum token_type type) {
   case LEX_DIFFERENT:
     return "!=";
   case LEX_DIV:
-    return "/ (Division)";
+    return "/";
   case LEX_ENDENTRY:
     return "/entry";
   case LEX_ENDIF:

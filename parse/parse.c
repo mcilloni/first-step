@@ -6,21 +6,22 @@
 #include <string.h>
 
 static bool firstTok = true;
-struct token *next = NULL;
+struct token *nextTok = NULL;
 
 typedef bool (*bodyender)(struct token*);
-void body(struct pnode *this, struct lexer *lex, bodyender be);
+struct pnode* body(struct pnode *this, struct lexer *lex, bodyender be);
 extern struct pnode* expr(struct pnode *root, struct lexer *lex);
 
 struct token* token_getOrDie(struct lexer *lex) {
 
   struct token *tok;
   if (firstTok) {
-    next = token_get(lex);
+    nextTok = token_get(lex);
+    
     firstTok = false;
   }
-  tok = next;
-  next = token_get(lex);
+  tok = nextTok;
+  nextTok = token_get(lex);
 
   if (!tok) {
     if (lexer_eof(lex)) {
@@ -102,7 +103,7 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
   ret->root = root;
 
-  body(ret, lex, ifBe);
+  pnode_addLeaf(ret, body(ret, lex, ifBe));
 
   tok = token_getOrDie(lex);
 
@@ -122,15 +123,15 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
 struct pnode* stmt(struct pnode *root, struct lexer *lex) {
 
-  if (!next) {
+  if (!nextTok) {
     env.fail("Unexpected end of file, expected a statement");
   }
 
   struct pnode *ret;
 
-  struct token savedNext = *next;
+  struct token savedNext = *nextTok;
 
-  switch (next->type) {
+  switch (nextTok->type) {
   case LEX_IF: {
     token_getOrDie(lex); //discard
     ret = ifStmt(root, lex);
@@ -161,16 +162,22 @@ struct pnode* stmt(struct pnode *root, struct lexer *lex) {
 
 }
 
-void body(struct pnode *this, struct lexer *lex, bodyender be) {
+struct pnode* body(struct pnode *root, struct lexer *lex, bodyender be) {
+
+  struct pnode *ret = pnode_new(PR_BODY);
+
+  ret->root = root;
 
   struct pnode *nextStmt;
 
-  while(!be(next)) {
-    nextStmt = stmt(this, lex);
+  while(!be(nextTok)) {
+    nextStmt = stmt(ret, lex);
     if (nextStmt != &declaration_fake_node) {
-      pnode_addLeaf(this, nextStmt);
+      pnode_addLeaf(ret, nextStmt);
     }
   }
+
+  return ret;
 
 }
 
@@ -195,7 +202,7 @@ struct pnode* entry(struct pnode *root, struct lexer *lex) {
 
   ret->root = root; //in this case, this is needed
 
-  body(ret, lex, entryBe);
+  pnode_addLeaf(ret, body(ret, lex, entryBe));
 
   tok = token_getOrDie(lex);
 

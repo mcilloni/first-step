@@ -42,7 +42,7 @@ static const char *const lex_errors[] = {
 
 struct token {
   enum token_type type;
-  uintptr_t value;
+  uintmax_t value;
 };
 
 struct lexer {

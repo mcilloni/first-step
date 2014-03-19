@@ -2,6 +2,8 @@ ifndef CC
 	CC=clang 
 endif
 
+LD=$(CC)
+
 AR=ar
 
 ifndef RANLIB
@@ -9,7 +11,7 @@ ifndef RANLIB
 endif
 
 
-CFLAGS=-O0 
+CFLAGS=
 
 ifndef WINDOWS
 	CFLAGS += -rdynamic
@@ -21,7 +23,7 @@ ifeq ($(UNAME),FreeBSD)
         CFLAGS += "-lexecinfo"
 endif                         
 
-CC += $(CFLAGS)
+LD += $(CFLAGS)
 
 all: clean
 	$(CC) -c expr.c -g -Wall -pedantic -std=c11
@@ -34,16 +36,16 @@ all: clean
 	$(AR) -rc libparse.a *.o
 	$(RANLIB) libparse.a
 	cp libparse.a ..
-	$(CC) -o evalex$(EXEPREFIX) evalex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
-	$(CC) -o exprex$(EXEPREFIX) exprex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic
-	$(CC) -o posex$(EXEPREFIX) posex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
-	$(CC) -o parsex$(EXEPREFIX) parsex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
-	$(CC) -o symex$(EXEPREFIX) symex.c -L..  -lparse -ltreemap -lutils -g -Wall -pedantic	
-	$(CC) -o treex$(EXEPREFIX) treex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
-	$(CC) -o typex$(EXEPREFIX) typex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
-	$(CC) -o varex$(EXEPREFIX) varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
-	$(CC) -o assignex$(EXEPREFIX) assignex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
+	$(LD) -o evalex evalex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
+	$(LD) -o exprex exprex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic
+	$(LD) -o posex posex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
+	$(LD) -o parsex parsex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
+	$(LD) -o symex symex.c -L..  -lparse -ltreemap -lutils -g -Wall -pedantic	
+	$(LD) -o treex treex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
+	$(LD) -o typex typex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
+	$(LD) -o varex varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
+	$(LD) -o assignex assignex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
 
 clean:
 	rm -f *.{o,a,so,gch}
-	rm -f *ex$(EXEPREFIX)
+	rm -f *ex

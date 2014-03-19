@@ -39,6 +39,16 @@ bool pnode_addSymbol(struct pnode *pnode, const char *id, const char *type, enum
   return true;
 }
 
+Symbols* pnode_getSyms(struct pnode *pnode) {
+  
+  if (!pnode_isScope(pnode)) {
+    return NULL;
+  }
+
+  return ((struct pscope*) pnode)->symbols;
+
+}
+
 uintmax_t pnode_getval(struct pnode *pnode) {
   if (!pnode_isValue(pnode)) {
     return 0;
@@ -161,8 +171,7 @@ bool nonterminals_isConst(enum nonterminals id) {
  
 bool nonterminals_isScope(enum nonterminals id) {
   switch (id) {
-  case PR_ENTRY:
-  case PR_IF:
+  case PR_BODY:
   case PR_PROGRAM:
     return true;
 

@@ -8,7 +8,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-extern struct token *next;
+extern struct token *nextTok;
 
 enum operator_assoc {
   ASSOC_NOTOP,
@@ -240,13 +240,13 @@ bool expr_isUnOpCompatible(struct pnode *root, struct token *tok, struct pnode *
 }
 
 bool expr_nextIsEnd(void) {
-  if (!next) {
+  if (!nextTok) {
     env.fail("Unexpected end of file in expression body");
   }
 
-  env.debug("next@%p: %s", next, token_str(next));
+  env.debug("nextTok@%p: %s", nextTok, token_str(nextTok));
 
-  switch (next->type) {
+  switch (nextTok->type) {
   case LEX_NEWLINE:
     return true;
 

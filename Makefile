@@ -28,6 +28,8 @@ all: clean
 	cp */*.a .
 	$(MAKE) -C lex
 	$(MAKE) -C parse	
+	$(MAKE) -C cgen
+	$(MAKE) -C firststep
 	cp */*.a .
 
 clean:
@@ -37,4 +39,6 @@ clean:
 	$(MAKE) -C utils clean
 	$(MAKE) -C lex clean
 	$(MAKE) -C parse clean
+	$(MAKE) -C cgen clean
+	$(MAKE) -C firststep clean
 	rm -f *.a

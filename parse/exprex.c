@@ -13,7 +13,7 @@
 
 extern struct pnode* expr(struct pnode*, struct lexer*);
 extern struct token* token_getOrDie(struct lexer*);
-extern struct token *next;
+extern struct token *nextTok;
 
 void printlist(List *list) {
   bool inside = false;
@@ -146,7 +146,7 @@ int main(int argc, const char *argv[]) {
 
   putchar('\n');
 
-  token_free(next);
+  token_free(nextTok);
   lexer_close(lex);
   pnode_free(res);
 
