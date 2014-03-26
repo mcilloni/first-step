@@ -1,23 +1,36 @@
 program = { definition }
 
-definition = entry
+definition = entry | function
 
 entry = 'entry', stmtEnd, body, '/entry'
 
+function = 'func', id, '(', funcList, ')', [type], stmtEnd, body, '/func'
+
+funcList = {funcTypeParams, ','}, funcTypeParams
+
+funcTypeParams = {id, ','}, id, type
+
 body = {stmt}
 
-stmt = (if | declaration | expr), stmtEnd
+stmt = (if | declaration | expr | return), stmtEnd
+
+return = 'return', expr
 
 if = 'if', expr, stmtEnd, body, '/if'
-declaration = 'var', (mulVarDecl | singleVarDecl)
+var = 'var', (mulVar | singleVar)
+decl = 'decl', mulVar
 stmtEnd = newLine | ';'
 
-mulVarDecl = varDecl,{(',', varDecl)}, type
-singleVarDecl = assign | (id, type)
+mulVar = varDecl,{(',', varDecl)}, type
+singleVar = assign | (id, type)
 
 varDecl = id | assign
 
 assign = id, '=', expr
+
+type = id | funcType
+
+funcType = 'func', '(', [type,{',', type}], ')', [type]
 
 id = letter, {(letter | cipher)}
 

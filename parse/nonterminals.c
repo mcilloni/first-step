@@ -18,6 +18,8 @@ const char* nt_str(enum nonterminals nt) {
     return "If";
   case PR_DECLARATION:
     return "Declaration";
+  case PR_FUNC:
+    return "Function";
   case PR_STMTEND:
     return "End of statement";  
   case PR_MULVARDECL:

@@ -3,6 +3,8 @@
 #include "../utils/env.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 void file_indent(FILE *out, uint8_t indent) {
   for (uint8_t i = 0; i < indent; ++i) {
@@ -28,18 +30,22 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
       env.fail("Unacceptable len: %lu", array_len(root->leaves));
     }
     
+    fputs("( ", out);    
     ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
     fprintf(out, " %s ", token_str(&tok));
     ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
+    fputs(" )", out);
     break;
 
   case PR_UNOP:
     if (array_len(root->leaves) != 1) {
       env.fail("Unacceptable len: %lu", array_len(root->leaves));
     }
-    
+
+    fputs("( ", out);    
     fprintf(out, "%s", token_str(&tok));
     ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
+    fputs(" )", out);
     break;
   case PR_ID:
     fputs((char*) val, out);
@@ -79,16 +85,67 @@ void ccode_genStmt(struct pnode *stmt, FILE *out, uint8_t indent) {
   }
 }
 
+char* cgen_csym(struct type *type, const char *name);
+
+void cgen_cfuncparms(FILE *out, Array *parms) {
+  size_t len = array_len(parms);
+
+  if (!len) {
+    fputs("void", out);
+    return;
+  }
+
+  char *par;
+  for(size_t i = 0; i < len; ++i) {
+    if (i) {
+      fputc(',', out);
+    }
+
+    par = cgen_csym((struct type*) *array_get(parms, i), "");
+    fputs(par, out);
+    free(par);
+  }
+}
+
+char* cgen_csym(struct type *type, const char *name) {
+  char *str;
+  size_t size;
+  FILE *strFile = open_memstream(&str, &size);
+  if (type_isFunc(type)) {
+    struct ftype *ftype = (struct ftype*) type;
+    size_t pms;
+    char *fmt = cgen_csym(ftype->ret, "%s"), *pm;
+    FILE *pmFile = open_memstream(&pm, &pms); 
+    fprintf(pmFile, fmt, "(*%s)(");
+    cgen_cfuncparms(pmFile, ftype->params);
+    fputc(')', pmFile);
+    fclose(pmFile);
+    fprintf(strFile, pm, name);
+    free(pm);
+  } else {
+    char tmp[4096];
+    fprintf(strFile, "%s %s", (type == type_none) ? "void" : type_str(type, tmp, 4096), name);
+  }
+
+  fclose(strFile);
+
+  return str;
+}
+
 void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
   
   MapIter *iter = mapiter_start(syms);
 
   Pair *decl;
+  struct symbol *sym;
   
   while ((decl = mapiter_next(iter))) {
+    sym = (struct symbol*) decl->value;
     file_indent(out, indent);
-    fprintf(out, "%s %s;\n", (char*) decl->value, (char*) decl->key);
+    char *csym = cgen_csym(sym->type, (char*) decl->key);
+    fprintf(out, "%s%s;\n", (sym->decl ? "extern " : ""), csym);
     pair_free(decl);
+    free(csym);
   }
 
   mapiter_free(iter);
@@ -148,7 +205,9 @@ void cgen(struct pnode *tree, FILE *out) {
   if (tree->id != PR_PROGRAM) {
     env.fail("Cannot generate anything from a broken tree. Expected %s, found %s", nt_str(PR_PROGRAM), nt_str(tree->id));
   }
-  
+ 
+  ccode_declSyms(pnode_getSyms(tree), out, 0);
+
   size_t len = array_len(tree->leaves);
   for (size_t i = 0; i < len; ++i) {
     ccode_genDef(*leaves_get(tree->leaves, i), out);

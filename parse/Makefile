@@ -40,7 +40,7 @@ all: clean
 	$(LD) -o exprex exprex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic
 	$(LD) -o posex posex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
 	$(LD) -o parsex parsex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
-	$(LD) -o symex symex.c -L..  -lparse -ltreemap -lutils -g -Wall -pedantic	
+	$(LD) -o symex symex.c -L..  -lparse -ltreemap -larray -lutils -g -Wall -pedantic	
 	$(LD) -o treex treex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
 	$(LD) -o typex typex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
 	$(LD) -o varex varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 

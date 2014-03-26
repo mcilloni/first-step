@@ -1,11 +1,14 @@
 #include "symbols.h"
+#include "types.h"
 
 #include <stdio.h>
 
 int main(void) {
     Symbols *symt = symbols_new();
+    struct type *int8 = type_getBuiltin("int8");    
+    struct type *int16 = type_getBuiltin("int16");
 
-    if (symbols_register(symt, "potato", "int8") == SYM_ADDED) {
+    if (symbols_register(symt, "potato", int8, false) == SYM_ADDED) {
         puts("Added symbol");
     }
 
@@ -13,16 +16,16 @@ int main(void) {
         puts("Yes, symbol is defined");
     }
 
-    if (symbols_register(symt, "potato", "int8") == SYM_EXISTS) {
+    if (symbols_register(symt, "potato", int8, false) == SYM_EXISTS) {
         puts("Symbol exists,  yippie");
     }
 
-    symbols_register(symt, "puree", "int8");
-    symbols_register(symt, "ponye", "string");
+    symbols_register(symt, "puree", int8, false);
+    symbols_register(symt, "ponye", int16, false);
 
-    const char *t;
-    if((t = symbols_getType(symt, "ponye"))) {
-        printf("ponye is of type %s\n", t);
+    struct symbol *t;
+    if((t = symbols_get(symt, "ponye"))) {
+        printf("ponye is of type %s\n", t->type->name);
     }
 
     symbols_free(symt);

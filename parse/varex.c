@@ -13,7 +13,7 @@
 
 extern struct pnode* expr(struct pnode*, struct lexer*);
 extern struct token* token_getOrDie(struct lexer*);
-extern struct token *next;
+extern struct token *nextTok;
 
 void printlist(List *list) {
   bool inside = false;
@@ -97,16 +97,7 @@ int main(int argc, const char *argv[]) {
 
   putchar('\n');
 
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)            
-  FILE *crappyWin = fopen("crappyTempFile.win32crap", "w");                                                                                
-  fputs(toLex, crappyWin);                                                                                                    
-  fclose(crappyWin);                                                                                       
-  fflush(crappyWin);                                                                                                                             
-  freopen(NULL, "r", crappyWin);                                                                                                 
-  struct lexer *lex = lexer_fromFile(crappyWin);                                                                                        
-#else                                                                                                                                     
   struct lexer *lex = lexer_fromFile(fmemopen(toLex, strlen(toLex), "r"));                                                                 
-#endif 
 
   if (lex->errcode) {
     env.fail("Cannot init lexer, errcode=%d", lex->errcode);
@@ -117,7 +108,7 @@ int main(int argc, const char *argv[]) {
   }
 
   struct pnode *root = pnode_new(PR_PROGRAM);
-  pnode_addSymbol(root, "a", "int8", NULL);
+  pnode_addSymbol(root, "a", type_getBuiltin("int8"), NULL);
   struct pnode *res = expr(root, lex);
   pnode_addLeaf(root, res);
 
@@ -125,13 +116,9 @@ int main(int argc, const char *argv[]) {
 
   putchar('\n');
 
-  token_free(next);
+  token_free(nextTok);
   lexer_close(lex);
   pnode_free(root);
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-  remove("crappyTempFile.win32crap");
-#endif
 
   return EXIT_SUCCESS;
 }

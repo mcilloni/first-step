@@ -19,7 +19,7 @@ endif
 CC += $(CFLAGS)
 
 all: clean
-	$(CC) -c cgen.c -g -Wall -pedantic -std=c11
+	$(CC) -c cgen.c -g -Wall -pedantic -std=gnu11
 	$(AR) -rc libcgen.a cgen.o
 	$(RANLIB) libcgen.a
 	cp libcgen.a ..

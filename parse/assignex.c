@@ -12,8 +12,8 @@
 #include <unistd.h>
 
 extern struct pnode* expr(struct pnode*, struct lexer*);
+extern struct token *nextTok;
 extern struct token* token_getOrDie(struct lexer*);
-extern struct token *next;
 
 void printlist(List *list) {
   bool inside = false;
@@ -108,7 +108,7 @@ int main(int argc, const char *argv[]) {
   }
 
   struct pnode *root = pnode_new(PR_PROGRAM);
-  pnode_addSymbol(root, "a", "int8", NULL);
+  pnode_addSymbol(root, "a", type_getBuiltin("int8"), NULL);
   struct pnode *res = expr(root, lex);
   pnode_addLeaf(root, res);
 
@@ -116,7 +116,7 @@ int main(int argc, const char *argv[]) {
 
   putchar('\n');
 
-  token_free(next);
+  token_free(nextTok);
   lexer_close(lex);
   pnode_free(root);
 

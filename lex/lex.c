@@ -251,6 +251,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // ,
+  if (!strcmp(",", data)) {
+    res->type = LEX_COMMA;
+    return res;
+  }
+
   // entry
   if (!strcmp("entry", data)) {
     res->type = LEX_ENTRY;
@@ -260,6 +266,18 @@ struct token* token_get(struct lexer *lex) {
   // /entry
   if (!strcmp("/entry", data)) {
     res->type = LEX_ENDENTRY;
+    return res;
+  }
+
+  // func
+  if (!strcmp("func", data)) {
+    res->type = LEX_FUNC;
+    return res;
+  }
+
+  // /func
+  if (!strcmp("/func", data)) {
+    res->type = LEX_ENDFUNC;
     return res;
   }
 
@@ -284,8 +302,21 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // return
+  if (!strcmp("return", data)) {
+    res->type = LEX_RETURN;
+    return res;
+  }
+
+  // var
   if (!strcmp("var", data)) {
     res->type = LEX_VAR;
+    return res;
+  }
+
+  // decl
+  if (!strcmp("decl", data)) {
+    res->type = LEX_DECL;
     return res;
   }
 
@@ -305,11 +336,14 @@ struct token* token_get(struct lexer *lex) {
 
 void token_free(struct token *tok) {
 
-  if (tok->type == LEX_ID) {
-    free( (void*) tok->value);
-  }
+  if (tok) {
 
-  free(tok);
+    if (tok->type == LEX_ID) {
+      free( (void*) tok->value);
+    }
+
+    free(tok);
+  }
 
 }
 
@@ -323,22 +357,30 @@ const char* tokentype_str(enum token_type type) {
     return "NONE";
   case LEX_ASSIGN:
     return "=";
+  case LEX_COMMA:
+    return ",";
   case LEX_CPAR:
     return ")";
   case LEX_DEC:
     return "--";
+  case LEX_DECL:
+    return "decl";
   case LEX_DIFFERENT:
     return "!=";
   case LEX_DIV:
     return "/";
   case LEX_ENDENTRY:
     return "/entry";
+  case LEX_ENDFUNC:
+    return "/func";
   case LEX_ENDIF:
     return "/if";
   case LEX_ENTRY:
     return "entry";
   case LEX_EQUAL:
     return "==";
+  case LEX_FUNC:
+    return "func";
   case LEX_ID:
     return "an identifier";
   case LEX_IF:
@@ -361,6 +403,8 @@ const char* tokentype_str(enum token_type type) {
     return "(";
   case LEX_PLUS:
     return "+";
+  case LEX_RETURN:
+    return "return";
   case LEX_TIMES:
     return "*";
   case LEX_VAR:

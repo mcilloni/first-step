@@ -12,6 +12,7 @@ enum nonterminals {
   PR_STMTS,
   PR_STMT,
   PR_IF,
+  PR_FUNC,
   PR_DECLARATION,
   PR_STMTEND,
   PR_MULVARDECL,

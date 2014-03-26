@@ -13,7 +13,7 @@ void pnode_addLeaf(struct pnode *pnode, struct pnode *leaf) {
   array_append(pnode->leaves, leaf);
 }
 
-bool pnode_addSymbol(struct pnode *pnode, const char *id, const char *type, enum symbols_resp *resp) {
+bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp, bool decl) {
   if (!pnode) {
     return false;
   }
@@ -21,7 +21,7 @@ bool pnode_addSymbol(struct pnode *pnode, const char *id, const char *type, enum
   enum symbols_resp res;
 
   if (!pnode_isScope(pnode)) {
-    bool ret = pnode_addSymbol(pnode->root, id, type, &res);
+    bool ret = pnode_addSymbolReal(pnode->root, id, type, &res, decl);
     
     if (resp) {
       *resp = res;
@@ -30,13 +30,29 @@ bool pnode_addSymbol(struct pnode *pnode, const char *id, const char *type, enum
     return ret;
   }
 
-  res = symbols_register(((struct pscope*) pnode)->symbols, id, type);
+  res = symbols_register(((struct pscope*) pnode)->symbols, id, type, decl);
   
   if (resp) {
     *resp = res;
   }
 
   return true;
+}
+
+bool pnode_addSymbol(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp) {
+  return pnode_addSymbolReal(pnode, id, type, resp, false);
+}
+
+bool pnode_declSymbol(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp) {
+  return pnode_addSymbolReal(pnode, id, type, resp, true);
+}
+
+Array* pnode_getFuncParams(struct pnode *pnode) {
+  if (!pnode_isFunc(pnode)) {
+    return NULL;
+  }
+
+  return ((struct pfunc*) pnode)->params;
 }
 
 Symbols* pnode_getSyms(struct pnode *pnode) {
@@ -47,6 +63,30 @@ Symbols* pnode_getSyms(struct pnode *pnode) {
 
   return ((struct pscope*) pnode)->symbols;
 
+}
+
+struct type* pnode_getType(struct pnode *pnode, const char *name) {
+
+  struct type *ret;
+
+  if ((ret = type_getBuiltin(name))) {
+      return ret;
+  }
+
+  if (!pnode) {
+    return NULL;
+  }
+
+  if (!(pnode_isScope(pnode))) {
+    return pnode_getType(pnode->root, name);
+  }
+
+  struct pscope *pscope = (struct pscope*) pnode;
+  if (!(ret = types_get(pscope->types, name))) {
+    return pnode_getType(pnode->root, name); 
+  }
+
+  return ret;
 }
 
 uintmax_t pnode_getval(struct pnode *pnode) {
@@ -150,13 +190,13 @@ struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
     return NULL;
   }
 
-  const char *type = NULL;
+  struct symbol *sym = NULL;
 
-  if (!pnode_isScope(pnode) || !(type = symbols_getType(((struct pscope*) pnode)->symbols, id))) {
+  if (!pnode_isScope(pnode) || !(sym = symbols_get(((struct pscope*) pnode)->symbols, id))) {
     return pnode_symbolType(pnode->root, id);
   }
 
-  return type_getTypeDef(NULL, type);
+  return sym->type;
 
 }
 
@@ -168,7 +208,21 @@ bool nonterminals_isConst(enum nonterminals id) {
     return false;
   }
 }
- 
+
+bool nonterminals_isFunc(enum nonterminals id) {
+  switch (id) {
+  case PR_ENTRY:
+  case PR_FUNC:
+    return true;
+  default:
+    return false;
+  }
+}
+
+bool pnode_isFunc(struct pnode *pnode) { 
+  return nonterminals_isFunc(pnode->id);
+}
+
 bool nonterminals_isScope(enum nonterminals id) {
   switch (id) {
   case PR_BODY:
@@ -226,12 +280,16 @@ struct pnode* pnode_new(enum nonterminals id) {
   if (nonterminals_isScope(id)) {
     ret = malloc(sizeof(struct pscope));
     ((struct pscope*) ret)->symbols = symbols_new();
-  } else { 
-    if (value) {
-      //so the type should be NULL
-      ret = calloc(1, sizeof(struct pexpr));
+  } else {
+    if (nonterminals_isFunc(id)) {
+      ret = malloc(sizeof(struct pfunc));
     } else {
-      ret = malloc(sizeof(struct pnode));
+      if (value) {
+        //so the type should be NULL
+        ret = calloc(1, sizeof(struct pexpr));
+      } else {
+        ret = malloc(sizeof(struct pnode));
+      }
     }
   }
 
@@ -240,6 +298,16 @@ struct pnode* pnode_new(enum nonterminals id) {
   ret->leaves = array_new(2);
 
   return ret;
+}
+
+struct pnode* pnode_newfunc(enum nonterminals id, Array *params) {
+  struct pfunc *ret = (struct pfunc*) pnode_new(id);
+
+  if (pnode_isFunc(&(ret->node))) {
+    ret->params = params;
+  }
+
+  return (struct pnode*) ret;
 }
 
 struct pnode* pnode_newval(enum nonterminals id, uintmax_t val) {
@@ -254,8 +322,16 @@ struct pnode* pnode_newval(enum nonterminals id, uintmax_t val) {
 
 void pnode_free(struct pnode *pnode) {
   if (pnode_isScope(pnode)) {
-    symbols_free(((struct pscope*) pnode)->symbols);
+    struct pscope *pscope = (struct pscope*) pnode;
+    symbols_free(pscope->symbols);
+    types_free(pscope->types);
   } 
+
+  if (pnode_isFunc(pnode)) {
+    Array *arr = ((struct pfunc*) pnode)->params;
+    array_freeContents(arr, (void (*)(void*)) type_free);
+    array_free(arr);
+  }
 
   if (pnode->id == PR_ID) {
     free((void*)((struct pexpr*) pnode)->value);
@@ -292,6 +368,12 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
     break;
   }
   putchar('\n');
+
+  if (pnode_isScope(val)) {
+    struct pscope *pscope = (struct pscope*) val;
+
+    symbols_dump(pscope->symbols, depth + 1);
+  }
 
   size_t len = array_len(val->leaves);
 

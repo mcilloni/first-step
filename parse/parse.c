@@ -11,6 +11,7 @@ struct token *nextTok = NULL;
 typedef bool (*bodyender)(struct token*);
 struct pnode* body(struct pnode *this, struct lexer *lex, bodyender be);
 extern struct pnode* expr(struct pnode *root, struct lexer *lex);
+struct type* type(struct pnode *this, struct lexer *lex);
 
 struct token* token_getOrDie(struct lexer *lex) {
 
@@ -38,33 +39,114 @@ struct token* token_getOrDie(struct lexer *lex) {
 //there is no need for declarations to be into the syntax tree, so this placeholder will returned by stmt() and then discarded.
 struct pnode declaration_fake_node = {0};
 
-void decl(struct pnode *this, struct lexer *lex) {
+struct type* idType(struct pnode *this, struct lexer *lex) {
+  struct token *type = token_getOrDie(lex);
+  
+  if(!type) {
+    env.fail("Unexpected end of file during var declaration");
+  }
+  
+  const char *id = (const char*) type->value;
+
+  return pnode_getType(this, id);
+}
+
+struct type* funcType(struct pnode *this, struct lexer *lex) {
+
+  token_free(token_getOrDie(lex)); //discard 'func'
+
+  struct token *tok = token_getOrDie(lex);
+
+  if (!tok) {
+    env.fail("Unexpected EOF in func type, expected '('");
+  }
+
+  if (tok->type != LEX_OPAR) {
+    env.fail("Unexpected %s in func type, expected '('", token_str(tok));
+  }
+
+  token_free(tok);
+
+  Array *arr = array_new(3U);
+  struct type *tp;
+  struct type *retType = type_none;
+  
+  while ((tp = type(this, lex))) {
+
+    array_append(arr, (void*) tp);  
+
+    tok = token_getOrDie(lex);
+
+    if (!tok) {
+      env.fail("Unexpected EOF during func type, expected ',' or ')'");
+    }
+
+    switch(tok->type) {
+    case LEX_COMMA:
+      break;
+    case LEX_CPAR:
+      goto endparms;
+    default:
+      env.fail("Unexpected token %s, expected ',' or ')'", token_str(tok));
+    }
+  }
+
+endparms: 
+
+
+  if (nextTok && (nextTok->type == LEX_ID || nextTok->type == LEX_FUNC)) {
+    retType = type(this, lex);    
+  }
+
+  return type_makeFuncType(retType, arr);
+
+}
+
+struct type* type(struct pnode *this, struct lexer *lex) {
+  if (!nextTok) {
+    env.fail("Unexpected EOF, expected a type");
+  }
+
+  if (nextTok->type == LEX_FUNC) {
+    return funcType(this, lex);
+  } else { 
+    if ((nextTok->type != LEX_ID)) {
+      return NULL;
+    }
+    return idType(this, lex);
+  }
+}
+
+void varDeclGeneric(struct pnode *this, struct lexer *lex, bool decl) {
 
   struct token *tok = token_getOrDie(lex);
 
   if (!tok) {
     env.fail("Unexpected eof, expected an identifier");
-  }
+  }  
 
-  struct token *type = token_getOrDie(lex);
-  
-  if (!(tok && type)) {
-    env.fail("Unexpected end of file during var declaration");
-  }
-
-  if ((tok->type != type->type) || (tok->type != LEX_ID)) {
-    env.fail("Unexpected token(s), expected two IDs in variable declaration");
+  if (tok->type != LEX_ID) {
+    env.fail("Unexpected token %s, expected an identifier", token_str(tok));
   }
 
   const char *id = (const char*) tok->value;
+  struct type *tp = type(this, lex);
+
+  if (!tp) {
+    char buf[2048];
+    env.fail("Cannot declare symbol %s of not defined type %s", id, type_str(tp, buf, 2048));
+  }
+
   struct type *declType = pnode_symbolType(this,id);
 
   enum symbols_resp resp;
 
-  if (!pnode_addSymbol(this, id, (const char*) type->value, &resp)) {
+  bool (*symreg)(struct pnode*, const char*, struct type*, enum symbols_resp*) = decl ? pnode_declSymbol : pnode_addSymbol;
+
+  if (!symreg(this, id, tp, &resp)) {
     env.fail("Internal error, cannot add symbol to table");
   }
-  
+
   //declType will not be null if symbol is defined somewhere; resp will be SYM_EXISTS only if it is in current scope
   if (declType) {
     if (resp == SYM_EXISTS) {
@@ -74,9 +156,16 @@ void decl(struct pnode *this, struct lexer *lex) {
     }
   }
 
-  token_free(type);
   token_free(tok);
 
+}
+
+void var(struct pnode *this, struct lexer *lex) {
+  varDeclGeneric(this, lex, false);
+}
+
+void decl(struct pnode *this, struct lexer *lex) {
+  varDeclGeneric(this, lex, true);
 }
 
 bool ifBe(struct token *tok) {
@@ -132,14 +221,20 @@ struct pnode* stmt(struct pnode *root, struct lexer *lex) {
   struct token savedNext = *nextTok;
 
   switch (nextTok->type) {
+  case LEX_DECL: {
+    token_free(token_getOrDie(lex)); //discard
+    decl(root, lex);
+    ret = &declaration_fake_node;
+    break;
+  }
   case LEX_IF: {
-    token_getOrDie(lex); //discard
+    token_free(token_getOrDie(lex)); //discard
     ret = ifStmt(root, lex);
     break;
   }
   case LEX_VAR: {
-    token_getOrDie(lex); //discard
-    decl(root, lex);
+    token_free(token_getOrDie(lex)); //discard
+    var(root, lex);
     ret = &declaration_fake_node;
     break;
   }
@@ -215,22 +310,50 @@ struct pnode* entry(struct pnode *root, struct lexer *lex) {
   return ret;
 }
 
+struct pnode* func(struct pnode *root, struct lexer *lex) {
+  return NULL;
+}
+
 struct pnode* definition(struct pnode *root, struct lexer *lex) {
   struct token *tok = token_getOrDie(lex);
   if (!tok) {
     return NULL;
   }
 
-  switch (tok->type) {
+  enum token_type type = tok->type;
+  struct pnode *ret = NULL;
+
+  token_free(tok);
+
+  switch (type) {
+  case LEX_DECL:
+    decl(root, lex);
+    ret = &declaration_fake_node;
+    break;
   case LEX_ENTRY:
-    token_free(tok);
-    return entry(root, lex);
+    ret = entry(root, lex);
+    break;
+  case LEX_FUNC:
+    ret = func(root, lex);
+    break;
+  case LEX_VAR:
+    var(root, lex);
+    ret = &declaration_fake_node;
+    break;
   default: 
-    env.fail("Unexpected token found: got %s, expected 'entry'", token_str(tok));
+    env.fail("Unexpected token found: got %s, expected 'decl', 'entry', 'func', 'var'", token_str(tok));
     break;
   }
 
-  return NULL;
+  tok = token_getOrDie(lex);
+
+  if (tok && tok->type != LEX_NEWLINE) {
+    env.fail("Got token %s, expected a newline or EOF", token_str(tok));
+  }
+
+  token_free(tok);
+
+  return ret;
 }
 
 struct pnode* parse(const char *filename) {
@@ -239,7 +362,9 @@ struct pnode* parse(const char *filename) {
   struct lexer *lex = lexer_open(filename);
 
   while ((nextDef = definition(program, lex))) {
-    pnode_addLeaf(program, nextDef);    
+    if (nextDef != &declaration_fake_node) {
+      pnode_addLeaf(program, nextDef);    
+    }
   }
 
   if (!array_len(program->leaves)) {

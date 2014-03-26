@@ -13,16 +13,18 @@ int main(void) {
   pnode_addLeaf(en, plus);
 
   enum symbols_resp resp;
+  struct type *int8 = type_getBuiltin("int8");
+  struct type *int16 = type_getBuiltin("int16");
 
-  if (pnode_addSymbol(plus, "potato", "int8", &resp)) {
+  if (pnode_addSymbol(plus, "potato", int8, &resp)) {
     puts((resp == SYM_ADDED) ? "Added" : "Exists");
   }
   
-  if (pnode_addSymbol(st, "motato", "int16", &resp)) {
+  if (pnode_addSymbol(st, "motato", int16, &resp)) {
     puts((resp == SYM_ADDED) ? "Added" : "Exists");
   }
 
-  if (pnode_addSymbol(plus, "potato", "int8", &resp)) {
+  if (pnode_addSymbol(plus, "potato", int8, &resp)) {
     puts((resp == SYM_ADDED) ? "Added" : "Exists");
   }
 

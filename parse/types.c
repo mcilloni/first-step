@@ -1,11 +1,21 @@
 #include "types.h"
 
+#include "../array/array.h"
+#include "../utils/env.h"
+#include "../utils/utils.h"
+
+#include <stdlib.h>
 #include <string.h>
 
-struct type type_int8 = { TYPE_NUMERIC, "int8", 8 };
-struct type type_int16 = { TYPE_NUMERIC, "int16", 16 };
-struct type type_int32 = { TYPE_NUMERIC, "int32", 32 };
-struct type type_int64 = { TYPE_NUMERIC, "int64", 64 };
+struct type type_int8 = { TYPE_NUMERIC, "int8", 1 };
+struct type type_int16 = { TYPE_NUMERIC, "int16", 2 };
+struct type type_int32 = { TYPE_NUMERIC, "int32", 4 };
+struct type type_int64 = { TYPE_NUMERIC, "int64", 8 };
+struct type nTNex = {0};
+
+size_t ptrSize = 8;
+
+struct type *type_none = &nTNex;
 
 struct type* type_getBuiltin(const char *name) {
  if (!strcmp(name, "int8")) {
@@ -43,7 +53,13 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
   return TYPECOMP_NO;
 }
 
-struct type* type_getTypeDef(struct types *types, const char *name) {
+struct type* type_getTypeDef(Types *types, const char *name) {
+  if (types) {
+    struct type *type;
+    if (!(type = types_get(types, name))) {
+      return type;
+    }
+  }
   return type_getBuiltin(name);
 }
 
@@ -54,7 +70,7 @@ struct type* type_evalLarger(struct type *first, struct type *second) {
 #define IN(NUM, A, B) (NUM >= A && NUM <= B)
 
 struct type* type_evalNumberType(int64_t number) {
-  if (IN(number, INT8_MIN, INT16_MAX)) {
+  if (IN(number, INT8_MIN, INT8_MAX)) {
     return &type_int8;
   }
 
@@ -67,4 +83,102 @@ struct type* type_evalNumberType(int64_t number) {
   }
 
   return &type_int64;
+}
+
+bool type_isFunc(struct type *type) {
+  return type->kind == TYPE_FUNC;
+}
+
+void type_free(struct type *type) {
+  if (type->kind == TYPE_FUNC) {
+    free(type);
+  }
+}
+
+Types* (*types_new)(void) = (Types* (*)(void)) strmap_new;
+
+void types_free(Types* types) {
+  map_freeSpec(types, NULL, (void (*)(void*)) type_free);
+}
+
+struct type* types_get(Types *types, const char *name) {
+  struct type *ret;
+  if (!map_get(types, name, (void**) &ret)) {
+    return NULL;
+  }
+
+  return ret;
+}
+
+struct type* type_makeFuncType(struct type *ret, Array *args) {
+  struct ftype *ftype = calloc(1, sizeof(struct ftype));
+
+  *ftype = (struct ftype) {{TYPE_FUNC, NULL, ptrSize}, ret, args};
+
+  return (struct type*) ftype;
+}
+
+void types_defineFuncId(Types *types, const char *name, struct type *ret, Array *args) {
+
+  struct type *type = type_makeFuncType(ret, args);
+
+  map_put(types, str_clone(name), type, FREE_KEY | FREE_VALUE);
+
+}
+
+enum type_kind types_isFuncDefined(Types *types, const char *name, const char *ret, Array *args) {
+  struct type *type; 
+  return (type = types_get(types, name)) && (type->kind == TYPE_FUNC);
+}
+
+char* type_str(struct type *type, char *buffer, size_t bufLen) {
+  if (type_isFunc(type)) {
+    struct ftype *ftype = (struct ftype*) type;
+    size_t wrtn = 5U;
+    char *base = buffer, *tmp;
+    strncpy(buffer, "func(", bufLen);
+    
+    if (wrtn >= bufLen) {
+      return base;
+    }
+
+    buffer += wrtn;
+
+    size_t pLen = array_len(ftype->params);
+    bool first = true;
+
+    for (size_t i = 0; i < pLen; ++i) {
+
+      if (wrtn >= bufLen) {
+        return base;
+      }
+
+      if (first) {
+        first = false;
+      } else {
+        *buffer = ',';
+        buffer = base + ++wrtn;
+      }
+
+      if (wrtn >= bufLen) {
+        return base;
+      }
+
+      tmp = type_str(*array_get(ftype->params, i), buffer, bufLen - wrtn);
+      wrtn += strlen(tmp);
+
+      if (wrtn >= bufLen) {
+        return base;
+      }
+
+      buffer = base + wrtn;
+    }
+
+    strncpy(buffer, ")", bufLen - wrtn);
+    
+    return base;
+  }
+
+  strncpy(buffer, type->name, bufLen);
+  return buffer;  
 }
