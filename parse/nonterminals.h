@@ -23,6 +23,7 @@ enum nonterminals {
   PR_EXPRC,
   PR_ARITHEXP,
   PR_CONST,
+  PR_CALL,
   PR_NUMBER,
   PR_BINOP,
   PR_UNOP,

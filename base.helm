@@ -1,4 +1,4 @@
-decl printint func(int8)
+decl printint func(int32)
 
 entry
 
@@ -17,6 +17,12 @@ entry
        a = !a
     /if
 
+    a = -6
+
+    if a == -6
+      printint(a)
+    /if
+
     if a < 0 
 
 
@@ -24,4 +30,6 @@ entry
 
     /if
 
+    printint(a)
+    printint(2^11)
 /entry

@@ -10,25 +10,34 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void c_compile(const char *bin, const char *cfile) {
+void c_compile(const char *bin, const char *cfile, bool link) {
   pid_t pid;
 
   switch ((pid = fork())) {
   case -1:
     env.fail("Forking failed, cannot launch clang");
     break;
-  case 0:
-    if (execlp("clang", "clang", "-g", "-o", bin, cfile, "helmrt.o", NULL)) {
+  case 0: {
+    int hs;
+
+    if (link) {
+      hs = execlp("clang", "clang", "-Wno-parentheses-equality", "-g", "-o", bin, cfile, "helmrt.o", NULL);
+    } else {
+      hs = execlp("clang", "clang", "-Wno-parentheses-equality", "-g", "-c", cfile, NULL);
+    }
+
+    if (hs) {
       env.fail("Cannot launch clang: %s", strerror(errno));
     }
     break;
+  }
   default: {
     int status;
     waitpid(pid, &status, 0);
 
-    if (remove(cfile)) {
+    /*if (remove(cfile)) {
       env.warning("Cannot remove temporary file %s", cfile);
-    }
+    }*/
 
     if (WEXITSTATUS(status) != EXIT_SUCCESS) {
       env.fail("clang failed");
@@ -41,11 +50,27 @@ void c_compile(const char *bin, const char *cfile) {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
+  char *progname = NULL; 
+  bool link = true;
+
+  switch (argc) {
+  case 2:
+    progname = (char*) argv[1];
+    break;
+  case 3:
+    if (strcmp(argv[1], "-c")) {
+      env.fail("Unknown option %s", argv[1]);
+    }
+
+    link = false;
+
+    progname = (char*) argv[2];
+
+    break;
+  default:
     env.fail("Wrong number of arguments: %d", argc); 
   }
 
-  char *progname = (char*) argv[1];
   char *ext = strrchr(progname, '.'); 
 
   puts("First Step - Helm Experimental compiler\n"
@@ -90,7 +115,7 @@ int main(int argc, char *argv[]) {
 
   *ext = 0;
 
-  c_compile(progname, cpname);
+  c_compile(progname, cpname, link);
 
   free(cpname);
   free(cprog);

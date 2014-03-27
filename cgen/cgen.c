@@ -39,7 +39,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
 
   case PR_UNOP:
     if (array_len(root->leaves) != 1) {
-      env.fail("Unacceptable len: %lu", array_len(root->leaves));
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
 
     fputs("( ", out);    
@@ -50,6 +50,27 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
   case PR_ID:
     fputs((char*) val, out);
     break;
+  case PR_CALL: {
+    size_t len = array_len(root->leaves);
+    if (len < 1) {
+      env.fail("Unacceptable len: %zu", len);
+    }
+
+    ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
+    fputc('(', out);
+
+    for (size_t i = 1; i < len; ++i) {
+      if (i - 1) {
+        fputc(',', out);
+      }
+
+      ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
+    }
+
+    fputc(')', out);
+
+    break;
+  }
   default:
     fprintf(out, "%ld", (intptr_t) val);
     break;

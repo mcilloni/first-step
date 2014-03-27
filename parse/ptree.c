@@ -357,9 +357,11 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
   case PR_NUMBER:
     printf(": %" PRIdMAX, (intmax_t) pnode_getval(val));
     break;
-  case PR_ID:
-    printf(": %s, type %s", (const char*) pnode_getval(val), pnode_evalType(val, NULL)->name);
+  case PR_ID: {
+    char buf[2048];
+    printf(": %s, type %s", (const char*) pnode_getval(val), type_str(pnode_evalType(val, NULL), buf, 2048));
     break;
+  }
   case PR_BINOP:
   case PR_UNOP:
     printf(": %s", tokentype_str((enum token_type) pnode_getval(val)));

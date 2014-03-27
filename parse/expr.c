@@ -10,6 +10,8 @@
 
 extern struct token *nextTok;
 
+struct pnode* expr_treeize(struct pnode *root, List *expr);
+
 enum operator_assoc {
   ASSOC_NOTOP,
   ASSOC_LEFT,
@@ -36,6 +38,54 @@ uintmax_t uintpow(uintmax_t base, uintmax_t exp) {
   }
   }
 
+}
+
+void expr_callCheckTypes(struct pnode *call) {
+  Leaves *lv = call->leaves;
+
+  size_t len = array_len(lv);
+
+  if (!len) {
+    env.fail("No function to call");
+  }
+
+  struct pnode *id = *leaves_get(lv, 0);
+  char *name = (char*) pnode_getval(id);
+
+  struct type *type = pnode_symbolType(call, name);
+
+  if (!type) {
+    env.fail("Cannot call undefined id %s", name);
+  }
+
+  if (!type_isFunc(type)) {
+    env.fail("Cannot call not function type id %s", name);
+  }
+
+  struct ftype *ftype = (struct ftype*) type;
+  size_t pLen = array_len(ftype->params);
+
+  if ((len - 1) != pLen) {
+    char buf[2048];
+    type_str(type, buf, 2048);
+    env.fail("Cannot call function %s of type %s: wrong number of arguments (%zu), expected %zu", name, buf, len-1, pLen);
+  }
+
+  struct type *typeA, *typeB;
+
+  for (size_t i = 0; i < pLen; ++i) {
+    
+    typeA = (struct type*) *array_get(ftype->params, i);
+    typeB = pnode_evalType((struct pnode*) *leaves_get(lv, i + 1), NULL);
+
+    if (!type_areCompatible(typeA, typeB)) {
+      char buf[2048], cuf[2048];
+      type_str(typeB, cuf, 2048);
+      type_str(typeA, buf, 2048);
+      env.fail("Cannot assign %s to parameter %zu of type %s of function id %s", cuf, i, buf, name);
+    }
+
+  }
 }
 
 struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnode *right) {
@@ -195,11 +245,13 @@ void expr_fixParentheses(List **expr) {
   size_t len = list_len(*expr);
 
   if (len > 2) {
-    enum token_type first = ((struct token*) *list_get(*expr, 0LU))->type;  
-    enum token_type last = ((struct token*) *list_get(*expr, len - 1))->type;
+    struct token *first = (struct token*) *list_get(*expr, 0LU);
+    struct token *last = (struct token*) *list_get(*expr, len - 1);
 
-    if ((first == LEX_OPAR) && (last == LEX_CPAR)) {
+    if ((first->type == LEX_OPAR) && (last->type == LEX_CPAR)) {
       *expr = list_extract(*expr, 1LU, len - 2);
+      token_free(first);
+      token_free(last);
     }
   }
 
@@ -326,6 +378,89 @@ enum nonterminals expr_ntFromTokVal(struct token *tok) {
   
 }
 
+size_t expr_findComma(List *expr) {
+  size_t len = list_len(expr);
+
+  uint16_t par = 0;
+
+  struct token *tok;
+
+  for (size_t i = 0; i < len; ++i) {
+    tok = (struct token*) *list_get(expr, i);
+
+    switch (tok->type) {
+    case LEX_CPAR:
+      if (!par) {
+        env.fail("Unmatched parentheses");
+      }
+      --par;
+      break;
+    case LEX_OPAR:
+      ++par;
+      break;
+    case LEX_COMMA:  
+      if (!par) {
+        return i;
+      }
+      break;
+    default:
+      break;
+    }
+  }
+
+  if (par) {
+    env.fail("Unmatched parentheses in expression");
+  }
+
+  return 0;
+}
+
+struct pnode* expr_handleCall(struct pnode *root, List *expr) {
+  
+  size_t len = list_len(expr);
+
+  if (len < 3) {
+    return false;
+  }
+
+  struct token *first = (struct token*) *list_get(expr, 0);
+  struct token *second = (struct token*) *list_get(expr, 1);
+  struct token *last = (struct token*) *list_get(expr, len - 1);
+
+  if (first->type == LEX_ID && second->type == LEX_OPAR && last->type == LEX_CPAR) {
+    struct pnode *ret = pnode_new(PR_CALL);
+
+    ret->root = root;
+
+    struct pnode *id = expr_handleSingle(ret, list_extract(expr, 0, 1));
+
+    id->root = ret;
+
+    pnode_addLeaf(ret, id);
+
+    expr_fixParentheses(&expr);
+
+    if (len) {
+      List *tmp;
+      size_t comma;
+      
+      while((comma = expr_findComma(expr))) {
+        tmp = list_extract(expr, 0, comma);
+        pnode_addLeaf(ret, expr_treeize(ret, tmp));
+        token_free(*list_get(expr, comma));
+        expr = list_extract(expr, 1, -1);
+      }
+
+      pnode_addLeaf(ret, expr_treeize(ret, expr));
+    }
+
+    expr_callCheckTypes(ret);
+
+    return ret;
+  }
+
+  return NULL;
+}
 
 struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
@@ -333,6 +468,10 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
   expr_fixMinus(expr);
 
   struct pnode *ret = NULL;
+
+  if ((ret = expr_handleCall(root, expr))) {
+    return ret;
+  }
 
   if (list_len(expr) == 1) {
     ret = expr_handleSingle(root, expr);
@@ -436,7 +575,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
     }
   }
 
-  //this actually frees only the original listay
+  //this actually frees only the original list
   list_freeAll(expr, (void (*)(void*)) token_free);
 
   return ret;
