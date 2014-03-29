@@ -1,5 +1,9 @@
 decl printint func(int32)
 
+func waste(a,b int8) int16
+  return a * b
+/func
+
 entry
 
     var a int8 
@@ -11,25 +15,24 @@ entry
     a++
     a--
 
-    a = a / 2
+   a = a / 2
 
-    if a != 3
-       a = !a
+   if a != 3
+      a = !a
+   /if
+
+   a = -6
+
+   if a == -6
+     printint(a)
+   /if
+
+   if a < 0 
+
+
+      a=33
+
     /if
 
-    a = -6
-
-    if a == -6
-      printint(a)
-    /if
-
-    if a < 0 
-
-
-       a=33
-
-    /if
-
-    printint(a)
-    printint(2^11)
+    printint(waste(a, a + 1))
 /entry

@@ -1,16 +1,17 @@
-#include "ptree.h"
+#include "parse.h"
 #include "../lex/lex.h"
 #include "../utils/env.h"
+#include "../utils/utils.h"
 
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 
 static bool firstTok = true;
 struct token *nextTok = NULL;
 
-typedef bool (*bodyender)(struct token*);
 struct pnode* body(struct pnode *this, struct lexer *lex, bodyender be);
-extern struct pnode* expr(struct pnode *root, struct lexer *lex);
+extern struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be);
 struct type* type(struct pnode *this, struct lexer *lex);
 
 struct token* token_getOrDie(struct lexer *lex) {
@@ -176,7 +177,7 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
   struct pnode* ret = pnode_new(PR_IF);
 
-  pnode_addLeaf(ret, expr(root, lex));
+  pnode_addLeaf(ret, expr(root, lex, NULL));
 
   struct token *tok = token_getOrDie(lex);
 
@@ -210,6 +211,43 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
 }
 
+struct pnode* returnStmt(struct pnode *root, struct lexer *lex) {
+
+  token_free(token_getOrDie(lex)); //scrap 'return' token
+
+  struct type *rType = pnode_funcReturnType(root);
+
+  if (!rType) {
+    env.fail("return outside of a function");
+  }
+
+  if (!nextTok) {
+    env.fail("Unexpected EOF");
+  }
+
+  struct pnode *exprNode = (nextTok->type == LEX_NEWLINE) ? expr_empty : expr(root, lex, NULL);
+
+  struct type *type = pnode_evalType(exprNode, root);
+
+  switch(type_areCompatible(rType, type)) {
+  case TYPECOMP_NO:
+    env.fail("Type of return expression is incompatible with declaration type");
+    break;
+  case TYPECOMP_SMALLER:
+    env.warning("Returning an expression larger than return type");
+    break;
+  default:
+    break;
+  }
+
+  struct pnode *ret = pnode_new(PR_RETURN);
+
+  pnode_addLeaf(ret, exprNode);
+
+  return ret;
+
+}
+
 struct pnode* stmt(struct pnode *root, struct lexer *lex) {
 
   if (!nextTok) {
@@ -238,8 +276,11 @@ struct pnode* stmt(struct pnode *root, struct lexer *lex) {
     ret = &declaration_fake_node;
     break;
   }
+  case LEX_RETURN: 
+    ret = returnStmt(root, lex);
+    break;  
   default: {
-    if (!(ret = expr(root, lex))) {
+    if (!(ret = expr(root, lex, NULL))) {
       env.fail("Unexpected token %s, expected 'var', 'if' or anything evaluable as an expression", token_str(&savedNext));
     }
   }
@@ -280,11 +321,109 @@ bool entryBe(struct token *tok) {
   return tok->type == LEX_ENDENTRY;
 }
 
+bool funcBe(struct token *tok) {
+  return tok->type == LEX_ENDFUNC;
+}
+
+Pair* funcTypeParams(struct pnode *this, struct lexer *lex) {
+  Pair *ret = malloc(sizeof(Pair));
+  Array *names = array_new(3U);
+  struct token *tok;
+  bool first = true;
+
+  do {
+    tok = token_getOrDie(lex);
+
+    if (!tok) {
+     env.fail("Unexpected EOF, expected an identifier");
+    }
+
+    if (!first) {
+      if (tok->type != LEX_COMMA) {
+        env.fail("Unexpected %s, expected an identifier", token_str(tok));
+      }
+
+      token_free(tok);
+      tok = token_getOrDie(lex);
+
+      if (!tok) {
+       env.fail("Unexpected EOF, expected an identifier");
+      }
+    }
+
+    if (tok->type != LEX_ID) {
+      env.fail("Unexpected %s, expected an identifier", token_str(tok));
+    }
+
+    array_append(names, str_clone((char*) tok->value));
+
+    token_free(tok);
+
+    first = false;
+  } while (nextTok->type == LEX_COMMA);
+
+  *ret = (Pair) { type(this, lex), names };
+
+  return ret;
+}
+
+void symPairAdd(Symbols *syms, Pair *pair) {
+  
+  struct type *type = (struct type*) pair->key;
+  Array *names = (Array*) pair->value;
+  size_t len = array_len(names); 
+
+  for (size_t i = 0; i < len; ++i) {
+    if (symbols_register(syms, (char*) *array_get(names, i), type, false) != SYM_ADDED) {
+      env.fail("Function parameter %s already defined", (char*) array_get(names, i));
+    }
+  }
+
+  pair_free(pair);
+}
+
+Symbols* funcList(struct pnode *this, struct lexer *lex) {
+  Symbols *ret = symbols_new();
+
+  bool first = true;
+  struct token *tok;
+  while (nextTok->type != LEX_CPAR) {
+    if (first) {
+      first = false;
+    } else {
+      tok = token_getOrDie(lex);
+
+      if (tok->type != LEX_COMMA) {
+        env.fail("Unexpected %s in function declaration, expected ','", token_str(tok));
+      }
+    }
+
+    symPairAdd(ret, funcTypeParams(this, lex));
+    
+  }
+
+  return ret;
+}
+
+void funcCommons(struct pnode *this, struct lexer *lex, bodyender be) {
+
+  pnode_addLeaf(this, body(this, lex, be));
+
+  struct token *tok = token_getOrDie(lex);
+
+  if (!be(tok)) {
+    env.fail("Unexpected token found: got %s, expected end of function (or entry)", token_str(tok)); 
+  }
+
+  token_free(tok);
+
+}
+
 struct pnode* entry(struct pnode *root, struct lexer *lex) {
   struct token *tok = token_getOrDie(lex);
 
   if (!tok) {
-    env.fail("Unexpected end of file in entry");
+    env.fail("Unexpected end of file in function");
   }
   
   if (tok->type != LEX_NEWLINE) {
@@ -293,29 +432,94 @@ struct pnode* entry(struct pnode *root, struct lexer *lex) {
 
   token_free(tok);
 
-  struct pnode *ret = pnode_new(PR_ENTRY);
+  struct pnode *ret = pnode_newfunc(PR_FUNC, "__helm_entry", type_none, symbols_new());
 
   ret->root = root; //in this case, this is needed
 
-  pnode_addLeaf(ret, body(ret, lex, entryBe));
-
-  tok = token_getOrDie(lex);
-
-  if (tok->type != LEX_ENDENTRY) {
-    env.fail("Unexpected token found: got %s, expected '/entry'", token_str(tok)); 
-  }
-
-  token_free(tok);
+  funcCommons(ret, lex, entryBe);
 
   return ret;
 }
 
 struct pnode* func(struct pnode *root, struct lexer *lex) {
-  return NULL;
+
+  struct token *tok = token_getOrDie(lex);
+
+  if (!tok) {
+    env.fail("Unexpected EOF, expected identifier");
+  }
+
+  if (tok->type != LEX_ID) {
+    env.fail("Unexpected token %s, expected an identifier", token_str(tok));
+  }
+
+  char *fName = str_clone((char*) tok->value);
+
+  token_free(tok);
+
+  tok = token_getOrDie(lex);
+
+  if (!tok) {
+    env.fail("Unexpected EOF, expected '('");
+  }
+
+  if (tok->type != LEX_OPAR) {
+    env.fail("Unexpected token %s, expected '('", token_str(tok));
+  }
+
+  token_free(tok);
+  Symbols *syms = NULL; 
+
+  if (nextTok && nextTok->type != LEX_CPAR) {
+    syms = funcList(root, lex);
+  } 
+  
+  tok = token_getOrDie(lex);
+
+  if (!tok) {
+    env.fail("Unexpected EOF, expected ')'");
+  }
+
+  if (tok->type != LEX_CPAR) {
+    env.fail("Unexpected token %s, expected ')'", token_str(tok));
+  }
+
+  token_free(tok);
+
+  if (!nextTok) {
+    env.fail("Unexpected EOF, expected type or a newline");
+  }
+
+  struct type *rType = type_none;
+
+  switch(nextTok->type) {
+  case LEX_ID:
+  case LEX_FUNC:
+    rType = type(root, lex);
+    break;
+  case LEX_NEWLINE:
+    break;
+  default:
+    env.fail("Unexpected %s, expected type or a new line", token_str(nextTok));
+    break;
+  }
+
+  token_free(token_getOrDie(lex)); //discard new line
+
+  struct pnode *ret = pnode_newfunc(PR_FUNC, fName, rType, syms);
+
+  ret->root = root;
+
+  free(fName);
+
+  funcCommons(ret, lex, funcBe);
+  return ret;
+  
 }
 
 struct pnode* definition(struct pnode *root, struct lexer *lex) {
   struct token *tok = token_getOrDie(lex);
+
   if (!tok) {
     return NULL;
   }

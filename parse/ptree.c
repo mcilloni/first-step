@@ -3,10 +3,12 @@
 
 #include "../lex/lex.h"
 #include "../utils/env.h"
+#include "../utils/utils.h"
 
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void pnode_addLeaf(struct pnode *pnode, struct pnode *leaf) {
   leaf->root = pnode;
@@ -47,7 +49,7 @@ bool pnode_declSymbol(struct pnode *pnode, const char *id, struct type *type, en
   return pnode_addSymbolReal(pnode, id, type, resp, true);
 }
 
-Array* pnode_getFuncParams(struct pnode *pnode) {
+Symbols* pnode_getFuncParams(struct pnode *pnode) {
   if (!pnode_isFunc(pnode)) {
     return NULL;
   }
@@ -121,6 +123,10 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
     scope = pnode;
   }
 
+  if (pnode == expr_empty) {
+    return type_none;
+  }
+
   if (!(pnode && pnode_isValue(pnode))) {
     return NULL;
   }
@@ -133,6 +139,10 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
   } 
 
   switch (pnode->id){ 
+  case PR_CALL: {
+    ret = ((struct ftype*) pnode_evalType(*leaves_get(pnode->leaves, 0), scope))->ret;
+    break;
+  }
   case PR_BINOP: {
   
     struct type *firstType = pnode_evalType(*leaves_get(pnode->leaves, 0), scope);
@@ -184,20 +194,64 @@ bool pnode_getValue(struct pnode *pnode, uintmax_t *val) {
 
 }
 
+struct type* pnode_isRootAndIdIsFunc(struct pnode *pnode, const char *id) {
+  if (pnode->id == PR_PROGRAM) {
+    Leaves *leaves = pnode->leaves;
+    struct pnode *leaf;
+    size_t len = array_len(leaves);
+
+    for (size_t i = 0; i < len; ++i) {
+      leaf = *leaves_get(leaves, i);
+      if (pnode_isFunc(leaf)) {
+        struct pfunc *pfunc = (struct pfunc*) leaf;
+
+        if (!strcmp(pfunc->name, id)) {
+          return (struct type*) pfunc->ftype;
+        }
+      }
+    }
+  }
+
+  return NULL;
+}
+
 struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
 
   if (!pnode) {
     return NULL;
   }
 
-  struct symbol *sym = NULL;
+  struct type *type = NULL;
+
+  if((type = pnode_isRootAndIdIsFunc(pnode, id))) {
+    return type;
+  }
+
+  struct symbol *sym = NULL; 
 
   if (!pnode_isScope(pnode) || !(sym = symbols_get(((struct pscope*) pnode)->symbols, id))) {
-    return pnode_symbolType(pnode->root, id);
+    if (!pnode_isFunc(pnode) || !(sym = symbols_get(((struct pfunc*) pnode)->params, id))) {
+      return pnode_symbolType(pnode->root, id);
+    }
   }
 
   return sym->type;
 
+}
+
+struct type* pnode_funcReturnType(struct pnode *pnode) {
+  
+  if (!pnode) {
+    return NULL;
+  }
+
+  if (pnode_isFunc(pnode)) {
+    struct pfunc *pfunc = (struct pfunc*) pnode;
+
+    return pfunc->ftype->ret;
+  }
+
+  return pnode_funcReturnType(pnode->root);
 }
 
 bool nonterminals_isConst(enum nonterminals id) {
@@ -237,6 +291,7 @@ bool nonterminals_isScope(enum nonterminals id) {
 bool nonterminals_isValue(enum nonterminals id) {
   switch (id) {
   case PR_ID:
+  case PR_CALL:
   case PR_UNOP:
   case PR_BINOP:
   case PR_NUMBER:
@@ -258,6 +313,10 @@ bool pnode_isScope(struct pnode *pnode) {
 bool pnode_isInCurrentScope(struct pnode *pnode, const char *id) {
   if (!pnode) {
     return false;
+  }
+
+  if (pnode_isFunc(pnode) && symbols_defined(((struct pfunc*) pnode)->params, id)) {
+    return true;
   }
 
   if (pnode_isScope(pnode)) {
@@ -300,14 +359,27 @@ struct pnode* pnode_new(enum nonterminals id) {
   return ret;
 }
 
-struct pnode* pnode_newfunc(enum nonterminals id, Array *params) {
-  struct pfunc *ret = (struct pfunc*) pnode_new(id);
+struct ftype* type_mkFunFromRetSyms(struct type *ret, Symbols *params) {
+  Array *arp = array_new(params->size);
 
-  if (pnode_isFunc(&(ret->node))) {
-    ret->params = params;
+  MapIter *iter = mapiter_start(params);
+  Pair *pair;
+  
+  while ((pair = mapiter_next(iter))) {
+    array_append(arp, type_secptr(((struct symbol*) pair->value)->type));
+  }
+  
+  return (struct ftype*) type_makeFuncType(ret, arp);
+}
+
+struct pnode* pnode_newfunc(enum nonterminals id, const char *name, struct type *ret, Symbols *params) {
+  struct pfunc *retVal = (struct pfunc*) pnode_new(id);
+
+  if (pnode_isFunc(&(retVal->node))) {
+    *retVal = (struct pfunc) {retVal->node, type_mkFunFromRetSyms(ret, params), str_clone(name), params};
   }
 
-  return (struct pnode*) ret;
+  return (struct pnode*) retVal;
 }
 
 struct pnode* pnode_newval(enum nonterminals id, uintmax_t val) {
@@ -321,6 +393,11 @@ struct pnode* pnode_newval(enum nonterminals id, uintmax_t val) {
 }
 
 void pnode_free(struct pnode *pnode) {
+
+  if (!pnode || pnode == expr_empty) {
+    return;
+  }
+
   if (pnode_isScope(pnode)) {
     struct pscope *pscope = (struct pscope*) pnode;
     symbols_free(pscope->symbols);
@@ -328,9 +405,11 @@ void pnode_free(struct pnode *pnode) {
   } 
 
   if (pnode_isFunc(pnode)) {
-    Array *arr = ((struct pfunc*) pnode)->params;
-    array_freeContents(arr, (void (*)(void*)) type_free);
-    array_free(arr);
+    struct pfunc *pfunc = (struct pfunc*) pnode;
+
+    free((void*) pfunc->name);
+    type_free((struct type*) pfunc->ftype);
+    symbols_free(pfunc->params);
   }
 
   if (pnode->id == PR_ID) {
@@ -369,7 +448,16 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
   default:
     break;
   }
-  putchar('\n');
+  
+  if (pnode_isFunc(val)) {
+    struct pfunc *pfunc = (struct pfunc*) val;
+    char buf[2048];    
+    printf(" %s of type %s\n", pfunc->name, type_str((struct type*) pfunc->ftype, buf, 2048));
+
+    symbols_dump(pfunc->params, depth + 1); 
+  } else { 
+    putchar('\n');
+  }
 
   if (pnode_isScope(val)) {
     struct pscope *pscope = (struct pscope*) val;

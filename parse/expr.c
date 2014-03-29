@@ -10,6 +10,10 @@
 
 extern struct token *nextTok;
 
+struct pnode enVd = {PR_EXPR, NULL, NULL};
+
+struct pnode *expr_empty = &enVd;
+
 struct pnode* expr_treeize(struct pnode *root, List *expr);
 
 enum operator_assoc {
@@ -244,15 +248,13 @@ void expr_fixMinus(List *expr) {
 void expr_fixParentheses(List **expr) {
   size_t len = list_len(*expr);
 
-  if (len > 2) {
-    struct token *first = (struct token*) *list_get(*expr, 0LU);
-    struct token *last = (struct token*) *list_get(*expr, len - 1);
+  struct token *first = (struct token*) *list_get(*expr, 0LU);
+  struct token *last = (struct token*) *list_get(*expr, len - 1);
 
-    if ((first->type == LEX_OPAR) && (last->type == LEX_CPAR)) {
-      *expr = list_extract(*expr, 1LU, len - 2);
-      token_free(first);
-      token_free(last);
-    }
+  if ((first->type == LEX_OPAR) && (last->type == LEX_CPAR)) {
+    *expr = list_extract(*expr, 1LU, len - 2);
+    token_free(first);
+    token_free(last);
   }
 
 }
@@ -347,14 +349,15 @@ bool expr_isUnOpCompatible(struct pnode *root, struct token *tok, struct pnode *
   
 }
 
-bool expr_nextIsEnd(void) {
-  if (!nextTok) {
+bool expr_nextIsEnd(struct token *tok) {
+
+  if (!tok) {
     env.fail("Unexpected end of file in expression body");
   }
 
   env.debug("nextTok@%p: %s", nextTok, token_str(nextTok));
 
-  switch (nextTok->type) {
+  switch (tok->type) {
   case LEX_NEWLINE:
     return true;
 
@@ -428,7 +431,7 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
   struct token *last = (struct token*) *list_get(expr, len - 1);
 
   if (first->type == LEX_ID && second->type == LEX_OPAR && last->type == LEX_CPAR) {
-    struct pnode *ret = pnode_new(PR_CALL);
+    struct pnode *ret = pnode_newval(PR_CALL, 0U);
 
     ret->root = root;
 
@@ -447,7 +450,7 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
       while((comma = expr_findComma(expr))) {
         tmp = list_extract(expr, 0, comma);
         pnode_addLeaf(ret, expr_treeize(ret, tmp));
-        token_free(*list_get(expr, comma));
+        token_free(*list_get(expr, 0));
         expr = list_extract(expr, 1, -1);
       }
 
@@ -466,6 +469,10 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
   expr_fixParentheses(&expr);
   expr_fixMinus(expr);
+
+  if (!list_len(expr)) {
+    return expr_empty;    
+  }
 
   struct pnode *ret = NULL;
 
@@ -582,14 +589,19 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
 }
 
-struct pnode* expr(struct pnode *root, struct lexer *lex) {
+struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be) {
+
+  if (!be) {
+    be = (bodyender) expr_nextIsEnd;
+  }
+
   List *list = list_new();
 
   struct token *tok;
   do {
     tok = token_getOrDie(lex);
     list_append(list, tok);
-  } while(!expr_nextIsEnd());
+  } while(!be(nextTok));
 
   if (!list_len(list)) {
     env.fail("Empty expression body");

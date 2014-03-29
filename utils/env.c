@@ -1,9 +1,7 @@
 #include "colors.h"
 #include "env.h"
 
-#if !(defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
-  #include <execinfo.h>
-#endif
+#include <execinfo.h>
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -17,7 +15,7 @@ int std_printout(FILE *out, const char *level, const char *color, const char *fm
 
   int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET, color, level);
   if (env.line) {
-    ret += fprintf(out, ", line %zu, pos %zu): ", env.line->lineno, env.line->position);
+    ret += fprintf(out, ", line %zu): ", env.line->lineno);
   } else {
     ret += fputs("): ", out);
   }
@@ -25,6 +23,8 @@ int std_printout(FILE *out, const char *level, const char *color, const char *fm
   ret += vfprintf(out, fmt, va);
 
   putc('\n', out);
+
+  ret += puts(env.line->val);
 
   return ret + 1;
 }
@@ -72,9 +72,8 @@ int default_print_fail(const char *fmt, ...) {
 
   va_end(va);
 
-#if !(defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__))
-  void *array[10];
-  size_t size = backtrace(array, 10);
+  void *array[100];
+  size_t size = backtrace(array, 100);
   char** strings = backtrace_symbols(array, size);
 
   for (size_t i = 0; i < size; ++i) {
@@ -82,7 +81,6 @@ int default_print_fail(const char *fmt, ...) {
   }
   
   free(strings);
-#endif
 
   exit(EXIT_FAILURE);
 
@@ -139,3 +137,4 @@ void env_setLine(struct line *line) {
   line_free(env.line);
   env.line = line;
 }
+

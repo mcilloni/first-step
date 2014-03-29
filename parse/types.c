@@ -40,14 +40,23 @@ struct type* type_getBuiltin(const char *name) {
 enum type_compatible type_areCompatible(struct type *assign, struct type *assigned) {
   if (assign->kind == assigned->kind) {
 
-    if (assign->kind == TYPE_NUMERIC) {
+    switch (assign->kind) { 
+    case TYPE_NUMERIC:
       if (assign->size < assigned->size) {
         return TYPECOMP_SMALLER;
       }
 
       return TYPECOMP_YES;
+    case TYPE_FUNC: {
+      char buf[2048], cuf[2048]; //horrible hack that makes things quicker. Maybe I will change this one day.
+      type_str(assign, buf, 2048);
+      type_str(assigned, cuf, 2048);
+
+      return strcmp(buf, cuf) ? TYPECOMP_NO : TYPECOMP_YES;
+    }    
+    default:
+      break;
     }
-  
   }
 
   return TYPECOMP_NO;
@@ -129,6 +138,22 @@ void types_defineFuncId(Types *types, const char *name, struct type *ret, Array 
 enum type_kind types_isFuncDefined(Types *types, const char *name, const char *ret, Array *args) {
   struct type *type; 
   return (type = types_get(types, name)) && (type->kind == TYPE_FUNC);
+}
+
+struct type* type_secptr(struct type *type) {
+  if (type_isFunc(type)) {
+    struct ftype *ftype = (struct ftype*) type;
+    size_t len = array_len(ftype->params);
+    Array *params = array_new(len);
+
+    for (size_t i = 0; i < len; ++i) {
+      array_append(params, type_secptr((struct type*) *array_get(ftype->params, i)));
+    }
+
+    return type_makeFuncType(type_secptr(ftype->ret), params);
+  }
+
+  return type;
 }
 
 char* type_str(struct type *type, char *buffer, size_t bufLen) {

@@ -5,6 +5,8 @@
 
 #include "../lex/lex.h"
 
+typedef bool (*bodyender)(struct token*);
+
 struct token* token_getOrDie(struct lexer *lex);
 
 struct pnode* parse(const char *filename);

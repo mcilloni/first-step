@@ -15,6 +15,7 @@ struct env {
   printfmt info;
   printfmt warning;
   struct line *line;
+  const char *curFile;
 };
 
 extern struct env env;

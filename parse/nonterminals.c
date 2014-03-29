@@ -40,6 +40,8 @@ const char* nt_str(enum nonterminals nt) {
     return "Constant";
   case PR_CALL:
     return "Function call";
+  case PR_RETURN:
+    return "Return";
   case PR_NUMBER:
     return "Number";
   case PR_BINOP:

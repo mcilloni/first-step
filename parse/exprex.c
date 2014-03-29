@@ -53,6 +53,11 @@ void printtree(struct pnode *root) {
     return;
   }
 
+  if (root == expr_empty) {
+    fputs("empty", stdout);
+    return;
+  }
+
   struct token tok;
   uintptr_t val = pnode_getval(root);
 

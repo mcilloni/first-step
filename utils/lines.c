@@ -10,11 +10,11 @@
 
 
 static const size_t initSize = 512;
-size_t lineno = -1;
+size_t lineno = 0;
 
 struct line* line_read(FILE *file, enum errors *err) {
   struct line *ret = malloc(sizeof(struct line));
-  *ret = (struct line){0, 0, ++lineno, calloc(sizeof(char), initSize)};
+  *ret = (struct line){0, 0, lineno, calloc(sizeof(char), initSize)};
 
   char ch;
 
@@ -44,6 +44,8 @@ struct line* line_read(FILE *file, enum errors *err) {
       if(ret->len) {
         loop = false;
       } 
+
+      ++lineno;
 
       break;  
     }
@@ -77,6 +79,7 @@ struct line* line_read(FILE *file, enum errors *err) {
 
   }
 
+  ret->lineno = lineno;
   ret->val[ret->len] = 0;
 
   return ret;

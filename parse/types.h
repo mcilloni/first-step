@@ -45,6 +45,7 @@ struct type* type_getBuiltin(const char *name);
 struct type* type_getTypeDef(Types *types, const char *name);
 bool type_isFunc(struct type *type);
 struct type* type_makeFuncType(struct type *ret, Array *args);
+struct type* type_secptr(struct type *type);
 char* type_str(struct type *type, char *buffer, size_t bufLen);
 
 extern Types* (*types_new)(void);

@@ -30,9 +30,9 @@ all: clean
 	$(CC) -c nonterminals.c -g -Wall -pedantic -std=c11 
 	$(CC) -c pnleaves.c -g -Wall -pedantic -std=c11
 	$(CC) -c ptree.c -g -Wall -pedantic -std=c11
-	$(CC) -c parse.c -g -Wall -pedantic -std=c11
 	$(CC) -c symbols.c -g -Wall -pedantic -std=c11 
 	$(CC) -c types.c -g -Wall -pedantic -std=c11
+	$(CC) -c parse.c -g -Wall -pedantic -std=c11
 	$(AR) -rc libparse.a *.o
 	$(RANLIB) libparse.a
 	cp libparse.a ..
@@ -41,7 +41,7 @@ all: clean
 	$(LD) -o posex posex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
 	$(LD) -o parsex parsex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
 	$(LD) -o symex symex.c -L..  -lparse -ltreemap -larray -lutils -g -Wall -pedantic	
-	$(LD) -o treex treex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
+	$(LD) -o treex treex.c -L..  -lparse -llex -ltreemap -lutils -llist -larray -g -Wall -pedantic	
 	$(LD) -o typex typex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
 	$(LD) -o varex varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
 	$(LD) -o assignex assignex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 

@@ -24,6 +24,7 @@ enum nonterminals {
   PR_ARITHEXP,
   PR_CONST,
   PR_CALL,
+  PR_RETURN,
   PR_NUMBER,
   PR_BINOP,
   PR_UNOP,
