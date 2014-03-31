@@ -111,6 +111,11 @@ void types_free(Types* types) {
 }
 
 struct type* types_get(Types *types, const char *name) {
+
+  if (!types) {
+    return NULL;
+  }
+
   struct type *ret;
   if (!map_get(types, name, (void**) &ret)) {
     return NULL;
@@ -199,7 +204,13 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
       buffer = base + wrtn;
     }
 
-    strncpy(buffer, ")", bufLen - wrtn);
+    strncpy(buffer, ") ", bufLen - wrtn);
+    buffer += 2;
+    wrtn += 2;
+
+    if (ftype->ret != type_none) {
+      type_str(ftype->ret, buffer, bufLen - wrtn);
+    }
     
     return base;
   }

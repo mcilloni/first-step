@@ -49,7 +49,13 @@ struct type* idType(struct pnode *this, struct lexer *lex) {
   
   const char *id = (const char*) type->value;
 
-  return pnode_getType(this, id);
+  struct type *ret = pnode_getType(this, id);
+
+  if (!ret) {
+    env.fail("Undefined type %s", id);
+  }
+
+  return ret;
 }
 
 struct type* funcType(struct pnode *this, struct lexer *lex) {

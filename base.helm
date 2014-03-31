@@ -1,3 +1,4 @@
+decl lel func(int8, func(int8) int8) func(int8, func(int8, func(int8) int8) func(int8) int8) func(int8, func(int8) int8) func(int8) int8
 decl printint func(int32)
 
 func waste(a,b int8) int16
