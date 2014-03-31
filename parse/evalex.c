@@ -2,6 +2,7 @@
 
 #include "../lex/lex.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,25 +16,25 @@ int main(void) {
   struct token tok = {LEX_PLUS};
 
   struct pnode *res = expr_evalBinary(&tok, val1, val2);
-  printf("%lu\n", pnode_getval(res));
+  printf("%" PRIuMAX "\n", pnode_getval(res));
   pnode_free(res);
   
   tok.type = LEX_MINUS;
 
   res = expr_evalUnary(&tok, val1);
-  printf("%ld\n", (intptr_t) pnode_getval(res));
+  printf("%" PRIdPTR "\n", (intptr_t) pnode_getval(res));
   pnode_free(res);
 
   tok.type = LEX_NOT;
 
   res = expr_evalUnary(&tok, val1);
-  printf("%ld\n", (intptr_t) pnode_getval(res));
+  printf("%" PRIdPTR "\n", (intptr_t) pnode_getval(res));
   pnode_free(res);
   
   tok.type = LEX_MAJOR;
 
   res = expr_evalBinary(&tok, val1, val2);
-  printf("%ld\n", (intptr_t) pnode_getval(res));
+  printf("%" PRIdPTR "\n", (intptr_t) pnode_getval(res));
   pnode_free(res);
   
   pnode_free(val1);

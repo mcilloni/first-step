@@ -2,6 +2,7 @@
 
 #include "../utils/env.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,14 +21,14 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
   }
 
   struct token tok;
-  uintptr_t val = pnode_getval(root);
+  uintmax_t val = pnode_getval(root);
 
   tok.type = (enum token_type) val;
 
   switch (root->id) {
   case PR_BINOP:
     if (array_len(root->leaves) != 2) {
-      env.fail("Unacceptable len: %lu", array_len(root->leaves));
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
     
     fputs("( ", out);    
@@ -72,7 +73,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
     break;
   }
   default:
-    fprintf(out, "%ld", (intptr_t) val);
+    fprintf(out, "%" PRIdMAX, (intmax_t) val);
     break;
 
   }

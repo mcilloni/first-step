@@ -1,17 +1,18 @@
-#include "ptree.h"
+#include "parse.h"
 
 #include "../list/list.h"
 #include "../lex/lex.h"
 #include "../utils/env.h"
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <unistd.h>
 
-extern struct pnode* expr(struct pnode*, struct lexer*);
+extern struct pnode* expr(struct pnode*, struct lexer*, bodyender);
 extern struct token* token_getOrDie(struct lexer*);
 extern struct token *nextTok;
 
@@ -38,7 +39,7 @@ void printlist(List *list) {
       break;
 
     case LEX_NUMBER:
-      printf(": %ld", tok->value);
+      printf(": %" PRIuMAX, tok->value);
       break;
 
     default:
@@ -59,14 +60,14 @@ void printtree(struct pnode *root) {
   }
 
   struct token tok;
-  uintptr_t val = pnode_getval(root);
+  uintmax_t val = pnode_getval(root);
 
   tok.type = (enum token_type) val;
 
   switch (root->id) {
   case PR_BINOP:
     if (array_len(root->leaves) != 2) {
-      env.fail("Unacceptable len: %lu", array_len(root->leaves));
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
     
     printtree(*leaves_get(root->leaves, 0));
@@ -76,7 +77,7 @@ void printtree(struct pnode *root) {
 
   case PR_UNOP:
     if (array_len(root->leaves) != 1) {
-      env.fail("Unacceptable len: %lu", array_len(root->leaves));
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
     
     printf("%s", token_str(&tok));
@@ -84,7 +85,7 @@ void printtree(struct pnode *root) {
     break;
 
   default:
-    printf("%ld", (intptr_t) val);
+    printf("%" PRIdMAX, (intmax_t) val);
     break;
 
   }
@@ -132,7 +133,7 @@ int main(int argc, const char *argv[]) {
     env.fail("Errors during lexing of file");
   }
 
-  struct pnode *res = expr(NULL, lex);
+  struct pnode *res = expr(NULL, lex, NULL);
 
   printtree(res);
 

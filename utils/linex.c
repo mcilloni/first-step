@@ -12,7 +12,7 @@ int main(void) {
 
   while (!err) {
     env_setLine(line_read(file, &err));
-    env.info("%s (%lu == %lu)", env.line->val, env.line->len, strlen(env.line->val));
+    env.info("%s (%zu == %zu)", env.line->val, env.line->len, strlen(env.line->val));
   }
 
   line_free(env.line);

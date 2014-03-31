@@ -2,6 +2,7 @@
 
 #include "../list/list.h"
 
+#include <inttypes.h>
 #include <stdlib.h>
 
 void printlist(List *list) {
@@ -27,7 +28,7 @@ void printlist(List *list) {
       break;
 
     case LEX_NUMBER:
-      printf(": %ld", tok->value);
+      printf(": %" PRIuMAX, tok->value);
       break;
 
     default:

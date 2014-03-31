@@ -5,6 +5,7 @@
 #include "../utils/env.h"
 
 #include <errno.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,7 +39,7 @@ void printlist(List *list) {
       break;
 
     case LEX_NUMBER:
-      printf(": %ld", tok->value);
+      printf(": %" PRIuMAX, tok->value);
       break;
 
     default:
@@ -61,7 +62,7 @@ void printtree(struct pnode *root) {
   switch (root->id) {
   case PR_BINOP:
     if (array_len(root->leaves) != 2) {
-      env.fail("Unacceptable len: %lu", array_len(root->leaves));
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
     
     printtree(*leaves_get(root->leaves, 0));
@@ -71,7 +72,7 @@ void printtree(struct pnode *root) {
 
   case PR_UNOP:
     if (array_len(root->leaves) != 1) {
-      env.fail("Unacceptable len: %lu", array_len(root->leaves));
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
     
     printf("%s", token_str(&tok));
@@ -81,7 +82,7 @@ void printtree(struct pnode *root) {
     fputs((char*) val, stdout);
     break;
   default:
-    printf("%ld", (intptr_t) val);
+    printf("%" PRIdPTR, (intptr_t) val);
     break;
 
   }

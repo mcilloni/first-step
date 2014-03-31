@@ -2,6 +2,7 @@
 #include "../utils/utils.h"
 #include "../utils/env.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,7 +26,7 @@ int main(void) {
       break;
 
     case LEX_NUMBER:
-      printf(": %lu\n", tok->value);
+      printf(": %" PRIuMAX "\n", tok->value);
       break;
 
     default:

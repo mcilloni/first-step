@@ -3,6 +3,7 @@
 #include "../utils/utils.h"
 #include "../utils/env.h"
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +34,7 @@ void printlist(List *list) {
       break;
 
     case LEX_NUMBER:
-      printf(": %ld", tok->value);
+      printf(": %" PRIuMAX, tok->value);
       break;
 
     default:
@@ -82,7 +83,7 @@ int main(void) {
 
   size_t pos = expr_findLowPriorityOp(list);
 
-  printf("Lowest rightest low priority op: %lu (%s)\n", pos, token_str(*list_get(list, pos)));
+  printf("Lowest rightest low priority op: %zu (%s)\n", pos, token_str(*list_get(list, pos)));
 
   puts(token_str((struct token*) *list_get(list, pos)));
 
