@@ -117,7 +117,7 @@ void ccode_genStmt(struct pnode *stmt, FILE *out, uint8_t indent) {
   }
 }
 
-char* ccode_csym(struct type *type, const char *name);
+char* ccode_csym(struct type *type, const char *name, bool first);
 
 void cgen_cfuncparms(FILE *out, Array *parms) {
   size_t len = array_len(parms);
@@ -133,26 +133,31 @@ void cgen_cfuncparms(FILE *out, Array *parms) {
       fputc(',', out);
     }
 
-    par = ccode_csym((struct type*) *array_get(parms, i), "");
+    par = ccode_csym((struct type*) *array_get(parms, i), "", false);
     fputs(par, out);
     free(par);
   }
 }
 
-char* ccode_csym(struct type *type, const char *name) {
+char* ccode_csym(struct type *type, const char *name, bool first) {
   char *str;
   size_t size;
   FILE *strFile = open_memstream(&str, &size);
   if (type_isFunc(type)) {
     struct ftype *ftype = (struct ftype*) type;
-    size_t pms;
-    char *fmt = ccode_csym(ftype->ret, "%s"), *pm;
+    size_t pms, agz;
+    char *fmt = ccode_csym(ftype->ret, "%s", false), *pm, *ags;
+    puts(fmt);
     FILE *pmFile = open_memstream(&pm, &pms); 
-    fprintf(pmFile, fmt, "(*%s)(");
-    cgen_cfuncparms(pmFile, ftype->params);
-    fputc(')', pmFile);
+    FILE *agsFile = open_memstream(&ags, &agz);
+    cgen_cfuncparms(agsFile, ftype->params);
+    fputc(')', agsFile);
+    fclose(agsFile);
+    fprintf(pmFile, fmt, (first) ? "%s(%s" : "(*%s)(%s");
+    free(fmt);
     fclose(pmFile);
-    fprintf(strFile, pm, name);
+    fprintf(strFile, pm, name, ags);
+    free(ags);
     free(pm);
   } else {
     char tmp[4096];
@@ -174,7 +179,7 @@ void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
   while ((decl = mapiter_next(iter))) {
     sym = (struct symbol*) decl->value;
     file_indent(out, indent);
-    char *csym = ccode_csym(sym->type, (char*) decl->key);
+    char *csym = ccode_csym(sym->type, (char*) decl->key, true);
     fprintf(out, "%s%s;\n", (sym->decl ? "extern " : ""), csym);
     pair_free(decl);
     free(csym);
@@ -217,7 +222,7 @@ void ccode_genFuncHead(struct pfunc *node, FILE *out) {
         fputs(", ", tmf);
       }
 
-      param = ccode_csym(((struct symbol*) pair->value)->type, (char*) pair->key);
+      param = ccode_csym(((struct symbol*) pair->value)->type, (char*) pair->key, true);
 
       fputs(param, tmf);
 
@@ -231,7 +236,7 @@ void ccode_genFuncHead(struct pfunc *node, FILE *out) {
  
   fclose(tmf); 
 
-  char *buf = ccode_csym(node->ftype->ret, tmp);
+  char *buf = ccode_csym(node->ftype->ret, tmp, false);
 
   fprintf(out, "%s) {\n", buf);
 
