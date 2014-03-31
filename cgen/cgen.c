@@ -164,7 +164,6 @@ char* ccode_csym(struct type *type, const char *name) {
     struct ftype *ftype = (struct ftype*) type;
     size_t pms, agz;
     char *fmt = ccode_csym(ftype->ret, "%s"), *pm, *ags;
-    puts(fmt);
     FILE *pmFile = open_memstream(&pm, &pms); 
     FILE *agsFile = open_memstream(&ags, &agz);
     cgen_cfuncparms(agsFile, ftype->params);
