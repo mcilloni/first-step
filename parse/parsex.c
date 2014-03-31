@@ -2,6 +2,7 @@
 
 #include "../list/list.h"
 
+#include <sys/time.h>
 #include <inttypes.h>
 #include <stdlib.h>
 
@@ -40,9 +41,19 @@ void printlist(List *list) {
 
 int main(void) {
 
+  struct timeval t;
+  struct timezone tzp;
+  gettimeofday(&t, &tzp);
+
+  uintmax_t t1 = t.tv_sec*1000000LU + t.tv_usec;
+
   struct pnode *ret = parse("../base.helm");
 
+  gettimeofday(&t, &tzp);
+
   ptree_dump(ret);
+
+  printf("\nParsing took %" PRIuMAX " µs\n", (t.tv_sec*1000000LU + t.tv_usec) - t1);
 
   return EXIT_SUCCESS;
 }
