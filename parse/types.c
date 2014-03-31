@@ -121,8 +121,12 @@ bool type_isFunc(struct type *type) {
   return type->kind == TYPE_FUNC;
 }
 
+bool type_isPtr(struct type *type) {
+  return type->kind == TYPE_PTR;
+}
+
 void type_free(struct type *type) {
-  if (type->kind == TYPE_FUNC) {
+  if (type->kind != TYPE_NUMERIC) {
     free(type);
   }
 }

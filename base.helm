@@ -12,8 +12,8 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-decl lel func(int8, func(int8) int8) func(int8, func(int8, func(int8) int8) func(int8) int8) func(int8, func(int8) int8) func(int8) int8
-decl printint func(int32)
+decl lel func(int8, ptr func(int8) int8) ptr func(int8, ptr func(int8, ptr func(int8) int8) ptr func(int8) int8) ptr func(int8, ptr func(int8) int8) ptr func(int8) int8
+decl printint ptr func(int32)
 
 func waste(a,b int8) int16
   return a * b

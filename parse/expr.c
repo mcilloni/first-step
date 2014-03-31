@@ -79,6 +79,10 @@ void expr_callCheckTypes(struct pnode *call) {
     env.fail("Cannot call undefined id %s", name);
   }
 
+  if (type_isPtr(type)) {
+    type = ((struct ptype*) type)->val;
+  }
+
   if (!type_isFunc(type)) {
     env.fail("Cannot call not function type id %s", name);
   }

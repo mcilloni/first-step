@@ -118,7 +118,7 @@ struct type* funcType(struct pnode *this, struct lexer *lex) {
 endparms: 
 
 
-  if (nextTok && (nextTok->type == LEX_ID || nextTok->type == LEX_FUNC)) {
+  if (nextTok && (nextTok->type == LEX_ID || nextTok->type == LEX_FUNC || nextTok->type == LEX_PTR || nextTok->type == LEX_VAL)) {
     retType = type(this, lex);    
   }
 

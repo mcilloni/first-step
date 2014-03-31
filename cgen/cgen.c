@@ -160,7 +160,8 @@ char* ccode_csym(struct type *type, const char *name) {
   char *str;
   size_t size;
   FILE *strFile = open_memstream(&str, &size);
-  if (type_isFunc(type)) {
+  switch (type->kind) {
+  case TYPE_FUNC: {
     struct ftype *ftype = (struct ftype*) type;
     size_t pms, agz;
     char *fmt = ccode_csym(ftype->ret, "%s"), *pm, *ags;
@@ -169,17 +170,26 @@ char* ccode_csym(struct type *type, const char *name) {
     cgen_cfuncparms(agsFile, ftype->params);
     fputc(')', agsFile);
     fclose(agsFile);
-    fprintf(pmFile, fmt, "(*%s)(%s");
+    fprintf(pmFile, fmt, "%s(%s");
     free(fmt);
     fclose(pmFile);
     fprintf(strFile, pm, name, ags);
     free(ags);
     free(pm);
-  } else {
-    char tmp[4096];
-    fprintf(strFile, "%s %s", (type == type_none) ? "void" : type_str(type, tmp, 4096), name);
+    break;
+  }
+  case TYPE_PTR: {
+    char buf[4096];
+    snprintf(buf, 4095,"(*%s)", name);
+    return ccode_csym(((struct ptype*) type)->val, buf);
   }
 
+  default: {
+    char tmp[4096];
+    fprintf(strFile, "%s %s", (type == type_none) ? "void" : type_str(type, tmp, 4096), name);
+    break;
+  }
+  }
   fclose(strFile);
 
   return str;
