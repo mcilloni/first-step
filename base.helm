@@ -21,7 +21,8 @@ func waste(a,b int8) int16
 
 entry
 
-    var a int8 
+    var a int8
+    var b ptr int8 
     a = (-7+8)/3 #comment!
     
     #comment of some sort.

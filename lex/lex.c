@@ -344,6 +344,18 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  //ptr
+  if (!strcmp("ptr", data)) {
+    res->type = LEX_PTR;
+    return res;
+  }
+
+  //val
+  if (!strcmp("val", data)) {
+    res->type = LEX_VAL;
+    return res;
+  }
+  
   //generic id
   res->type = LEX_ID;
   res->value = (uintptr_t) str_clone(data);
@@ -418,12 +430,16 @@ const char* tokentype_str(enum token_type type) {
     return "a number";
   case LEX_OPAR:
     return "(";
+  case LEX_PTR:
+    return "ptr";
   case LEX_PLUS:
     return "+";
   case LEX_RETURN:
     return "return";
   case LEX_TIMES:
     return "*";
+  case LEX_VAL:
+    return "val";
   case LEX_VAR:
     return "var";
   default:

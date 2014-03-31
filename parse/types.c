@@ -70,7 +70,13 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
       type_str(assigned, cuf, 2048);
 
       return strcmp(buf, cuf) ? TYPECOMP_NO : TYPECOMP_YES;
-    }    
+    }   
+    case TYPE_PTR: {
+      struct ptype *ptr1 = (struct ptype*) assign;
+      struct ptype *ptr2 = (struct ptype*) assigned;
+
+      return type_areCompatible(ptr1->val, ptr2->val);
+    } 
     default:
       break;
     }
@@ -149,6 +155,14 @@ struct type* type_makeFuncType(struct type *ret, Array *args) {
   return (struct type*) ftype;
 }
 
+struct type *type_makePtr(struct type *val) {
+  struct ptype *ptype = calloc(1, sizeof(struct ptype));
+
+  *ptype = (struct ptype) {{TYPE_PTR, NULL, ptrSize}, val};
+
+  return (struct type*) ptype;
+}
+
 void types_defineFuncId(Types *types, const char *name, struct type *ret, Array *args) {
 
   struct type *type = type_makeFuncType(ret, args);
@@ -179,7 +193,8 @@ struct type* type_secptr(struct type *type) {
 }
 
 char* type_str(struct type *type, char *buffer, size_t bufLen) {
-  if (type_isFunc(type)) {
+  switch (type->kind) {
+  case TYPE_FUNC: {
     struct ftype *ftype = (struct ftype*) type;
     size_t wrtn = 5U;
     char *base = buffer, *tmp;
@@ -232,6 +247,20 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
     return base;
   }
 
-  strncpy(buffer, type->name, bufLen);
-  return buffer;  
+  case TYPE_PTR: {
+    if (bufLen < 5) {
+      return buffer;
+    }
+
+    strncpy(buffer, "ptr ", bufLen);
+
+    type_str(((struct ptype*) type)->val, buffer + 4, bufLen - 4);
+
+    return buffer;
+  }
+
+  default:
+    strncpy(buffer, type->name, bufLen);
+    return buffer;  
+  }
 }

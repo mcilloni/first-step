@@ -11,12 +11,14 @@
 enum type_kind {
   TYPE_NONE = 0,
   TYPE_FUNC,
-  TYPE_NUMERIC
+  TYPE_NUMERIC,
+  TYPE_PTR
 };
 
 enum type_compatible {
   TYPECOMP_NO,
   TYPECOMP_SMALLER,
+  TYPECOMP_INTPTR,
   TYPECOMP_YES
 };
 
@@ -33,6 +35,12 @@ struct ftype {
   Array* params;
 };
 
+struct ptype {
+  struct type t;
+
+  struct type *val;
+};
+
 extern struct type *type_none;
 
 typedef Map Types;
@@ -44,7 +52,9 @@ void type_free(struct type *type);
 struct type* type_getBuiltin(const char *name); 
 struct type* type_getTypeDef(Types *types, const char *name);
 bool type_isFunc(struct type *type);
+bool type_isPtr(struct type *type);
 struct type* type_makeFuncType(struct type *ret, Array *args);
+struct type* type_makePtr(struct type *val);
 struct type* type_secptr(struct type *type);
 char* type_str(struct type *type, char *buffer, size_t bufLen);
 

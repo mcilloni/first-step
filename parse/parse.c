@@ -131,13 +131,27 @@ struct type* type(struct pnode *this, struct lexer *lex) {
     env.fail("Unexpected EOF, expected a type");
   }
 
-  if (nextTok->type == LEX_FUNC) {
+  switch (nextTok->type) {
+  case LEX_FUNC: {
     return funcType(this, lex);
-  } else { 
+  }
+
+  case LEX_PTR: {
+    token_free(token_getOrDie(lex));
+    return type_makePtr(type(this, lex));
+  }
+
+  case LEX_VAL: {
+    token_free(token_getOrDie(lex)); //discard the meaningless 'val' 
+    return type(this, lex);
+  }
+
+  default: { 
     if ((nextTok->type != LEX_ID)) {
       return NULL;
     }
     return idType(this, lex);
+  }
   }
 }
 

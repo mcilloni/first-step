@@ -37,8 +37,10 @@ enum token_type {
   LEX_OR,
   LEX_PLUS,
   LEX_POW,
+  LEX_PTR,
   LEX_RETURN,
   LEX_TIMES,
+  LEX_VAL,
   LEX_VAR
 };
 
