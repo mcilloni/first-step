@@ -36,15 +36,15 @@ all: clean
 	$(AR) -rc libparse.a *.o
 	$(RANLIB) libparse.a
 	cp libparse.a ..
-	$(LD) -o evalex evalex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
-	$(LD) -o exprex exprex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic
-	$(LD) -o posex posex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
-	$(LD) -o parsex parsex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	
-	$(LD) -o symex symex.c -L..  -lparse -ltreemap -larray -lutils -g -Wall -pedantic	
-	$(LD) -o treex treex.c -L..  -lparse -llex -ltreemap -lutils -llist -larray -g -Wall -pedantic	
-	$(LD) -o typex typex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	
-	$(LD) -o varex varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
-	$(LD) -o assignex assignex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic 
+	$(LD) -o evalex evalex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic -std=gnu11
+	$(LD) -o exprex exprex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic -std=gnu11
+	$(LD) -o posex posex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	 -std=gnu11
+	$(LD) -o parsex parsex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic	 -std=gnu11
+	$(LD) -o symex symex.c -L..  -lparse -ltreemap -larray -lutils -g -Wall -pedantic	 -std=gnu11
+	$(LD) -o treex treex.c -L..  -lparse -llex -ltreemap -lutils -llist -larray -g -Wall -pedantic -std=gnu11	
+	$(LD) -o typex typex.c -L..  -lparse -llex -ltreemap -lutils -larray -g -Wall -pedantic	 -std=gnu11
+	$(LD) -o varex varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic  -std=gnu11
+	$(LD) -o assignex assignex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic  -std=gnu11
 
 clean:
 	rm -f *.{o,a,so,gch}

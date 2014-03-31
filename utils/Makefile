@@ -23,7 +23,7 @@ all: clean
 	$(AR) -rc libutils.a lines.o utils.o env.o
 	$(RANLIB) libutils.a
 	cp libutils.a ..
-	$(CC) -o linex linex.c -L..  -lutils -g -Wall -pedantic	
+	$(CC) -o linex linex.c -L..  -lutils -g -Wall -pedantic	-std=c11
 
 clean:
 	rm -f *.{o,gch,so,a}

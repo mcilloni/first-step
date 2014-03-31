@@ -23,7 +23,7 @@ all: clean
 	$(AR) -rc liblex.a lex.o
 	$(RANLIB) liblex.a
 	cp liblex.a ..
-	$(CC) -o sample sample.c -L..  -llex -lutils -g -Wall -pedantic	
+	$(CC) -o sample sample.c -L..  -llex -lutils -g -Wall -pedantic	-std=c11
 
 clean:
 	rm -f *.{o,so,a,gch}

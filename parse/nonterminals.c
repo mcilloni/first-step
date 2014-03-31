@@ -52,6 +52,8 @@ const char* nt_str(enum nonterminals nt) {
     return "Increment";
   case PR_DEC:
     return "Decrement";
+  default:
+    return "Unknown";
   }
 }
 
