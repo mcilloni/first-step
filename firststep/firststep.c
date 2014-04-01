@@ -67,6 +67,9 @@ void c_compile(const char *bin, const char *cfile, bool link) {
 }
 
 int main(int argc, char *argv[]) {
+  puts("First Step - Helm Experimental compiler\n"
+       "Built for experimental purposes. WORK IN PROGRESS");
+
   char *progname = NULL; 
   bool link = true;
 
@@ -89,9 +92,6 @@ int main(int argc, char *argv[]) {
   }
 
   char *ext = strrchr(progname, '.'); 
-
-  puts("First Step - Helm Experimental compiler\n"
-       "Built for experimental purposes. WORK IN PROGRESS");
 
   if (!ext) {
     env.fail("Cannot compile a file without .helm extension");

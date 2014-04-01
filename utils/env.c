@@ -41,7 +41,9 @@ int std_printout(FILE *out, const char *level, const char *color, const char *fm
 
   putc('\n', out);
 
-  ret += puts(env.line->val);
+  if (env.line) {
+    ret += puts(env.line->val);
+  }
 
   return ret + 1;
 }
