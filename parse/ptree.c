@@ -181,6 +181,20 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
                 
   case PR_UNOP: {
     ret = pnode_evalType(*leaves_get(pnode->leaves, 0), scope);
+
+    switch((enum token_type) pnode_getval(pnode)) {
+    case LEX_PTR:
+      ret = type_makePtr(ret);
+      break;
+
+    case LEX_VAL:
+      ret = ((struct ptype*) ret)->val;
+      break;
+
+    default:
+      break;
+    }   
+
     break;
   }
 

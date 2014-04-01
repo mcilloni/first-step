@@ -60,8 +60,21 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
 
-    fputs("( ", out);    
-    fprintf(out, "%s", token_str(&tok));
+    fputs("( ", out);  
+    const char *op;
+    switch (tok.type) {
+    case LEX_PTR:
+      op = "&";
+      break;
+    case LEX_VAL:
+      op = "*";
+      break;
+    default:
+      op = token_str(&tok);
+      break;
+    }
+
+    fprintf(out, "%s", op);
     ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
     fputs(" )", out);
     break;

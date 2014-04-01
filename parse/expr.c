@@ -161,6 +161,7 @@ struct pnode* expr_evalUnary(struct token *tok, struct pnode *operand) {
   struct pnode *ret = NULL;
 
   int64_t value = pnode_getval(operand);
+  bool sup = false;
 
   switch (tok->type) {
   case LEX_NOT:
@@ -172,6 +173,11 @@ struct pnode* expr_evalUnary(struct token *tok, struct pnode *operand) {
     break;
   case LEX_MINUS:
     ret = pnode_newval(PR_NUMBER, -value);
+    break;
+  case LEX_PTR:
+    sup = true;
+  case LEX_VAL:
+    env.fail("Cannot %s a constant value", (sup) ? "reference" : "dereference");
     break;
   default:
     env.fail("A wrong token finished into constant evaluation: %s", token_str(tok));
@@ -294,6 +300,8 @@ enum operator_assoc expr_getOpAssociation(struct token *tok) {
     switch(tok->type) {
     case LEX_MINUS:
     case LEX_NOT:
+    case LEX_PTR:
+    case LEX_VAL:
       return ASSOC_RIGHT;
     default:
       return ASSOC_LEFT;
@@ -362,7 +370,11 @@ bool expr_isUnOpCompatible(struct pnode *root, struct token *tok, struct pnode *
   case LEX_INC:
   case LEX_MINUS:
   case LEX_NOT:
-    return pnode_evalType(operand, root)->kind == TYPE_NUMERIC;
+    return pnode_evalType(operand, root)->kind != TYPE_FUNC;
+  case LEX_PTR:
+    return true;
+  case LEX_VAL:
+    return pnode_evalType(operand, root)->kind == TYPE_PTR;
   default:
     env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
     return false;
@@ -486,6 +498,20 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
   return NULL;
 }
 
+bool expr_isValidAssign(struct pnode *node) {
+  if (node->id == PR_ID) {
+    return true;
+  }
+
+  if (node->id != PR_UNOP) {
+    return false;
+  }
+
+  enum token_type tt = (enum token_type) pnode_getval(node);
+
+  return tt == LEX_PTR || tt == LEX_VAL;
+}
+
 struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
   expr_fixParentheses(&expr);
@@ -540,13 +566,17 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
       pnode_addLeaf(ret, right);
 
       if (assign) {
-        pnode_verifyNodesAreCompatible(root, left, right);
-        
+
         if (pos != 1) {
-          env.fail("Only expressions in form a = expr are supported.");
+          if (pos != 2) {
+            env.fail("Only expressions in form a = expr are supported.");
+          }
+          
         }
 
-        if (left->id != PR_ID) {
+        pnode_verifyNodesAreCompatible(root, left, right);
+
+        if (!expr_isValidAssign(left)) {
           env.fail("lvalue of assignment is not an identifier");
         }
 

@@ -88,49 +88,51 @@ bool stok(struct lexer *lex, char *data, size_t max) {
   char ch;
   size_t i;
 
-  if (lex->newline) {
-    lex->newline = false;
-    *data = '\n';
-    *(data + 1) = 0;
-    return true;
-  }
-
-  for (i = 0; i < max && !lex->newline;) {
-    
-    ch = lex->peek;
-    ++env.line->position;
-
-    lex->newline = (env.line->len + 1) == env.line->position;     
-
-    if (!lex->newline) {
-      lex->peek = env.line->val[env.line->position - 1];     
-    } else {
-      lexer_discardLine(lex);
-      if (lexer_error(lex)) {
-        return false;
-      }
+  do {
+    if (lex->newline) {
+      lex->newline = false;
+      *data = '\n';
+      *(data + 1) = 0;
+      return true;
     }
 
-    if (isblank(ch)) {
-      if(i) {
-        break;
+    for (i = 0; i < max && !lex->newline;) {
+      
+      ch = lex->peek;
+      ++env.line->position;
+
+      lex->newline = (env.line->len + 1) == env.line->position;     
+
+      if (!lex->newline) {
+        lex->peek = env.line->val[env.line->position - 1];     
       } else {
+        lexer_discardLine(lex);
+        if (lexer_error(lex)) {
+          return false;
+        }
+      }
+
+      if (isblank(ch)) {
+        if(i) {
+          break;
+        } else {
+          continue;
+        }
+      }
+
+      data[i] = ch;
+      ++i;
+
+      if (ch == '/' && (i == 1)) {
         continue;
       }
+
+      if ((isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek)) || ch_isPar(ch)) {
+        break;
+      }
+
     }
-
-    data[i] = ch;
-    ++i;
-
-    if (ch == '/' && (i == 1)) {
-      continue;
-    }
-
-    if ((isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek)) || ch_isPar(ch)) {
-      break;
-    }
-
-  }
+  } while (!i);
 
   if (i == max) {
     lex->errcode = ERROR;
@@ -499,6 +501,8 @@ int8_t token_getPriority(struct token *tok) {
 
   case LEX_INC:
   case LEX_DEC:
+  case LEX_PTR:
+  case LEX_VAL:
     return 10;
 
   default:
@@ -512,6 +516,8 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_INC:
   case LEX_MINUS:
   case LEX_NOT:
+  case LEX_PTR:
+  case LEX_VAL:
     return OPTYPE_UNARY;
 
   case LEX_AND:

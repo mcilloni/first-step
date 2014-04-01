@@ -92,7 +92,7 @@ void printtree(struct pnode *root) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
     
-    printf("%s", token_str(&tok));
+    printf("%s ", token_str(&tok));
     printtree(*leaves_get(root->leaves, 0));
     break;
   case PR_ID:
@@ -107,7 +107,7 @@ void printtree(struct pnode *root) {
 }
 
 int main(int argc, const char *argv[]) {
-  char *toLex = "a = 7\na";
+  char *toLex = "val a = 7\na";
 
   fputs("Expr: ", stdout);
 
@@ -126,7 +126,7 @@ int main(int argc, const char *argv[]) {
   }
 
   struct pnode *root = pnode_new(PR_PROGRAM);
-  pnode_addSymbol(root, "a", type_getBuiltin("int8"), NULL);
+  pnode_addSymbol(root, "a", type_makePtr(type_getBuiltin("int8")), NULL);
   struct pnode *res = expr(root, lex, NULL);
   pnode_addLeaf(root, res);
 
