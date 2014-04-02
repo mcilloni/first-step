@@ -39,6 +39,7 @@ int main(void) {
 
     switch (tok->type) {
     case LEX_ID:
+    case LEX_STRING:
       printf(": %s\n", (char*) tok->value);
       break;
 

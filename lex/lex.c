@@ -112,25 +112,45 @@ bool stok(struct lexer *lex, char *data, size_t max) {
         }
       }
 
-      if (isblank(ch)) {
-        if(i) {
+      if (ch == '"') {
+        if (lex->inString) {
+          break;
+        }
+
+        if (i) {
           break;
         } else {
+          lex->inString = true;
           continue;
         }
+        
       }
+      
+      if(!lex->inString) {
 
-      data[i] = ch;
-      ++i;
+        if (isblank(ch)) {
+          if(i) {
+            break;
+          } else {
+            continue;
+          }
+        }
 
-      if (ch == '/' && (i == 1)) {
-        continue;
+        data[i] = ch;
+        ++i;
+
+        if (ch == '/' && (i == 1)) {
+          continue;
+        }
+
+        if ((isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek)) || ch_isPar(ch)) {
+          break;
+        }
+
+      } else {
+        data[i] = ch;
+        ++i;
       }
-
-      if ((isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek)) || ch_isPar(ch)) {
-        break;
-      }
-
     }
   } while (!i);
 
@@ -167,6 +187,12 @@ struct token* token_get(struct lexer *lex) {
   }
 
   struct token *res = calloc(1, sizeof(struct token));
+
+  if (lex->inString) {
+    *res = (struct token) { LEX_STRING, (uintmax_t) str_clone(data) };
+    lex->inString = false;
+    return res;
+  }
 
   // \n
   if (!strcmp("\n", data)) {
@@ -438,6 +464,8 @@ const char* tokentype_str(enum token_type type) {
     return "+";
   case LEX_RETURN:
     return "return";
+  case LEX_STRING:
+    return "string";
   case LEX_TIMES:
     return "*";
   case LEX_VAL:
@@ -499,12 +527,13 @@ int8_t token_getPriority(struct token *tok) {
   case LEX_NOT:
     return 9;
 
-  case LEX_INC:
-  case LEX_DEC:
   case LEX_PTR:
   case LEX_VAL:
     return 10;
 
+  case LEX_INC:
+  case LEX_DEC:
+    return 11;
   default:
     return -1;
   }

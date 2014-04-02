@@ -24,10 +24,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct type type_int8 = { TYPE_NUMERIC, "int8", 1 };
-struct type type_int16 = { TYPE_NUMERIC, "int16", 2 };
-struct type type_int32 = { TYPE_NUMERIC, "int32", 4 };
-struct type type_int64 = { TYPE_NUMERIC, "int64", 8 };
+struct type type_int8 = { TYPE_NUMERIC, "int8", 1, false};
+struct type type_int16 = { TYPE_NUMERIC, "int16", 2, false };
+struct type type_int32 = { TYPE_NUMERIC, "int32", 4, false };
+struct type type_int64 = { TYPE_NUMERIC, "int64", 8, false };
+struct type type_uint8 = { TYPE_NUMERIC, "uint8", 1, true };
+struct type type_uint16 = { TYPE_NUMERIC, "uint16", 2, true };
+struct type type_uint32 = { TYPE_NUMERIC, "uint32", 4, true };
+struct type type_uint64 = { TYPE_NUMERIC, "uint64", 8, true };
 struct type nTNex = {0};
 
 size_t ptrSize = 8;
@@ -50,7 +54,23 @@ struct type* type_getBuiltin(const char *name) {
  if (!strcmp(name, "int64")) {
   return &type_int64;
  }
-
+ 
+ if (!strcmp(name, "uint8")) {                                                                                                                                            
+  return &type_uint8;                                                                                                                                                     
+ }                                                                                                                                                                       
+                                                                                                                                                                         
+ if (!strcmp(name, "uint16")) {                                                                                                                                           
+  return &type_uint16;                                                                                                                                                    
+ }                                                                                                                                                                       
+                                                                                                                                                                         
+ if (!strcmp(name, "uint32")) {                                                                                                                                           
+  return &type_uint32;                                                                                                                                                    
+ }                                                                                                                                                                       
+                                                                                                                                                                         
+ if (!strcmp(name, "uint64")) {                                                                                                                                           
+  return &type_uint64;                                                                                                                                                    
+ }                
+ 
  return NULL;
 }
 
@@ -62,8 +82,16 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
       if (assign->size < assigned->size) {
         return TYPECOMP_SMALLER;
       }
+      
+      if (assign->size == assigned->size && !assign->uns && assigned->uns) {
+	char buf[2048], cuf[2048]; 
+	type_str(assign, buf, 2048);
+	type_str(assigned, cuf, 2048);
+	env.warning("Assigning unsigned type %s to same-size signed type %s", cuf, buf);
+      }
 
       return TYPECOMP_YES;
+      
     case TYPE_FUNC: {
       char buf[2048], cuf[2048]; //horrible hack that makes things quicker. Maybe I will change this one day.
       type_str(assign, buf, 2048);

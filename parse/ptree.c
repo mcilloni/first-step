@@ -160,6 +160,12 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
     ret = ((struct ftype*) pnode_evalType(*leaves_get(pnode->leaves, 0), scope))->ret;
     break;
   }
+
+  case PR_STRING: {
+    ret = type_makePtr(type_getBuiltin("uint8"));
+    break;
+  }
+
   case PR_BINOP: {
   
     struct type *firstType = pnode_evalType(*leaves_get(pnode->leaves, 0), scope);
@@ -288,6 +294,7 @@ struct type* pnode_funcReturnType(struct pnode *pnode) {
 bool nonterminals_isConst(enum nonterminals id) {
   switch (id) {
   case PR_NUMBER:
+  case PR_STRING:
     return true;
   default:
     return false;
@@ -323,6 +330,7 @@ bool nonterminals_isValue(enum nonterminals id) {
   switch (id) {
   case PR_ID:
   case PR_CALL:
+  case PR_STRING:
   case PR_UNOP:
   case PR_BINOP:
   case PR_NUMBER:
@@ -443,7 +451,7 @@ void pnode_free(struct pnode *pnode) {
     symbols_free(pfunc->params);
   }
 
-  if (pnode->id == PR_ID) {
+  if (pnode->id == PR_ID || pnode->id == PR_STRING) {
     free((void*)((struct pexpr*) pnode)->value);
   }
   array_freeContents(pnode->leaves, (void (*) (void*)) pnode_free);
@@ -472,6 +480,9 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
     printf(": %s, type %s", (const char*) pnode_getval(val), type_str(pnode_evalType(val, NULL), buf, 2048));
     break;
   }
+  case PR_STRING:
+    printf(": \"%s\"", (const char*) pnode_getval(val));
+    break;
   case PR_BINOP:
   case PR_UNOP:
     printf(": %s", tokentype_str((enum token_type) pnode_getval(val)));

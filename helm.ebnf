@@ -30,9 +30,9 @@ assign = id, '=', expr
 
 typeModifier = 'ptr'
 
-type = [typeModifier], (id | funcType)
-
 funcType = 'func', '(', [type,{',', type}], ')', [type]
+
+type = [typeModifier], (id | funcType)
 
 id = letter, {(letter | cipher)}
 
@@ -40,7 +40,9 @@ expr = ('(', exprC, ')') | exprC
 
 exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const
 
-const = number
+const = number | string
+
+string = '"', {letter}, '"'
 
 number = decNumber | binNumber | hexNumber
 

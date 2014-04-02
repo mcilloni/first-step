@@ -26,6 +26,7 @@ struct type {
   enum type_kind kind;
   const char *name;
   size_t size;
+  bool uns;
 };
 
 struct ftype {

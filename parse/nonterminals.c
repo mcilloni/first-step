@@ -27,6 +27,8 @@ const char* nt_str(enum nonterminals nt) {
     return "Entry";
   case PR_BODY:
     return "Block body";
+  case PR_STRING:
+    return "String";
   case PR_STMTS:
     return "Statements";
   case PR_STMT:

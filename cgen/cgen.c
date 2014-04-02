@@ -78,6 +78,10 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
     ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
     fputs(" )", out);
     break;
+
+  case PR_STRING:
+    fprintf(out, "(uint8*) \"%s\"", (char*) val);
+    break;
   case PR_ID:
     fputs((char*) val, out);
     break;
@@ -317,7 +321,11 @@ void ccode_printDefaultHeaders(FILE *out) {
         "typedef int8_t int8;\n"
         "typedef int16_t int16;\n"
         "typedef int32_t int32;\n"
-        "typedef int64_t int64;\n\n", out);
+        "typedef int64_t int64;\n\n"
+        "typedef uint8_t uint8;\n"
+        "typedef uint16_t uint16;\n"
+        "typedef uint32_t uint32;\n"
+        "typedef uint64_t uint64;\n\n", out);
 }
 
 void cgen(struct pnode *tree, FILE *out) {

@@ -12,50 +12,10 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-decl printint ptr func(int32)
-
-func waste(a,b int8) int16
-  return a * b
-/func
-
-func add1(a ptr int8) 
-  val a = val a + 3
-/func
+decl puts func(ptr uint8)
 
 entry
 
-  var a int8
-  var b ptr int8 
-  a = (-7+8)/3 #comment!
-    
-  #comment of some sort.
-  #nothing important at all.
-
-  a++
-  a--
-
-  a = a / 2
-
-  if a != 3
-    a = !a
-  /if
-
-  a = -6
-
-  if a == -6
-    printint(a)
-  /if
-
-  if a < 0  
-   
-    a=33
-   
-  /if
-
-  printint(waste(a, a + 1))
-
-  add1(ptr a)
-
-  printint(a)
+  puts("lellallol")
 
 /entry

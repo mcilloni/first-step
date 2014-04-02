@@ -331,8 +331,11 @@ struct pnode* expr_handleSingle(struct pnode *root, List *expr) {
     case LEX_NUMBER:
       ret = pnode_newval(PR_NUMBER, tok->value);
       break;
+    case LEX_STRING:
+      ret = pnode_newval(PR_STRING, (uintptr_t) str_clone((const char*) tok->value));
+      break;
     default:
-      env.fail("Unexpected token found, got %s, expected a costant or identifier", token_str(tok));
+      env.fail("Unexpected token found, got %s, expected a constant or identifier", token_str(tok));
       break;
     }
 

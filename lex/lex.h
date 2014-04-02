@@ -39,6 +39,7 @@ enum token_type {
   LEX_POW,
   LEX_PTR,
   LEX_RETURN,
+  LEX_STRING,
   LEX_TIMES,
   LEX_VAL,
   LEX_VAR
@@ -61,6 +62,7 @@ struct lexer {
   char peek;
   bool newline;
 
+  bool inString;
   char *saved;
 };
 

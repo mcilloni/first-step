@@ -11,6 +11,7 @@ enum nonterminals {
   PR_BODY,
   PR_STMTS,
   PR_STMT,
+  PR_STRING,
   PR_IF,
   PR_FUNC,
   PR_DECLARATION,
