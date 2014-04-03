@@ -16,6 +16,7 @@
  */
 
 #include "symbols.h"
+#include "types.h"
 #include "../utils/utils.h"
 
 #include <stdio.h>

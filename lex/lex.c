@@ -314,6 +314,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // struct
+  if (!strcmp("struct", data)) {
+    res->type = LEX_STRUCT;
+    return res;
+  }
+
   // func
   if (!strcmp("func", data)) {
     res->type = LEX_FUNC;
@@ -466,6 +472,8 @@ const char* tokentype_str(enum token_type type) {
     return "return";
   case LEX_STRING:
     return "string";
+  case LEX_STRUCT:
+    return "struct";
   case LEX_TIMES:
     return "*";
   case LEX_VAL:

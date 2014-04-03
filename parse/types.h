@@ -5,6 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "symbols.h"
+
 #include "../array/array.h"
 #include "../treemap/map.h"
 
@@ -12,7 +14,8 @@ enum type_kind {
   TYPE_NONE = 0,
   TYPE_FUNC,
   TYPE_NUMERIC,
-  TYPE_PTR
+  TYPE_PTR,
+  TYPE_STRUCT
 };
 
 enum type_compatible {
@@ -42,6 +45,12 @@ struct ptype {
   struct type *val;
 };
 
+struct stype {
+  struct type t;
+
+  Symbols *symbols;
+};
+
 extern struct type *type_none;
 
 typedef Map Types;
@@ -56,6 +65,7 @@ bool type_isFunc(struct type *type);
 bool type_isPtr(struct type *type);
 struct type* type_makeFuncType(struct type *ret, Array *args);
 struct type* type_makePtr(struct type *val);
+struct type* type_makeStructType(Symbols *args);
 struct type* type_secptr(struct type *type);
 char* type_str(struct type *type, char *buffer, size_t bufLen);
 

@@ -55,23 +55,105 @@ struct type* type_getBuiltin(const char *name) {
   return &type_int64;
  }
  
- if (!strcmp(name, "uint8")) {                                                                                                                                            
-  return &type_uint8;                                                                                                                                                     
- }                                                                                                                                                                       
-                                                                                                                                                                         
- if (!strcmp(name, "uint16")) {                                                                                                                                           
-  return &type_uint16;                                                                                                                                                    
- }                                                                                                                                                                       
-                                                                                                                                                                         
- if (!strcmp(name, "uint32")) {                                                                                                                                           
-  return &type_uint32;                                                                                                                                                    
- }                                                                                                                                                                       
-                                                                                                                                                                         
- if (!strcmp(name, "uint64")) {                                                                                                                                           
-  return &type_uint64;                                                                                                                                                    
+ if (!strcmp(name, "uint8")) {                                                                                                                                       
+  return &type_uint8;                                                                                                           
+ }                                                                                                                                    
+
+ if (!strcmp(name, "uint16")) {                                                                        
+  return &type_uint16;                                                                                     
+ }                                                                                                                                              
+                                                                                                                                             
+ if (!strcmp(name, "uint32")) {                                                                                     
+  return &type_uint32;                                                                                                     
+ }                                                                                                                      
+                                                                                                                       
+ if (!strcmp(name, "uint64")) {                                                                                              
+  return &type_uint64;                                                                                  
  }                
  
  return NULL;
+}
+
+bool type_equal(struct type *a, struct type *b) {
+  if (a->kind != b->kind && a->size != b->size && a->uns != b->uns) {
+    return false;
+  }
+
+  switch(a->kind) {
+  case TYPE_FUNC: {
+    struct ftype *f1 = (struct ftype*) a;
+    struct ftype *f2 = (struct ftype*) b;
+
+    if (!type_equal(f1->ret, f2->ret)) {
+      return false;
+    }
+
+    size_t len = array_len(f1->params);
+
+    if (len != array_len(f2->params)) {
+      return false;
+    }
+
+    for (size_t i = 0; i < len; ++i) {
+
+      if (!type_equal((struct type*) *array_get(f1->params, i), (struct type*) *array_get(f2->params, i))) {
+        return false;
+      }
+
+    }
+
+    break;
+  }
+
+  case TYPE_PTR: {
+    if (!type_equal(((struct ptype*) a)->val, ((struct ptype*) b)->val)) {
+      return false;
+    }
+    break;
+  }
+
+  case TYPE_STRUCT: {
+    struct stype *s1 = (struct stype*) a;
+    struct stype *s2 = (struct stype*) b;
+
+    if (s1->symbols->size != s2->symbols->size) {
+      return false;
+    }
+
+    MapIter *iter1 = mapiter_start(s1->symbols);
+    MapIter *iter2 = mapiter_start(s2->symbols);
+    Pair *pair1, *pair2;
+    struct symbol *sym1, *sym2;
+
+    while ((pair1 = mapiter_next(iter1)), (pair2 = mapiter_next(iter2))) {
+
+      if (strcmp((char*) pair1->key, (char*) pair2->key)) {
+        return false;
+      }
+
+      sym1 = (struct symbol*) pair1->value;
+      sym2 = (struct symbol*) pair2->value;
+
+      if (!type_equal(sym1->type, sym2->type)) {
+        return false;
+      }
+
+      pair_free(pair1);
+      pair_free(pair2);
+
+    }
+
+    mapiter_free(iter1);
+    mapiter_free(iter2);
+
+    break;
+  }
+
+  default: 
+    break;
+  }
+
+  return true;
 }
 
 enum type_compatible type_areCompatible(struct type *assign, struct type *assigned) {
@@ -84,20 +166,16 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
       }
       
       if (assign->size == assigned->size && !assign->uns && assigned->uns) {
-	char buf[2048], cuf[2048]; 
-	type_str(assign, buf, 2048);
-	type_str(assigned, cuf, 2048);
-	env.warning("Assigning unsigned type %s to same-size signed type %s", cuf, buf);
+       	char buf[2048], cuf[2048]; 
+        type_str(assign, buf, 2048);
+        type_str(assigned, cuf, 2048);
+	      env.warning("Assigning unsigned type %s to same-size signed type %s", cuf, buf);
       }
 
       return TYPECOMP_YES;
       
     case TYPE_FUNC: {
-      char buf[2048], cuf[2048]; //horrible hack that makes things quicker. Maybe I will change this one day.
-      type_str(assign, buf, 2048);
-      type_str(assigned, cuf, 2048);
-
-      return strcmp(buf, cuf) ? TYPECOMP_NO : TYPECOMP_YES;
+      return type_equal(assign, assigned) ? TYPECOMP_YES : TYPECOMP_NO;
     }   
     case TYPE_PTR: {
       struct ptype *ptr1 = (struct ptype*) assign;
@@ -195,6 +273,14 @@ struct type *type_makePtr(struct type *val) {
   return (struct type*) ptype;
 }
 
+struct type* type_makeStructType(Symbols *args) {
+  struct stype *stype = calloc(1, sizeof(struct stype));
+
+  *stype = (struct stype) {{TYPE_STRUCT, NULL, 0}, args};
+
+  return (struct type*) stype;
+}
+
 void types_defineFuncId(Types *types, const char *name, struct type *ret, Array *args) {
 
   struct type *type = type_makeFuncType(ret, args);
@@ -226,6 +312,72 @@ struct type* type_secptr(struct type *type) {
 
 char* type_str(struct type *type, char *buffer, size_t bufLen) {
   switch (type->kind) {
+  case TYPE_STRUCT: {
+    Symbols *syms = ((struct stype*) type)->symbols;
+    size_t wrtn = 7U;
+    char *base = buffer;
+    strncpy(buffer, "struct(", bufLen);
+    
+    if (wrtn >= bufLen) {
+      return base;
+    }
+
+    buffer += wrtn;
+
+    struct symbol *sym;
+    MapIter *iter = mapiter_start(syms);
+    Pair *pair;
+    bool first = true;
+
+    while((pair = mapiter_next(iter))) {
+      if (first) {
+        first = false;
+      } else {
+        strncpy(buffer, ", ", bufLen - wrtn);
+        wrtn += 2;
+      
+        if (wrtn >= bufLen) {
+          return base;
+        }
+      
+        buffer += 2;
+      }
+
+      strncpy(buffer, (char*) pair->key, bufLen - wrtn);
+      wrtn += strlen((char*) pair->key);
+      
+      buffer = base + wrtn;
+
+      if (wrtn >= bufLen) {
+        return base;
+      }
+
+      *buffer = ' ';
+      ++buffer;
+      if (++wrtn >= bufLen) {
+        return base;
+      }
+      
+      buffer = base + wrtn;
+      sym = (struct symbol*) pair->value;
+      type_str(sym->type, buffer, bufLen - wrtn);
+      wrtn += strlen(buffer);
+      
+      if (wrtn >= bufLen) {
+        return base;
+      }
+      
+      buffer = base + wrtn;
+      pair_free(pair);
+    }
+
+    strncpy(buffer, ")", bufLen - wrtn);
+
+    mapiter_free(iter);
+
+    return base;
+  }
+
   case TYPE_FUNC: {
     struct ftype *ftype = (struct ftype*) type;
     size_t wrtn = 5U;

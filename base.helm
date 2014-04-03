@@ -16,6 +16,11 @@ decl puts func(ptr uint8)
 
 entry
 
+  var lel struct(
+            a int8,
+            b int16
+          )
+
   puts("lellallol")
 
 /entry

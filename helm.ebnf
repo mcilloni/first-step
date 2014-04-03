@@ -4,11 +4,11 @@ definition = entry | function
 
 entry = 'entry', stmtEnd, body, '/entry'
 
-function = 'func', id, '(', funcList, ')', [type], stmtEnd, body, '/func'
+function = 'func', id, '(', argList, ')', [type], stmtEnd, body, '/func'
 
-funcList = {funcTypeParams, ','}, funcTypeParams
+argList = {argTypeList, ','}, argTypeList
 
-funcTypeParams = {id, ','}, id, type
+argTypeList = {id, ','}, id, type
 
 body = {stmt}
 
@@ -32,7 +32,9 @@ typeModifier = 'ptr'
 
 funcType = 'func', '(', [type,{',', type}], ')', [type]
 
-type = [typeModifier], (id | funcType)
+structType = 'struct', '(', argList, ')'
+
+type = [typeModifier], (id | funcType | structType)
 
 id = letter, {(letter | cipher)}
 

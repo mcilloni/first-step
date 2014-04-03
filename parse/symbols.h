@@ -1,11 +1,12 @@
 #if !defined(_SYMBOLS_H)
 #define _SYMBOLS_H
 
-#include "types.h"
-
 #include "../treemap/map.h"
 
 #include <stdbool.h>
+
+struct type;
+typedef StringMap Symbols;
 
 struct symbol {
   bool decl;
@@ -16,9 +17,6 @@ enum symbols_resp {
   SYM_ADDED,
   SYM_EXISTS
 };
-
-typedef StringMap Symbols;
-
 
 extern Symbols* (*symbols_new) (void);
 enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *type, bool decl);
