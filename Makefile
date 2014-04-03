@@ -14,12 +14,6 @@ endif
 
 UNAME := $(shell uname -s)
 
-ifeq ($(UNAME),FreeBSD)
-	MAKE=gmake
-else
-	MAKE=make
-endif
-
 all: clean
 	$(MAKE) -C array
 	$(MAKE) -C list
