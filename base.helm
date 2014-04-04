@@ -16,11 +16,12 @@ decl puts func(ptr uint8)
 
 entry
 
-  var lel struct(
-            a int8,
-            b int16
-          )
+  var lel struct(a ptr uint8, b ptr uint8)
 
-  puts("lellallol")
+  lel'a = "First"
+  lel'b = "Second"
+
+  puts(lel'a)
+  puts(lel'b)
 
 /entry

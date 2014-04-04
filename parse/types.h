@@ -63,6 +63,7 @@ struct type* type_getBuiltin(const char *name);
 struct type* type_getTypeDef(Types *types, const char *name);
 bool type_isFunc(struct type *type);
 bool type_isPtr(struct type *type);
+bool type_isStruct(struct type *type);
 struct type* type_makeFuncType(struct type *ret, Array *args);
 struct type* type_makePtr(struct type *val);
 struct type* type_makeStructType(Symbols *args);

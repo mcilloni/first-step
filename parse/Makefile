@@ -46,6 +46,7 @@ all: clean
 	$(LD) -o varex varex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic  -std=gnu11
 	$(LD) -o assignex assignex.c -L..  -lparse -ltreemap -llex -lutils -larray -llist -g -Wall -pedantic  -std=gnu11
 
+.PHONY: clean
 clean:
 	rm -f *.{o,a,so,gch}
 	rm -f *ex

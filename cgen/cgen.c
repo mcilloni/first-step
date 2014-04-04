@@ -30,6 +30,19 @@ void file_indent(FILE *out, uint8_t indent) {
   }
 }
 
+const char* ccode_opConv(struct token *tok) {
+  switch(tok->type) {
+  case LEX_AND:
+    return "&&";
+  case LEX_APOS:
+    return ".";
+  case LEX_OR:
+    return "||";
+  default: 
+    return token_str(tok);
+  }
+}
+
 void ccode_genBody(struct pnode *body, FILE *out, uint8_t indent);
 
 void ccode_genRecExpr(struct pnode *root, FILE *out) {
@@ -50,7 +63,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
     
     fputs("( ", out);    
     ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
-    fprintf(out, " %s ", token_str(&tok));
+    fprintf(out, " %s ", ccode_opConv(&tok));
     ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
     fputs(" )", out);
     break;
@@ -83,6 +96,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
     fprintf(out, "(uint8*) \"%s\"", (char*) val);
     break;
   case PR_ID:
+  case PR_STRUCTID:
     fputs((char*) val, out);
     break;
   case PR_CALL: {
@@ -195,10 +209,29 @@ char* ccode_csym(struct type *type, const char *name) {
     free(pm);
     break;
   }
+                  
   case TYPE_PTR: {
     char buf[4096];
     snprintf(buf, 4095,"(*%s)", name);
     return ccode_csym(((struct ptype*) type)->val, buf);
+  }
+
+  case TYPE_STRUCT: {
+    struct stype *stype = (struct stype*) type;
+    fputs("struct { ", strFile);
+
+    MapIter *iter = mapiter_start(stype->symbols);
+    Pair *pair;
+    char *tmp;
+
+    while((pair = mapiter_next(iter))) {
+      tmp = ccode_csym(((struct symbol*) pair->value)->type, (char*) pair->key);
+      fprintf(strFile, "%s; ", tmp);
+    }
+
+    fprintf(strFile, "} %s", name);
+    break;
+
   }
 
   default: {

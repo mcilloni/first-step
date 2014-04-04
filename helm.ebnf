@@ -38,9 +38,11 @@ type = [typeModifier], (id | funcType | structType)
 
 id = letter, {(letter | cipher)}
 
+membAccess = id, ',', id
+
 expr = ('(', exprC, ')') | exprC
 
-exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const
+exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const | membAccess
 
 const = number | string
 

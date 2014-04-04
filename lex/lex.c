@@ -200,6 +200,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // '
+  if (!strcmp("'", data)) {
+    res->type = LEX_APOS;
+    return res;
+  }
+
   // =
   if (!strcmp("=", data)) {
     res->type = LEX_ASSIGN;
@@ -418,6 +424,8 @@ const char* tokentype_str(enum token_type type) {
   switch (type) {
   case LEX_NONE:
     return "NONE";
+  case LEX_APOS:
+    return "'";
   case LEX_ASSIGN:
     return "=";
   case LEX_COMMA:
@@ -539,6 +547,7 @@ int8_t token_getPriority(struct token *tok) {
   case LEX_VAL:
     return 10;
 
+  case LEX_APOS:
   case LEX_INC:
   case LEX_DEC:
     return 11;
@@ -558,6 +567,7 @@ enum optype token_getOpType(struct token *tok) {
     return OPTYPE_UNARY;
 
   case LEX_AND:
+  case LEX_APOS:
   case LEX_ASSIGN:
   case LEX_DIFFERENT:
   case LEX_DIV:

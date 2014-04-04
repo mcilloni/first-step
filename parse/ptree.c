@@ -329,6 +329,7 @@ bool nonterminals_isScope(enum nonterminals id) {
 bool nonterminals_isValue(enum nonterminals id) {
   switch (id) {
   case PR_ID:
+  case PR_STRUCTID:
   case PR_CALL:
   case PR_STRING:
   case PR_UNOP:
@@ -475,7 +476,8 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
   case PR_NUMBER:
     printf(": %" PRIdMAX, (intmax_t) pnode_getval(val));
     break;
-  case PR_ID: {
+  case PR_ID:
+  case PR_STRUCTID: {
     char buf[2048];
     printf(": %s, type %s", (const char*) pnode_getval(val), type_str(pnode_evalType(val, NULL), buf, 2048));
     break;

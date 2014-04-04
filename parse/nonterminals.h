@@ -20,6 +20,7 @@ enum nonterminals {
   PR_SINGLEVARDECL,
   PR_VARDECL,
   PR_ID,
+  PR_STRUCTID,
   PR_EXPR,
   PR_EXPRC,
   PR_ARITHEXP,

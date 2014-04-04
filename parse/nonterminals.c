@@ -49,6 +49,8 @@ const char* nt_str(enum nonterminals nt) {
     return "Variable declaration";
   case PR_ID:
     return "Identifier";
+  case PR_STRUCTID:
+    return "Struct member";
   case PR_EXPR:
     return "Expression";
   case PR_EXPRC:

@@ -11,6 +11,7 @@
 enum token_type {
   LEX_NONE = 0,
   LEX_AND,
+  LEX_APOS,
   LEX_ASSIGN,
   LEX_CPAR,
   LEX_COMMA,

@@ -15,6 +15,9 @@
  *
  */
 
+// This whole source is pretty inefficient and also pretty dumb; it should be rewritten entirely because it is not optimal and has a few bugs, but still, it works.
+// I'm not concerned about this because I intend this to be just an experimental, bootstrap compiler, so I don't care about performances, or ugliness, or anything.
+
 #include "parse.h"
 
 #include "../list/list.h"
@@ -24,6 +27,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 extern struct token *nextTok;
 
@@ -187,8 +191,8 @@ struct pnode* expr_evalUnary(struct token *tok, struct pnode *operand) {
   return ret;
 }
 
-size_t expr_findLowPriorityOp(List *expr) {
-  size_t beg = list_len(expr) - 1;
+size_t expr_findReverseLPOp(List *expr) {
+  size_t len = list_len(expr);
   size_t pos = 0;
   int8_t posPri = INT8_MAX, tmp;  
 
@@ -196,14 +200,14 @@ size_t expr_findLowPriorityOp(List *expr) {
 
   struct token *tok;
 
-  for (int64_t i = beg; i > -1; --i) {
+  for (int64_t i = 0; i < len; ++i) {
     tok = (struct token*) *list_get(expr, i);
 
     switch (tok->type) {
-    case LEX_CPAR:
+    case LEX_OPAR:
       ++par;
       break;
-    case LEX_OPAR:
+    case LEX_CPAR:
       if (!par) {
         env.fail("Unmatched parentheses");
       }
@@ -225,6 +229,57 @@ size_t expr_findLowPriorityOp(List *expr) {
 
   if (par) {
     env.fail("Unmatched parentheses in expression");
+  }
+
+  return pos;
+}
+
+enum operator_assoc expr_getOpAssociation(struct token *tok);
+
+size_t expr_findLowPriorityOp(List *expr) {
+  size_t beg = list_len(expr) - 1;
+  size_t pos = 0;
+  int8_t posPri = INT8_MAX, tmp;  
+
+  int16_t par = 0;
+
+  struct token *tok, *posTok = NULL;
+
+  for (int64_t i = beg; i > -1; --i) {
+    tok = (struct token*) *list_get(expr, i);
+
+    switch (tok->type) {
+    case LEX_CPAR:
+      ++par;
+      break;
+    case LEX_OPAR:
+      if (!par) {
+        env.fail("Unmatched parentheses");
+      }
+      --par;
+      break;
+    default:
+      if (!par) {
+        tmp = token_getPriority(tok);
+        if (tmp > 0) {
+          if (tmp < posPri) {
+            pos = i;
+            posPri = tmp;
+            posTok = tok;
+          }
+        }
+      }
+      break;
+    }
+  }
+
+  if (par) {
+    env.fail("Unmatched parentheses in expression");
+  }
+
+  //Inefficient, but simple and I just don't care about it right now
+  if (posTok && token_getOpType(posTok) == OPTYPE_BINARY && expr_getOpAssociation(posTok) == ASSOC_RIGHT) {
+    pos = expr_findReverseLPOp(expr);
   }
 
   return pos;
@@ -357,7 +412,7 @@ bool expr_isBinOpCompatible(struct pnode *root, struct token *tok, struct pnode 
   case LEX_TIMES: {
     struct type *tleft = pnode_evalType(left, root);
     struct type *tright = pnode_evalType(right, root);
-    return (tleft->kind == TYPE_NUMERIC) && (tright->kind == TYPE_NUMERIC);
+    return ((tleft->kind == TYPE_NUMERIC) && (tright->kind == TYPE_NUMERIC)) || ((tleft->kind == TYPE_PTR) && (tright->kind == TYPE_PTR));
   }
   default:
     env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
@@ -501,6 +556,53 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
   return NULL;
 }
 
+struct pnode* expr_handleStructNode(struct pnode *root, struct pnode *left, struct token *rtok) {
+
+  if (rtok->type != LEX_ID) {
+    env.fail("Cannot extract non-identifier '%s' from structure", token_str(rtok));
+  }
+
+  char *member = (char*) rtok->value;
+
+  struct pnode *right = pnode_newval(PR_STRUCTID, (uintmax_t) str_clone(member));
+
+  struct type *ltype = pnode_evalType(left, root), *otype = NULL;
+
+  if (type_isPtr(ltype)) {
+    otype = ltype;
+    ltype = ((struct ptype*) ltype)->val;
+  }
+
+  if (!type_isStruct(ltype)) {
+    char buf[4096];
+    type_str(ltype, buf, 4096);
+    env.fail("Cannot extract member %s from non-struct type %s", member, buf);
+  }
+
+  struct stype *stype = (struct stype*) ltype;
+
+  struct symbol *sym = symbols_get(stype->symbols, member);
+
+  if (!sym) {
+    char buf[4096];
+    type_str(ltype, buf, 4096);
+    env.fail("No member called %s in struct declared as %s", member, buf);
+  }
+
+  struct pexpr *pexpr = (struct pexpr*) pnode_newval(PR_BINOP, LEX_APOS);
+
+  pexpr->type = type_secptr(sym->type);
+  ((struct pexpr*) right)->type = type_secptr(sym->type);
+ 
+  struct pnode *ret = (struct pnode*) pexpr;
+
+  pnode_addLeaf(ret, left);
+  pnode_addLeaf(ret, right);
+
+  type_free(otype);
+  return (struct pnode*) pexpr;
+}
+
 bool expr_isValidAssign(struct pnode *node) {
   if (node->id == PR_ID) {
     return true;
@@ -550,6 +652,13 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
       size_t posAfter = expr_findLowPriorityOp(expr);
 
+      if (tok->type == LEX_APOS) {
+        List *tmp = list_extract(expr, posAfter + 1, 1);
+        ret = expr_handleStructNode(root, left, (struct token*) *list_get(tmp, 0));
+        list_freeAll(tmp, (void (*)(void*)) token_free);
+        break;
+      }
+
       struct pnode *right = expr_treeize(root, list_extract(expr, posAfter + 1, -1));
 
       bool assign = tok->type == LEX_ASSIGN;
@@ -569,29 +678,14 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
       pnode_addLeaf(ret, right);
 
       if (assign) {
-
-        if (pos != 1) {
-          if (pos != 2) {
-            env.fail("Only expressions in form a = expr are supported.");
-          }
-          
-        }
-
         pnode_verifyNodesAreCompatible(root, left, right);
-
-        if (!expr_isValidAssign(left)) {
-          env.fail("lvalue of assignment is not an identifier");
+      } else {
+        if (!expr_isBinOpCompatible(root, tok, left, right)) {
+          struct type *ltype = pnode_evalType(left, root);
+          struct type *rtype = pnode_evalType(right, root);
+          env.fail("Cannot apply operator %s to types %s and %s", token_str(tok), ltype->name, rtype->name);
         }
-
-        break;
       }
-
-      if (!expr_isBinOpCompatible(root, tok, left, right)) {
-        struct type *ltype = pnode_evalType(left, root);
-        struct type *rtype = pnode_evalType(right, root);
-        env.fail("Cannot apply operator %s to types %s and %s", token_str(tok), ltype->name, rtype->name);
-      }
-
       break;
     } 
 
@@ -630,9 +724,16 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
       break;
     } 
 
-    default:    
-      env.fail("Misplaced token: %s", token_str(tok));
+    default:{
+      char buf[4096];
+      if (tok->type == LEX_ID) {
+        snprintf(buf, 4095, "an identifier ('%s')", (char*) tok->value);
+      } else {
+        strncpy(buf, token_str(tok), 4095);
+      }
+      env.fail("Misplaced token: %s", buf);
       break;
+    }
     }
   }
 

@@ -231,9 +231,15 @@ bool type_isPtr(struct type *type) {
   return type->kind == TYPE_PTR;
 }
 
+bool type_isStruct(struct type *type) {
+  return type->kind == TYPE_STRUCT;
+}
+
 void type_free(struct type *type) {
-  if (type->kind != TYPE_NUMERIC) {
-    free(type);
+  if (type) {
+    if (type->kind != TYPE_NUMERIC) {
+      free(type);
+    }
   }
 }
 
