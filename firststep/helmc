@@ -28,7 +28,7 @@ function exists {
   return $?
 }
 
-if test -n "$CC" 
+if test -z "$CC" 
 then
 
   if exists 'clang'
