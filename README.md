@@ -39,22 +39,33 @@ FAQ
 === 
 
 Q: There are random test files between headers and library sources!
+
 A: I know, I have to clean up this mess someday.
 
+
 Q: How do I compile this?
+
 A: Use GNU Make on the root of the project, or a GNU Make compatible software like pymake.
 
+
 Q: How can I compile this on VisualStudio?
+
 A: This is C11, and I think MSVC will implement it around the end of the current century, given their pace.
 
+
 Q: How can I compile this on Windows with MinGW?
+
 A: You don't. I've used POSIX functionality here and there (like backtraces, fmemopen, ..) that Microsoft is not going to support. Wait for a future helm compiler for Windows support.
 
+
 Q: How can I compile this on Windows with Cygwin?
+
 A: I think this could work on cygwin. Try using CC="gcc" make in a cygwin prompt, you can omit the CC="gcc" part if you have a working clang for cygwin installed.
    You will also need to change "clang" with "gcc" inside firststep.c .
 
+
 Q: How do I use helmc? 
+
 A: helmc works only in the same directory of helmrt.o and helmc1. It also needs clang, or gcc, or any c compiler.
    Then, you can compile with helmc <file.helm> , creating a <file> executable. 
    If you don't want it to assemble the executable, you can also use the parameter "-c" to create <file.o>.
