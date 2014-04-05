@@ -7,3 +7,12 @@
 [submodule "list"]
 	path = list
 	url = https://github.com/mcilloni/list
+[submodule "deps/array"]
+	path = deps/array
+	url = https://github.com/mcilloni/array
+[submodule "deps/list"]
+	path = deps/list
+	url = https://github.com/mcilloni/list
+[submodule "deps/treemap"]
+	path = deps/treemap
+	url = https://github.com/mcilloni/treemap

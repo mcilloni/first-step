@@ -1,7 +1,7 @@
 #if !defined(_PNLEAVES_H)
 #define _PNLEAVES_H
 
-#include "../array/array.h"
+#include <array/array.h>
 
 typedef Array Leaves;
 

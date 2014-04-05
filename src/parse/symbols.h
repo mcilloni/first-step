@@ -1,7 +1,7 @@
 #if !defined(_SYMBOLS_H)
 #define _SYMBOLS_H
 
-#include "../treemap/map.h"
+#include <treemap/map.h>
 
 #include <stdbool.h>
 

@@ -17,9 +17,9 @@
 
 #include "types.h"
 
-#include "../array/array.h"
-#include "../utils/env.h"
-#include "../utils/utils.h"
+#include <array/array.h>
+#include <utils/env.h>
+#include <utils/utils.h>
 
 #include <stdlib.h>
 #include <string.h>

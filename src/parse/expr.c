@@ -20,10 +20,10 @@
 
 #include "parse.h"
 
-#include "../list/list.h"
-#include "../lex/lex.h"
-#include "../utils/env.h"
-#include "../utils/utils.h"
+#include <list/list.h>
+#include <lex/lex.h>
+#include <utils/env.h>
+#include <utils/utils.h>
 
 #include <stdbool.h>
 #include <stdlib.h>

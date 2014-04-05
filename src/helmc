@@ -3,7 +3,7 @@
 set -e
 export PROGNAME="$(basename $0)"
 export HELMC1="./helmc1"
-export HELMRT="helmrt.o"
+export HELMRT="helmc/helmrt.o"
 
 function outproghelp {
   printf "  -%-14s %-50s\n" "$1" "$2"

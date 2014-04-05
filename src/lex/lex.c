@@ -16,8 +16,9 @@
  */
 
 #include "lex.h"
-#include "../utils/utils.h"
-#include "../utils/env.h"
+
+#include <utils/utils.h>
+#include <utils/env.h>
 
 #include <ctype.h>
 #include <errno.h>

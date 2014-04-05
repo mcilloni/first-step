@@ -7,8 +7,8 @@
 
 #include "symbols.h"
 
-#include "../array/array.h"
-#include "../treemap/map.h"
+#include <array/array.h>
+#include <treemap/map.h>
 
 enum type_kind {
   TYPE_NONE = 0,

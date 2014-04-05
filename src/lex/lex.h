@@ -1,8 +1,8 @@
 #if !defined(_LEX_H)
 #define _LEX_H
 
-#include "../utils/errors.h"
-#include "../utils/lines.h"
+#include <utils/errors.h>
+#include <utils/lines.h>
 
 #include <stdio.h>
 #include <stdint.h>
