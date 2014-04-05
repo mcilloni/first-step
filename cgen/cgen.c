@@ -245,6 +245,24 @@ char* ccode_csym(struct type *type, const char *name) {
   return str;
 }
 
+/*void ccode_declAliases(Aliases *syms, FILE *out, uint8_t indent) {
+  
+  MapIter *iter = mapiter_start(syms);
+
+  Pair *decl;
+  
+  while ((decl = mapiter_next(iter))) {
+    file_indent(out, indent);
+    char *csym = ccode_csym((struct type*) decl->value, (char*) decl->key);
+    fprintf(out, "typedef %s;\n", csym);
+    pair_free(decl);
+    free(csym);
+  }
+
+  mapiter_free(iter);
+
+}*/
+
 void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
   
   MapIter *iter = mapiter_start(syms);
@@ -268,6 +286,7 @@ void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
 void ccode_genBody(struct pnode *body, FILE *out, uint8_t indent) {
   size_t len = array_len(body->leaves);
 
+//ccode_declAliases(pnode_getAliases(body), out, indent);
   ccode_declSyms(pnode_getSyms(body), out, indent);
 
   for (size_t i = 0; i < len; ++i) {
@@ -369,6 +388,7 @@ void cgen(struct pnode *tree, FILE *out) {
     env.fail("Cannot generate anything from a broken tree. Expected %s, found %s", nt_str(PR_PROGRAM), nt_str(tree->id));
   }
  
+//  ccode_declAliases(pnode_getAliases(tree), out, 0);
   ccode_declSyms(pnode_getSyms(tree), out, 0);
 
   size_t len = array_len(tree->leaves);

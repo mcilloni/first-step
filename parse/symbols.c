@@ -31,9 +31,13 @@ void printdepth(int8_t depth) {
   }
 }
 
-void symbols_dump(Symbols *symt, int8_t depth) {
+void symbols_dump(Symbols *symt, const char *title, int8_t depth) {
+  if (!symt->size) {
+    return;
+  }
+
   printdepth(depth);
-  puts("Declarations:");
+  puts(title);
 
   ++depth;
 
@@ -59,6 +63,7 @@ void symbols_dump(Symbols *symt, int8_t depth) {
     pair_free(pair);
   }
 
+  mapiter_free(iter);
 }
 
 void symbol_free(struct symbol *sym) {

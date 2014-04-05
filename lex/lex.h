@@ -10,6 +10,7 @@
 
 enum token_type {
   LEX_NONE = 0,
+  LEX_ALIAS,
   LEX_AND,
   LEX_APOS,
   LEX_ASSIGN,

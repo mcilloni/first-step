@@ -53,14 +53,14 @@ struct stype {
 
 extern struct type *type_none;
 
-typedef Map Types;
+typedef Map Aliases;
 
 enum type_compatible type_areCompatible(struct type *assign, struct type *assigned);
 struct type* type_evalLarger(struct type *first, struct type *second);
 struct type* type_evalNumberType(int64_t number);
 void type_free(struct type *type);
 struct type* type_getBuiltin(const char *name); 
-struct type* type_getTypeDef(Types *types, const char *name);
+struct type* type_getTypeDef(Aliases *aliases, const char *name);
 bool type_isFunc(struct type *type);
 bool type_isPtr(struct type *type);
 bool type_isStruct(struct type *type);
@@ -70,10 +70,12 @@ struct type* type_makeStructType(Symbols *args);
 struct type* type_secptr(struct type *type);
 char* type_str(struct type *type, char *buffer, size_t bufLen);
 
-extern Types* (*types_new)(void);
-void types_free(Types* types);
+extern Aliases* (*aliases_new)(void);
+void* aliases_alias(Aliases *aliases, const char *alias, struct type *type);
+void aliases_dump(Aliases *aliases, const char *title, int8_t depth);
+void aliases_free(Aliases *aliases);
 
-struct type* types_get(Types *types, const char *name);
+struct type* aliases_get(Aliases *aliases, const char *name);
 
 
 #endif

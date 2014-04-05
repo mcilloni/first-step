@@ -64,7 +64,7 @@ int main(void) {
 
   uintmax_t t1 = t.tv_sec*1000000LU + t.tv_usec;
 
-  struct pnode *ret = parse("../base.helm");
+  struct pnode *ret = parse(fopen("../base.helm", "r"));
 
   gettimeofday(&t, &tzp);
 

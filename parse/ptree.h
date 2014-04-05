@@ -31,7 +31,7 @@ struct pfunc {
 struct pscope {                                                                                         
   struct pnode node;                                                                                                               
   Symbols *symbols;                                                                                        
-  Types *types;
+  Aliases *aliases;
 };       
 
 extern struct pnode *expr_empty;
@@ -41,6 +41,8 @@ bool pnode_addSymbol(struct pnode *pnode, const char *id, struct type *type, enu
 bool pnode_declSymbol(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp);
 struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope);
 void pnode_free(struct pnode *pnode);
+void pnode_alias(struct pnode *pnode, const char *name, struct type *type);
+Aliases* pnode_getAliases(struct pnode *pnode);
 Symbols* pnode_getSyms(struct pnode *pnode);
 Symbols* pnode_getFuncParams(struct pnode *pnode);
 struct type* pnode_getType(struct pnode *pnode, const char *name);

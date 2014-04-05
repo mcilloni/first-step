@@ -346,6 +346,32 @@ void decl(struct pnode *this, struct lexer *lex) {
   varDeclGeneric(this, lex, true);
 }
 
+void alias(struct pnode *this, struct lexer *lex) {
+
+  struct token *tok = token_getOrDie(lex);
+
+  if (!tok) {
+    env.fail("Unexpected eof, expected an identifier");
+  }  
+
+  if (tok->type != LEX_ID) {
+    env.fail("Unexpected token %s, expected an identifier", token_str(tok));
+  }
+
+  const char *id = (const char*) tok->value;
+  struct type *tp = type(this, lex);
+
+  if (!tp) {
+    char buf[4096];
+    env.fail("Cannot create alias %s of not defined type %s", id, type_str(tp, buf, 4096));
+  }
+
+  pnode_alias(this, id, tp);
+
+  token_free(tok);
+
+}
+
 bool ifBe(struct token *tok) {
   return tok->type == LEX_ENDIF;
 }
@@ -603,6 +629,10 @@ struct pnode* definition(struct pnode *root, struct lexer *lex) {
   token_free(tok);
 
   switch (type) {
+  case LEX_ALIAS:
+    alias(root, lex);
+    ret = &declaration_fake_node;
+    break;
   case LEX_DECL:
     decl(root, lex);
     ret = &declaration_fake_node;
@@ -633,10 +663,10 @@ struct pnode* definition(struct pnode *root, struct lexer *lex) {
   return ret;
 }
 
-struct pnode* parse(const char *filename) {
+struct pnode* parse(FILE *file) {
 
   struct pnode *program = pnode_new(PR_PROGRAM), *nextDef;  
-  struct lexer *lex = lexer_open(filename);
+  struct lexer *lex = lexer_fromFile(file);
 
   while ((nextDef = definition(program, lex))) {
     if (nextDef != &declaration_fake_node) {

@@ -55,10 +55,9 @@ A: I think this could work on cygwin. Try using CC="gcc" make in a cygwin prompt
    You will also need to change "clang" with "gcc" inside firststep.c .
 
 Q: How do I use helmc? 
-A: helmc works only in the same directory of helmrt.o . It also needs clang.
-   Then, he can compile with helmc <file.helm> , creating a <file> executable. 
+A: helmc works only in the same directory of helmrt.o and helmc1. It also needs clang, or gcc, or any c compiler.
+   Then, you can compile with helmc <file.helm> , creating a <file> executable. 
    If you don't want it to assemble the executable, you can also use the parameter "-c" to create <file.o>.
-   This will be replaced with something better someday.
    
 How It Works?
 =============

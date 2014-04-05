@@ -14,7 +14,7 @@ CC += $(CFLAGS)
 
 all: clean
 	$(CC) -c helmrt.c -g -Wall -pedantic -std=c11
-	$(CC) -rdynamic -o firststep firststep.c -L.. -lcgen -lparse -llex -lutils -llist -ltreemap -larray -g -Wall -pedantic -std=gnu11
+	$(CC) -rdynamic -o helmc1 helmc1.c -L.. -lcgen -lparse -llex -lutils -llist -ltreemap -larray -g -Wall -pedantic -std=gnu11
 clean:
 	rm -f *.o
-	rm -f firststep
+	rm -f helmc1

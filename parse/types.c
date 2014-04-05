@@ -191,10 +191,10 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
   return TYPECOMP_NO;
 }
 
-struct type* type_getTypeDef(Types *types, const char *name) {
-  if (types) {
+struct type* type_getTypeDef(Aliases *aliases, const char *name) {
+  if (aliases) {
     struct type *type;
-    if (!(type = types_get(types, name))) {
+    if (!(type = aliases_get(aliases, name))) {
       return type;
     }
   }
@@ -243,20 +243,24 @@ void type_free(struct type *type) {
   }
 }
 
-Types* (*types_new)(void) = (Types* (*)(void)) strmap_new;
+Aliases* (*aliases_new)(void) = (Aliases* (*)(void)) strmap_new;
 
-void types_free(Types* types) {
-  map_freeSpec(types, NULL, (void (*)(void*)) type_free);
+void* aliases_alias(Aliases* aliases, const char* id, struct type* type) {
+  return map_put(aliases, str_clone(id), type_secptr(type), FREE_KEY | FREE_VALUE);
 }
 
-struct type* types_get(Types *types, const char *name) {
+void aliases_free(Aliases* aliases) {
+  map_freeSpec(aliases, NULL, (void (*)(void*)) type_free);
+}
 
-  if (!types) {
+struct type* aliases_get(Aliases *aliases, const char *name) {
+
+  if (!aliases) {
     return NULL;
   }
 
   struct type *ret;
-  if (!map_get(types, name, (void**) &ret)) {
+  if (!map_get(aliases, name, (void**) &ret)) {
     return NULL;
   }
 
@@ -287,21 +291,22 @@ struct type* type_makeStructType(Symbols *args) {
   return (struct type*) stype;
 }
 
-void types_defineFuncId(Types *types, const char *name, struct type *ret, Array *args) {
+void aliases_defineFuncId(Aliases *aliases, const char *name, struct type *ret, Array *args) {
 
   struct type *type = type_makeFuncType(ret, args);
 
-  map_put(types, str_clone(name), type, FREE_KEY | FREE_VALUE);
+  map_put(aliases, str_clone(name), type, FREE_KEY | FREE_VALUE);
 
 }
 
-enum type_kind types_isFuncDefined(Types *types, const char *name, const char *ret, Array *args) {
+enum type_kind aliases_isFuncDefined(Aliases *aliases, const char *name, const char *ret, Array *args) {
   struct type *type; 
-  return (type = types_get(types, name)) && (type->kind == TYPE_FUNC);
+  return (type = aliases_get(aliases, name)) && (type->kind == TYPE_FUNC);
 }
 
 struct type* type_secptr(struct type *type) {
-  if (type_isFunc(type)) {
+  switch (type->kind) {
+  case TYPE_FUNC: {
     struct ftype *ftype = (struct ftype*) type;
     size_t len = array_len(ftype->params);
     Array *params = array_new(len);
@@ -312,8 +317,67 @@ struct type* type_secptr(struct type *type) {
 
     return type_makeFuncType(type_secptr(ftype->ret), params);
   }
+ 
+  case TYPE_PTR: 
+    return type_makePtr(type_secptr(((struct ptype*) type)->val));
+  
+  case TYPE_STRUCT: {
+    struct stype *stype = (struct stype*) type;
 
-  return type;
+    Symbols *values = symbols_new();
+    MapIter *iter = mapiter_start(stype->symbols);
+    Pair *pair;
+    struct symbol *sym;
+
+    while ((pair = mapiter_next(iter))) {
+      sym = (struct symbol*) pair->value;
+
+      symbols_register(values, (char*) pair->key, type_secptr(sym->type), false);
+    }
+
+    return type_makeStructType(values);
+  }
+
+  default:
+    return type;
+  }
+}
+
+extern void printdepth(int8_t depth);
+
+void aliases_dump(Aliases *aliases, const char *title, int8_t depth) {
+  if (!aliases->size) {
+    return;
+  }
+
+  printdepth(depth);
+  puts(title);
+
+  ++depth;
+
+  if (!aliases) {
+    printdepth(depth);
+    puts("(nil)");
+    return;
+  }
+
+  MapIter *iter = mapiter_start(aliases);
+  Pair *pair;
+  const char *name;
+  struct type *type;
+  char buf[2048];
+
+  while((pair = mapiter_next(iter))) {
+    printdepth(depth);
+    name = (const char*) pair->key;
+    type = (struct type*) pair->value;
+
+    printf("%s: %s\n", name, type_str(type, buf, 2048));
+
+    pair_free(pair);
+  }
+
+  mapiter_free(iter);
 }
 
 char* type_str(struct type *type, char *buffer, size_t bufLen) {

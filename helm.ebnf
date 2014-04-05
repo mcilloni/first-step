@@ -28,7 +28,9 @@ varDecl = id | assign
 
 assign = id, '=', expr
 
-typeModifier = 'ptr'
+alias = 'alias', id, type
+
+typeModifier = 'val' | 'ptr'
 
 funcType = 'func', '(', [type,{',', type}], ')', [type]
 

@@ -9,6 +9,6 @@ typedef bool (*bodyender)(struct token*);
 
 struct token* token_getOrDie(struct lexer *lex);
 
-struct pnode* parse(const char *filename);
+struct pnode* parse(FILE *file);
 
 #endif

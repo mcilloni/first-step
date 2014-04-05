@@ -65,7 +65,7 @@ uintmax_t uintpow(uintmax_t base, uintmax_t exp) {
 
 }
 
-void expr_callCheckTypes(struct pnode *call) {
+void expr_callCheckAliases(struct pnode *call) {
   Leaves *lv = call->leaves;
 
   size_t len = array_len(lv);
@@ -548,7 +548,7 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
       pnode_addLeaf(ret, expr_treeize(ret, expr));
     }
 
-    expr_callCheckTypes(ret);
+    expr_callCheckAliases(ret);
 
     return ret;
   }

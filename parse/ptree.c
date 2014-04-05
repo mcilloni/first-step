@@ -74,6 +74,16 @@ Symbols* pnode_getFuncParams(struct pnode *pnode) {
   return ((struct pfunc*) pnode)->params;
 }
 
+Aliases* pnode_getAliases(struct pnode *pnode) {
+  
+  if (!pnode_isScope(pnode)) {
+    return NULL;
+  }
+
+  return ((struct pscope*) pnode)->aliases;
+
+}
+
 Symbols* pnode_getSyms(struct pnode *pnode) {
   
   if (!pnode_isScope(pnode)) {
@@ -82,6 +92,32 @@ Symbols* pnode_getSyms(struct pnode *pnode) {
 
   return ((struct pscope*) pnode)->symbols;
 
+}
+
+void pnode_alias(struct pnode *pnode, const char *name, struct type *type) {
+  if (!pnode) {
+    env.fail("Broken tree: found NULL root");
+  }  
+
+  if (pnode_isScope(pnode)) {
+    struct pscope *pscope = (struct pscope*) pnode;
+
+    
+
+    if (type_getBuiltin(name)) {
+      env.fail("Cannot alias: %s is a builtin type", name);
+    }
+
+    struct type *oldType = aliases_alias(pscope->aliases, name, type);
+
+    if (oldType) {
+      char buf[4096];
+      env.fail("Alias %s already assigned to type %s", type_str(oldType, buf, 4096));
+    }
+
+  } else {
+    pnode_alias(pnode->root, name, type);
+  }
 }
 
 struct type* pnode_getType(struct pnode *pnode, const char *name) {
@@ -101,7 +137,7 @@ struct type* pnode_getType(struct pnode *pnode, const char *name) {
   }
 
   struct pscope *pscope = (struct pscope*) pnode;
-  if (!(ret = types_get(pscope->types, name))) {
+  if (!(ret = aliases_get(pscope->aliases, name))) {
     return pnode_getType(pnode->root, name); 
   }
 
@@ -378,7 +414,10 @@ struct pnode* pnode_new(enum nonterminals id) {
 
   if (nonterminals_isScope(id)) {
     ret = malloc(sizeof(struct pscope));
-    ((struct pscope*) ret)->symbols = symbols_new();
+
+    struct pscope *pscope = (struct pscope*) ret;
+    pscope->symbols = symbols_new();
+    pscope->aliases = aliases_new();
   } else {
     if (nonterminals_isFunc(id)) {
       ret = malloc(sizeof(struct pfunc));
@@ -441,7 +480,7 @@ void pnode_free(struct pnode *pnode) {
   if (pnode_isScope(pnode)) {
     struct pscope *pscope = (struct pscope*) pnode;
     symbols_free(pscope->symbols);
-    types_free(pscope->types);
+    aliases_free(pscope->aliases);
   } 
 
   if (pnode_isFunc(pnode)) {
@@ -498,7 +537,7 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
     char buf[2048];    
     printf(" %s of type %s\n", pfunc->name, type_str((struct type*) pfunc->ftype, buf, 2048));
 
-    symbols_dump(pfunc->params, depth + 1); 
+    symbols_dump(pfunc->params, "Parameters:", depth + 1); 
   } else { 
     putchar('\n');
   }
@@ -506,7 +545,8 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
   if (pnode_isScope(val)) {
     struct pscope *pscope = (struct pscope*) val;
 
-    symbols_dump(pscope->symbols, depth + 1);
+    symbols_dump(pscope->symbols, "Symbols:", depth + 1);
+    aliases_dump(pscope->aliases, "Aliases:", depth + 1);
   }
 
   size_t len = array_len(val->leaves);

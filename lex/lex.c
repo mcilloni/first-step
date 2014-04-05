@@ -320,6 +320,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // alias
+  if (!strcmp("alias", data)) {
+    res->type = LEX_ALIAS;
+    return res;
+  }
+
   // struct
   if (!strcmp("struct", data)) {
     res->type = LEX_STRUCT;
@@ -424,6 +430,8 @@ const char* tokentype_str(enum token_type type) {
   switch (type) {
   case LEX_NONE:
     return "NONE";
+  case LEX_ALIAS:
+    return "alias";
   case LEX_APOS:
     return "'";
   case LEX_ASSIGN:
