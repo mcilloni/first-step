@@ -534,7 +534,8 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
 
     expr_fixParentheses(&expr);
 
-    if (len) {
+    if (list_len(expr)) {
+
       List *tmp;
       size_t comma;
       
@@ -546,6 +547,7 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
       }
 
       pnode_addLeaf(ret, expr_treeize(ret, expr));
+    
     }
 
     expr_callCheckAliases(ret);
@@ -619,12 +621,12 @@ bool expr_isValidAssign(struct pnode *node) {
 
 struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
-  expr_fixParentheses(&expr);
-  expr_fixMinus(expr);
-
   if (!list_len(expr)) {
     return expr_empty;    
   }
+
+  expr_fixParentheses(&expr);
+  expr_fixMinus(expr);
 
   struct pnode *ret = NULL;
 

@@ -351,6 +351,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // else
+  if (!strcmp("else", data)) {
+    res->type = LEX_ELSE;
+    return res;
+  }
+
   // /if
   if (!strcmp("/if", data)) {
     res->type = LEX_ENDIF;
@@ -449,6 +455,8 @@ const char* tokentype_str(enum token_type type) {
     return "!=";
   case LEX_DIV:
     return "/";
+  case LEX_ELSE:
+    return "else";
   case LEX_ENDENTRY:
     return "/entry";
   case LEX_ENDFUNC:

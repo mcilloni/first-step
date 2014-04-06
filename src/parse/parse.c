@@ -96,9 +96,12 @@ struct type* funcType(struct pnode *this, struct lexer *lex) {
   struct type *tp;
   struct type *retType = type_none;
   
-  while ((tp = type(this, lex))) {
+  do {
 
-    array_append(arr, (void*) tp);  
+    tp = type(this, lex);
+    if (tp) {
+      array_append(arr, (void*) tp);  
+    }
 
     tok = token_getOrDie(lex);
 
@@ -114,10 +117,9 @@ struct type* funcType(struct pnode *this, struct lexer *lex) {
     default:
       env.fail("Unexpected token %s, expected ',' or ')'", token_str(tok));
     }
-  }
+  } while (tp);
 
-endparms: 
-
+endparms:
 
   if (nextTok && (nextTok->type == LEX_ID || nextTok->type == LEX_FUNC || nextTok->type == LEX_PTR || nextTok->type == LEX_VAL)) {
     retType = type(this, lex);    
@@ -372,6 +374,10 @@ void alias(struct pnode *this, struct lexer *lex) {
 
 }
 
+bool ifElseBe(struct token *tok) {
+  return tok->type == LEX_ENDIF || tok->type == LEX_ELSE;
+}
+
 bool ifBe(struct token *tok) {
   return tok->type == LEX_ENDIF;
 }
@@ -396,12 +402,33 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
   ret->root = root;
 
-  pnode_addLeaf(ret, body(ret, lex, ifBe));
+  pnode_addLeaf(ret, body(ret, lex, ifElseBe));
 
   tok = token_getOrDie(lex);
 
   if (!tok) {
-    env.fail("Unexpected end of file, expected '/if'");
+    env.fail("Unexpected end of file, expected '/if' or 'else'");
+  }
+
+  if (tok->type == LEX_ELSE) {
+    token_free(tok);
+    ret->id = PR_IFELSE;
+    
+    tok = token_getOrDie(lex);
+
+    if (!tok) {
+      env.fail("Unexpected end of file, expected a new line");
+    }
+
+    if (tok->type != LEX_NEWLINE) {
+      env.fail("Unexpected token, got %s, expected a new line", token_str(tok));
+    }
+
+    token_free(tok);
+
+    pnode_addLeaf(ret, body(ret, lex, ifBe));
+    
+    tok = token_getOrDie(lex);
   }
 
   if (tok->type != LEX_ENDIF) {

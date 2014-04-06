@@ -15,9 +15,9 @@
  *
  */
 
-#include "ptree.h"
+#include <parse/ptree.h>
 
-#include "../lex/lex.h"
+#include <lex/lex.h>
 
 #include <inttypes.h>
 #include <stdio.h>

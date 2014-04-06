@@ -15,11 +15,11 @@
  *
  */
 
-#include "parse.h"
+#include <parse/parse.h>
 
-#include "../list/list.h"
-#include "../lex/lex.h"
-#include "../utils/env.h"
+#include <list/list.h>
+#include <lex/lex.h>
+#include <utils/env.h>
 
 #include <errno.h>
 #include <inttypes.h>
@@ -140,3 +140,4 @@ int main(int argc, const char *argv[]) {
 
   return EXIT_SUCCESS;
 }
+

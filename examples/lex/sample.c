@@ -24,8 +24,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-int main(void) {
-  struct lexer *lex = lexer_open("../base.helm");
+int main(int argc, char *argv[]) {
+
+  if (argc != 2) {
+    env.fail("Wrong argc: %d", argc);
+  }
+
+  struct lexer *lex = lexer_open(argv[1]);
 
   if (lex->errcode) {
     env.fail("Cannot init lexer, errcode=%d", lex->errcode);

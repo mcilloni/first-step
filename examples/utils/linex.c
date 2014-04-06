@@ -15,17 +15,21 @@
  *
  */
 
-#include "lines.h"
-#include "env.h"
+#include <utils/lines.h>
+#include <utils/env.h>
 
 #include <stdlib.h>
 #include <string.h>
 
-int main(void) {
+int main(int argc, char *argv[]) {
+
+  if (argc != 2) {
+    env.fail("Wrong args");
+  }
 
   enum errors err = NOERR;
   
-  FILE *file = fopen("../base.helm", "r");
+  FILE *file = fopen(argv[1], "r");
 
   while (!err) {
     env_setLine(line_read(file, &err));

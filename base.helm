@@ -12,16 +12,15 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
+decl getchar func() uint8
 decl puts func(ptr uint8)
 
 entry
 
-  var lel struct(a ptr uint8, b ptr uint8)
-
-  lel'a = "First"
-  lel'b = "Second"
-
-  puts(lel'a)
-  puts(lel'b)
+  if getchar() == 97
+    puts("LEL")
+  else 
+    puts("LAL")
+  /if
 
 /entry

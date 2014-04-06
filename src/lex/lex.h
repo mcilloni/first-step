@@ -20,6 +20,7 @@ enum token_type {
   LEX_DECL,
   LEX_DIFFERENT,
   LEX_DIV,
+  LEX_ELSE,
   LEX_ENDENTRY,
   LEX_ENDFUNC,
   LEX_ENDIF,

@@ -35,6 +35,8 @@ const char* nt_str(enum nonterminals nt) {
     return "Statement";
   case PR_IF:
     return "If";
+  case PR_IFELSE:
+    return "IfElse";
   case PR_DECLARATION:
     return "Declaration";
   case PR_FUNC:

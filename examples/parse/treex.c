@@ -15,7 +15,7 @@
  *
  */
 
-#include "ptree.h"
+#include <parse/ptree.h>
 
 #include <stdio.h>
 #include <stdlib.h>

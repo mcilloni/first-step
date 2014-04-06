@@ -15,8 +15,8 @@
  *
  */
 
-#include "symbols.h"
-#include "types.h"
+#include <parse/symbols.h>
+#include <parse/types.h>
 
 #include <stdio.h>
 

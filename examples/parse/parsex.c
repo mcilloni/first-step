@@ -15,9 +15,10 @@
  *
  */
 
-#include "parse.h"
+#include <parse/parse.h>
+#include <utils/env.h>
 
-#include "../list/list.h"
+#include <list/list.h>
 
 #include <sys/time.h>
 #include <inttypes.h>
@@ -56,7 +57,11 @@ void printlist(List *list) {
   puts(" ]");
 }                      
 
-int main(void) {
+int main(int argc, char *argv[]) {
+
+  if (argc != 2) {
+    env.fail("Wrong argc: %d", argc);
+  }
 
   struct timeval t;
   struct timezone tzp;
@@ -64,7 +69,7 @@ int main(void) {
 
   uintmax_t t1 = t.tv_sec*1000000LU + t.tv_usec;
 
-  struct pnode *ret = parse(fopen("../base.helm", "r"));
+  struct pnode *ret = parse(fopen(argv[1], "r"));
 
   gettimeofday(&t, &tzp);
 

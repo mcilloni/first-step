@@ -15,10 +15,10 @@
  *
  */
 
-#include "../lex/lex.h"
-#include "../list/list.h"
-#include "../utils/utils.h"
-#include "../utils/env.h"
+#include <lex/lex.h>
+#include <list/list.h>
+#include <utils/utils.h>
+#include <utils/env.h>
 
 #include <inttypes.h>
 #include <stdio.h>

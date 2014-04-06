@@ -16,7 +16,10 @@ stmt = (if | declaration | expr | return), stmtEnd
 
 return = 'return', expr
 
-if = 'if', expr, stmtEnd, body, '/if'
+if = 'if', expr, stmtEnd, body, [elseBlock], '/if'
+
+elseBlock = 'else', body
+
 var = 'var', (mulVar | singleVar)
 decl = 'decl', mulVar
 stmtEnd = newLine | ';'

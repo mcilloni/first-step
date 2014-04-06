@@ -39,10 +39,12 @@ int std_printout(FILE *out, const char *level, const char *color, const char *fm
 
   ret += vfprintf(out, fmt, va);
 
-  putc('\n', out);
+  fputc('\n', out);
 
   if (env.line) {
-    ret += puts(env.line->val);
+    ret += fputs(env.line->val, out);
+    fputc('\n', out);
+    ++ret;
   }
 
   return ret + 1;
@@ -96,7 +98,8 @@ int default_print_fail(const char *fmt, ...) {
   char** strings = backtrace_symbols(array, size);
 
   for (size_t i = 0; i < size; ++i) {
-    puts(strings[i]);
+    fputs(strings[i], stderr);
+    fputc('\n', stderr);
   }
   
   free(strings);
