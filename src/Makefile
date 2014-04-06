@@ -14,6 +14,7 @@ all:
 	$(MAKE) -C parse DEPTH=.
 	$(MAKE) -C cgen DEPTH=.
 	$(MAKE) -C helmc1 DEPTH=.
+	cp -f ../build/helmc1-build/helmrt.o ../build
 	cp -f helmc ../build/
 
 clean:
