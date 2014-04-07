@@ -17,9 +17,9 @@
 
 #include "parse.h"
 
-#include "../lex/lex.h"
-#include "../utils/env.h"
-#include "../utils/utils.h"
+#include <lex/lex.h>
+#include <utils/env.h>
+#include <utils/utils.h>
 
 #include <errno.h>
 #include <stdlib.h>
@@ -27,6 +27,7 @@
 
 static bool firstTok = true;
 struct token *nextTok = NULL;
+extern uintmax_t lastLineno;
 
 struct pnode* body(struct pnode *this, struct lexer *lex, bodyender be);
 extern struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be);
@@ -42,6 +43,10 @@ struct token* token_getOrDie(struct lexer *lex) {
   }
   tok = nextTok;
   nextTok = token_get(lex);
+
+  if (tok) {
+    lastLineno = tok->lineno;
+  }
 
   if (!tok) {
     if (lexer_eof(lex)) {
@@ -386,7 +391,17 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
   struct pnode* ret = pnode_new(PR_IF);
 
-  pnode_addLeaf(ret, expr(root, lex, NULL));
+  struct pnode *cond = expr(root, lex, NULL);
+  struct type *condType = pnode_evalType(cond, root);
+
+  if (condType != type_getBuiltin("bool")) {
+    char buf[4096];
+    env.fail("Expected expression of bool type in if condition, got %s", type_str(condType, buf, 4096));
+  }
+
+  type_free(condType);
+
+  pnode_addLeaf(ret, cond);
 
   struct token *tok = token_getOrDie(lex);
 

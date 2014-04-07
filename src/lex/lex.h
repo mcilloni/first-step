@@ -57,6 +57,7 @@ static const char *const lex_errors[] = {
 struct token {
   enum token_type type;
   uintmax_t value;
+  uintmax_t lineno;
 };
 
 struct lexer {
@@ -89,6 +90,7 @@ struct lexer* lexer_fromFile(FILE *file);
 int8_t token_comparePriority(struct token *tok1, struct token *tok2);
 int8_t token_getPriority(struct token *tok);
 enum optype token_getOpType(struct token *tok);
+bool token_isBooleanOp(enum token_type type);
 const char* token_str(struct token *tok);
 
 const char* tokentype_str(enum token_type type);

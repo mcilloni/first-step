@@ -24,7 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct type type_int8 = { TYPE_NUMERIC, "int8", 1, false};
+struct type type_bool = { TYPE_BOOL, "bool", 1, true };
+struct type type_int8 = { TYPE_NUMERIC, "int8", 1, false };
 struct type type_int16 = { TYPE_NUMERIC, "int16", 2, false };
 struct type type_int32 = { TYPE_NUMERIC, "int32", 4, false };
 struct type type_int64 = { TYPE_NUMERIC, "int64", 8, false };
@@ -39,6 +40,10 @@ size_t ptrSize = 8;
 struct type *type_none = &nTNex;
 
 struct type* type_getBuiltin(const char *name) {
+ if (!strcmp(name, "bool")) {
+  return &type_bool;
+ }
+
  if (!strcmp(name, "int8")) {
   return &type_int8;
  }
@@ -160,6 +165,8 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
   if (assign->kind == assigned->kind) {
 
     switch (assign->kind) { 
+    case TYPE_BOOL:
+      return TYPECOMP_YES;
     case TYPE_NUMERIC:
       if (assign->size < assigned->size) {
         return TYPECOMP_SMALLER;
@@ -237,7 +244,7 @@ bool type_isStruct(struct type *type) {
 
 void type_free(struct type *type) {
   if (type) {
-    if (type->kind != TYPE_NUMERIC) {
+    if (type->kind >= TYPE_FUNC) {
       free(type);
     }
   }

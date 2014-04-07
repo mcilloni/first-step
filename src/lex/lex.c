@@ -176,6 +176,7 @@ struct token* token_get(struct lexer *lex) {
   }
 
   char data[MAX_TOKEN_LENGTH];
+  uintmax_t lineno = env.line->lineno;
 
   if (lex->saved) {
     strcpy(data, lex->saved);
@@ -188,6 +189,8 @@ struct token* token_get(struct lexer *lex) {
   }
 
   struct token *res = calloc(1, sizeof(struct token));
+  
+  res->lineno = lineno;
 
   if (lex->inString) {
     *res = (struct token) { LEX_STRING, (uintmax_t) str_clone(data) };
@@ -412,7 +415,7 @@ struct token* token_get(struct lexer *lex) {
   //generic id
   res->type = LEX_ID;
   res->value = (uintptr_t) str_clone(data);
-  
+
   return res;
 }
 
@@ -599,6 +602,21 @@ enum optype token_getOpType(struct token *tok) {
 
   default:
     return OPTYPE_NOTOP;
+  }
+}
+
+bool token_isBooleanOp(enum token_type type) {
+  switch (type) {
+  case LEX_AND:
+  case LEX_DIFFERENT:
+  case LEX_EQUAL:
+  case LEX_MAJOR:
+  case LEX_MINOR:
+  case LEX_NOT:
+  case LEX_OR:
+    return true;
+  default:
+    return false;
   }
 }
 

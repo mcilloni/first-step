@@ -3,12 +3,13 @@
 
 #include "errors.h"
 
+#include <stdint.h>
 #include <stdio.h>
 
 struct line{
   size_t len;
   size_t position;
-  size_t lineno;
+  uintmax_t lineno;
   char *val;
 };
 

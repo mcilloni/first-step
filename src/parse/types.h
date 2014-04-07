@@ -11,9 +11,13 @@
 #include <treemap/map.h>
 
 enum type_kind {
+  //don't free
   TYPE_NONE = 0,
-  TYPE_FUNC,
+  TYPE_BOOL,
   TYPE_NUMERIC,
+
+  //free
+  TYPE_FUNC,
   TYPE_PTR,
   TYPE_STRUCT
 };

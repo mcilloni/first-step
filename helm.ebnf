@@ -49,7 +49,9 @@ expr = ('(', exprC, ')') | exprC
 
 exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const | membAccess
 
-const = number | string
+boolVal = 'true' | 'false'
+
+const = number | string |boolVal
 
 string = '"', {letter}, '"'
 

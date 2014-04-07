@@ -6,7 +6,7 @@
 #include "symbols.h"
 #include "types.h"
 
-#include "../lex/lex.h"
+#include <lex/lex.h>
 
 struct pnode {
   enum nonterminals id;

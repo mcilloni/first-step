@@ -17,7 +17,11 @@ decl puts func(ptr uint8)
 
 entry
 
-  if getchar() == 97
+  var b bool
+
+  b = getchar() == 97
+
+  if b
     puts("LEL")
   else 
     puts("LAL")

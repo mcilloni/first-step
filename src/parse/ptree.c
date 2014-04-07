@@ -18,9 +18,9 @@
 #include "ptree.h"
 #include "types.h"
 
-#include "../lex/lex.h"
-#include "../utils/env.h"
-#include "../utils/utils.h"
+#include <lex/lex.h>
+#include <utils/env.h>
+#include <utils/utils.h>
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -47,6 +47,10 @@ bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type,
     }
 
     return ret;
+  }
+
+  if (pnode_getType(pnode, id)) {
+    env.fail("Identifier %s is already a type identifier");
   }
 
   res = symbols_register(((struct pscope*) pnode)->symbols, id, type, decl);
@@ -210,7 +214,11 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
     if (pexpr->value == LEX_ASSIGN) {
       ret = firstType; //only the destination type matters
     } else {
-      ret = type_evalLarger(firstType, pnode_evalType(second, scope));
+      if (token_isBooleanOp(pexpr->value)) {
+        ret = type_getBuiltin("bool");
+      } else {
+        ret = type_evalLarger(firstType, pnode_evalType(second, scope));
+      }
     }
 
     break;
@@ -289,6 +297,10 @@ struct type* pnode_isRootAndIdIsFunc(struct pnode *pnode, const char *id) {
 }
 
 struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
+
+  if (!strcmp(id, "true") || !strcmp(id, "false")) {
+    return type_getBuiltin("bool");
+  }
 
   if (!pnode) {
     return NULL;
