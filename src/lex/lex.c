@@ -370,6 +370,18 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // while
+  if (!strcmp("while", data)) {
+    res->type = LEX_WHILE;
+    return res;
+  }
+
+  // /while
+  if (!strcmp("/while", data)) {
+    res->type = LEX_ENDWHILE;
+    return res;
+  }
+
   // /
   if (*data == '/') {
     res->type = LEX_DIV;

@@ -155,14 +155,22 @@ void ccode_genIfElse(struct pnode *ifNode, FILE *out, uint8_t indent) {
   fputs("}\n", out);
 }
 
-void ccode_genIf(struct pnode *ifNode, FILE *out, uint8_t indent) {
+void ccode_genSimpleBlock(struct pnode *node, const char *stmt, FILE *out, uint8_t indent) {
   file_indent(out, indent);
-  fputs("if ( ", out);
-  ccode_genExpr(*leaves_get(ifNode->leaves, 0), out, 0);
+  fprintf(out, "%s ( ", stmt);
+  ccode_genExpr(*leaves_get(node->leaves, 0), out, 0);
   fputs(" ) {\n\n", out);
-  ccode_genBody(*leaves_get(ifNode->leaves, 1), out, indent + 2);
+  ccode_genBody(*leaves_get(node->leaves, 1), out, indent + 2);
   file_indent(out, indent);
   fputs("}\n", out);
+}
+
+void ccode_genIf(struct pnode *ifNode, FILE *out, uint8_t indent) {
+  ccode_genSimpleBlock(ifNode, "if", out, indent);
+}
+
+void ccode_genWhile(struct pnode *whileNode, FILE *out, uint8_t indent) {
+  ccode_genSimpleBlock(whileNode, "while", out, indent);
 }
 
 void ccode_genStmt(struct pnode *stmt, FILE *out, uint8_t indent) {
@@ -172,6 +180,9 @@ void ccode_genStmt(struct pnode *stmt, FILE *out, uint8_t indent) {
     break;
   case PR_IFELSE:
     ccode_genIfElse(stmt, out, indent);
+    break;
+  case PR_WHILE:
+    ccode_genWhile(stmt, out, indent);
     break;
   case PR_RETURN:
     ccode_genReturn(stmt, out, indent);

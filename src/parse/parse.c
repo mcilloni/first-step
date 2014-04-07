@@ -392,16 +392,16 @@ bool ifBe(struct token *tok) {
   return tok->type == LEX_ENDIF;
 }
 
-struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
+struct pnode* condStmt(struct pnode *root, struct lexer *lex, enum nonterminals nt, bodyender be) {
 
-  struct pnode* ret = pnode_new(PR_IF);
+  struct pnode* ret = pnode_new(nt);
 
   struct pnode *cond = expr(root, lex, NULL);
   struct type *condType = pnode_evalType(cond, root);
 
   if (condType != type_getBuiltin("bool")) {
     char buf[4096];
-    env.fail("Expected expression of bool type in if condition, got %s", type_str(condType, buf, 4096));
+    env.fail("Expected expression of bool type in statement condition, got %s", type_str(condType, buf, 4096));
   }
 
   type_free(condType);
@@ -422,9 +422,38 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
   ret->root = root;
 
-  pnode_addLeaf(ret, body(ret, lex, ifElseBe));
+  pnode_addLeaf(ret, body(ret, lex, be));
 
-  tok = token_getOrDie(lex);
+  return ret;
+}
+
+bool whileBe(struct token *tok) {
+  return tok->type == LEX_ENDWHILE;
+}
+
+struct pnode* whileStmt(struct pnode *root, struct lexer *lex) {
+  struct pnode *ret = condStmt(root, lex, PR_WHILE, whileBe);
+
+  struct token *tok = token_getOrDie(lex);
+
+  if (!tok) {
+    env.fail("Unexpected end of file, expected '/while'");
+  }
+
+  if (tok->type != LEX_ENDWHILE) {
+    env.fail("Unexpected token, got %s, expected '/while'", token_str(tok));
+  }
+
+  token_free(tok);
+
+  return ret;
+}
+
+struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
+
+  struct pnode *ret = condStmt(root, lex, PR_IF, ifElseBe);
+
+  struct token *tok = token_getOrDie(lex);
 
   if (!tok) {
     env.fail("Unexpected end of file, expected '/if' or 'else'");
@@ -515,20 +544,30 @@ struct pnode* stmt(struct pnode *root, struct lexer *lex) {
     ret = &declaration_fake_node;
     break;
   }
+
   case LEX_IF: {
     token_free(token_getOrDie(lex)); //discard
     ret = ifStmt(root, lex);
     break;
   }
+
+  case LEX_WHILE: {
+    token_free(token_getOrDie(lex)); //discard 
+    ret = whileStmt(root, lex);
+    break;
+  }
+
   case LEX_VAR: {
     token_free(token_getOrDie(lex)); //discard
     var(root, lex);
     ret = &declaration_fake_node;
     break;
   }
+
   case LEX_RETURN: 
     ret = returnStmt(root, lex);
     break;  
+
   default: {
     if (!(ret = expr(root, lex, NULL))) {
       env.fail("Unexpected token %s, expected 'var', 'if' or anything evaluable as an expression", token_str(&savedNext));

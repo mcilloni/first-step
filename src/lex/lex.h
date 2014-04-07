@@ -24,6 +24,7 @@ enum token_type {
   LEX_ENDENTRY,
   LEX_ENDFUNC,
   LEX_ENDIF,
+  LEX_ENDWHILE,
   LEX_ENTRY,
   LEX_EQUAL,
   LEX_FUNC,
@@ -46,7 +47,8 @@ enum token_type {
   LEX_STRUCT,
   LEX_TIMES,
   LEX_VAL,
-  LEX_VAR
+  LEX_VAR,
+  LEX_WHILE
 };
 
 static const char *const lex_errors[] = {

@@ -14,6 +14,7 @@ enum nonterminals {
   PR_STRING,
   PR_IF,
   PR_IFELSE,
+  PR_WHILE,
   PR_FUNC,
   PR_DECLARATION,
   PR_STMTEND,
