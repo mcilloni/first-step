@@ -18,13 +18,10 @@ endif
 
 .PHONY: all,clean
 
-SRCS = $(wildcard *.c)
-OBJS = $(patsubst %.c,%.o,$(SRCS))
-OPATHS = $(foreach obj, $(OBJS), $(OUTDIR)/$(obj))
-all: dir $(OBJS) helmc1
+all: dir helmc1 helmrt.o
 
 helmc1: 
-	$(CC) -o $(OBJDIR)/helmc1 $(OUTDIR)/helmc1.o $(LIBS) $(LDFLAGS)
+	$(CC) -o $(OBJDIR)/helmc1 helmc1.c $(LIBS) $(LDFLAGS) $(INCLUDES)
 
 clean:
 	rm -rf $(OUTDIR)
@@ -33,6 +30,8 @@ clean:
 dir:
 	mkdir -p $(OUTDIR)
 
-%.o: %.c 
-	$(CC) $(INCLUDES) -c $< -o $(OUTDIR)/$@ -std=c11 -Wall -pedantic
-
+helmrt.o:  
+	$(OBJDIR)/helmc1 < helmrt.helm > $(OUTDIR)/helmrt.c
+	sed -i 's/int8 main/int main/' $(OUTDIR)/helmrt.c
+	$(CC) $(INCLUDES) -c $(OUTDIR)/helmrt.c -o $(OUTDIR)/helmrt.o -std=c11 -w
+	rm -f $(OUTDIR)/helmrt.c

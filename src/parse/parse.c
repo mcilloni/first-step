@@ -238,14 +238,15 @@ Symbols* structDef(struct pnode *root, struct lexer *lex) {
   }
 
   token_free(tok);
-  Symbols *syms = NULL; 
+  bool notEmpty = nextTok && nextTok->type != LEX_CPAR;
+  Symbols *syms = argParams(root, lex);
 
-  if (nextTok && nextTok->type != LEX_CPAR) {
-    syms = argParams(root, lex);
+  if (notEmpty) {
 
     if (nextTok->type == LEX_NEWLINE) {
       token_free(token_getOrDie(lex)); //discard newline before )
     }
+
   } 
   
   tok = token_getOrDie(lex);

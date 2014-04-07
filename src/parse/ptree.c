@@ -459,15 +459,19 @@ struct pnode* pnode_new(enum nonterminals id) {
 }
 
 struct ftype* type_mkFunFromRetSyms(struct type *ret, Symbols *params) {
-  Array *arp = array_new(params->size);
+  size_t len = params ? params->size : 0U;
+  Array *arp = array_new(len);
 
-  MapIter *iter = mapiter_start(params);
-  Pair *pair;
-  
-  while ((pair = mapiter_next(iter))) {
-    array_append(arp, type_secptr(((struct symbol*) pair->value)->type));
+  if (len) {
+
+    MapIter *iter = mapiter_start(params);
+    Pair *pair;
+    
+    while ((pair = mapiter_next(iter))) {
+      array_append(arp, type_secptr(((struct symbol*) pair->value)->type));
+    }
+
   }
-  
   return (struct ftype*) type_makeFuncType(ret, arp);
 }
 

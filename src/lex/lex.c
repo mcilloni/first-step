@@ -84,6 +84,14 @@ bool ch_isPar(char c) {
   return ( c == '(') || ( c == ')');
 }
 
+bool ch_id(char c) {
+  return isalnum(c) || c == '_';
+}
+
+bool ch_sym(char c) {
+  return c != '_' && ispunct(c);
+}
+
 bool stok(struct lexer *lex, char *data, size_t max) {
 
   char ch;
@@ -144,7 +152,7 @@ bool stok(struct lexer *lex, char *data, size_t max) {
           continue;
         }
 
-        if ((ch_isPar(lex->peek) || (isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek)))) {
+        if ((ch_isPar(lex->peek) || (ch_id(ch) && ch_sym(lex->peek)) || (ch_sym(ch) && ch_id(lex->peek)))) {
           break;
         }
 
