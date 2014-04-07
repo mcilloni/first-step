@@ -32,6 +32,5 @@ dir:
 
 helmrt.o:  
 	$(OBJDIR)/helmc1 < helmrt.helm > $(OUTDIR)/helmrt.c
-	sed -i 's/int8 main/int main/' $(OUTDIR)/helmrt.c
-	$(CC) $(INCLUDES) -c $(OUTDIR)/helmrt.c -o $(OUTDIR)/helmrt.o -std=c11 -w
+	$(CC) $(INCLUDES) -c $(OUTDIR)/helmrt.c -o $(OUTDIR)/helmrt.o -w
 	rm -f $(OUTDIR)/helmrt.c
