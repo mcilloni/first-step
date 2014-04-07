@@ -25,4 +25,6 @@ void symbols_dump(Symbols *symt, const char *title, int8_t depth);
 struct symbol* symbols_get(Symbols *symt, const char *id);
 void symbols_free(Symbols *symt);
 
+bool id_isReservedBool(const char *id);
+
 #endif

@@ -181,9 +181,11 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
 
       return TYPECOMP_YES;
       
-    case TYPE_FUNC: {
+    case TYPE_FUNC:
+    case TYPE_STRUCT: {
       return type_equal(assign, assigned) ? TYPECOMP_YES : TYPECOMP_NO;
     }   
+
     case TYPE_PTR: {
       struct ptype *ptr1 = (struct ptype*) assign;
       struct ptype *ptr2 = (struct ptype*) assigned;

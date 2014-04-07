@@ -172,6 +172,9 @@ void pnode_verifyNodesAreCompatible(struct pnode *root, struct pnode *assign, st
     break;
   }
 
+  type_free(first);
+  type_free(second);
+
 }
 
 struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
@@ -259,7 +262,7 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
 
   pexpr->type = ret;
 
-  return ret;
+  return type_secptr(ret);
 
 }
 
@@ -298,7 +301,7 @@ struct type* pnode_isRootAndIdIsFunc(struct pnode *pnode, const char *id) {
 
 struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
 
-  if (!strcmp(id, "true") || !strcmp(id, "false")) {
+  if (id_isReservedBool(id)) {
     return type_getBuiltin("bool");
   }
 
@@ -399,6 +402,11 @@ bool pnode_isScope(struct pnode *pnode) {
 }
 
 bool pnode_isInCurrentScope(struct pnode *pnode, const char *id) {
+
+  if (id_isReservedBool(id)) {
+    return true;
+  }
+
   if (!pnode) {
     return false;
   }

@@ -144,7 +144,11 @@ bool stok(struct lexer *lex, char *data, size_t max) {
           continue;
         }
 
-        if ((isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek)) || ch_isPar(ch)) {
+        if ((ch_isPar(lex->peek) || (isalnum(ch) && ispunct(lex->peek)) || (ispunct(ch) && isalnum(lex->peek)))) {
+          break;
+        }
+
+        if (lex->peek == '"') {
           break;
         }
 

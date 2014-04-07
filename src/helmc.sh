@@ -43,12 +43,15 @@ function exists {
 }
 
 CLEANUP=()
+TMPCLEANUP=""
 
 function cleanup {
   if [[ ${#CLEANUP[@]} > 0 ]]
   then
-    rm -r ${CLEANUP[@]}
+    rm -f ${CLEANUP[@]}
   fi
+
+  rm -f "$TMPCLEANUP"  
 }
 
 trap cleanup EXIT
@@ -101,20 +104,27 @@ function compile {
     exit 1
   fi
   
-  CLEANUP+=( "$CTMP" )
+  TMPCLEANUP="$CTMP"
 
   $HELMC1 < "$1" > "$CTMP"
   
+  TMPCLEANUP=""
+
   if [[ -z $noBuild ]]
   then
     
+    CLEANUP+=( "$CTMP" )
+
     OTMP="${2}.o"
 
-    $CC -o "$OTMP" -c "$CTMP" -Wno-parentheses-equality -g
+    $CC -o "$OTMP" -c "$CTMP" -Wno-parentheses-equality -Wno-incompatible-pointer-types -g
 
     OBJS+=( "$OTMP" )
 
-    CLEANUP+=( "$OTMP" )
+    if [[ -z $noLink ]]
+    then
+      CLEANUP+=( "$OTMP" )
+    fi
   fi
   
 }

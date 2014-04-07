@@ -12,19 +12,34 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-decl getchar func() uint8
 decl puts func(ptr uint8)
+
+alias foffa struct (
+  good bool,
+  msg ptr uint8
+)
+
+func trueFoffa(lel ptr foffa) bool
+
+  if lel'good
+
+    puts(lel'msg)
+
+  /if  
+
+  return lel'good
+
+/func
 
 entry
 
-  var b bool
+  var b foffa
 
-  b = getchar() == 97
+  b'good = true
+  b'msg = "HEY!"
 
-  if b
-    puts("LEL")
-  else 
-    puts("LAL")
+  if trueFoffa(ptr b)
+    puts("YAY")
   /if
 
 /entry

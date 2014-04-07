@@ -315,6 +315,11 @@ void varDeclGeneric(struct pnode *this, struct lexer *lex, bool decl) {
   }
 
   const char *id = (const char*) tok->value;
+
+  if (id_isReservedBool(id)) {
+    env.fail("%s is a reserved identifier", id);
+  }
+
   struct type *tp = type(this, lex);
 
   if (!tp) {

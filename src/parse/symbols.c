@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 Symbols* (*symbols_new) (void) = strmap_new;
 bool (*symbols_defined)(Symbols *symt, const char *id) = (bool (*)(Symbols*,const char*)) map_contains;
@@ -97,5 +98,9 @@ enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *t
 
   map_put(symt, (void*) str_clone(id), (void*) sym, FREE_KEY | FREE_VALUE);
   return SYM_ADDED;
+}
+
+bool id_isReservedBool(const char *id) {
+  return !strcmp(id, "true") || !strcmp(id, "false");
 }
 

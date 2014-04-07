@@ -30,12 +30,13 @@ void file_indent(FILE *out, uint8_t indent) {
   }
 }
 
-const char* ccode_opConv(struct token *tok) {
+const char* ccode_opConv(struct token *tok, struct pnode *leftSupportNode) {
   switch(tok->type) {
   case LEX_AND:
     return "&&";
-  case LEX_APOS:
-    return ".";
+  case LEX_APOS: {
+    return (pnode_evalType(leftSupportNode, NULL)->kind == TYPE_PTR) ? "->" : ".";
+  }
   case LEX_OR:
     return "||";
   default: 
@@ -62,8 +63,9 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
     }
     
     fputs("( ", out);    
-    ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
-    fprintf(out, " %s ", ccode_opConv(&tok));
+    struct pnode *left = *leaves_get(root->leaves, 0);
+    ccode_genRecExpr(left, out);
+    fprintf(out, " %s ", ccode_opConv(&tok, left));
     ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
     fputs(" )", out);
     break;
@@ -228,7 +230,7 @@ char* ccode_csym(struct type *type, const char *name) {
                   
   case TYPE_PTR: {
     char buf[4096];
-    snprintf(buf, 4095,"(*%s)", name);
+    snprintf(buf, 4095,"*%s", name);
     return ccode_csym(((struct ptype*) type)->val, buf);
   }
 
