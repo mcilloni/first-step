@@ -16,6 +16,7 @@ all:
 	$(MAKE) -C helmc1 DEPTH=.
 	cp -f ../build/helmc1-build/helmrt.o ../build
 	cp -f helmc.sh ../build/helmc
+	chmod +x ../build/helmc
 
 clean:
 	$(MAKE) -C utils clean DEPTH=.

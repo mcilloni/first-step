@@ -15,9 +15,10 @@
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
 set -e
+export BUILDPATH="$(cd "$(dirname "$0")"; pwd -P)"
 export PROGNAME="$(basename $0)"
-export HELMC1="./helmc1"
-export HELMRT="helmrt.o"
+export HELMC1="$BUILDPATH/helmc1"
+export HELMRT="$BUILDPATH/helmrt.o"
 
 function outproghelp {
   printf "  -%-14s %-50s\n" "$1" "$2"
@@ -27,7 +28,7 @@ function usage {
   echo 'First Step - Helm experimental compiler'
   echo 'This software is EXPERIMENTAL, incomplete and for research purposes only. Use it at your risk.'
   echo
-  echo "Usage: $1 [options] <inputs>"
+  echo "Usage: $(basename $0) [options] <inputs>"
   echo
   echo 'Options:'
   outproghelp 'c'            'Compiles without linking'
