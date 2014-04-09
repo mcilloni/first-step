@@ -110,7 +110,7 @@ int main(void) {
 
   lexer_close(lex);
 
-  list_freeAll(list, (void (*)(void*)) token_free);
+  list_free(list);
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)                                                                
   remove("crappyTempFile.win32crap");                                                                                       

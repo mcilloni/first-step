@@ -1,7 +1,11 @@
-INCLUDES := -I$(shell pwd)/../../src/ -I$(shell pwd)/../../deps/
-OBJDIR := $(shell pwd)/../../build/examples
+ifndef BPATH
+	BPATH = $(shell pwd)
+endif
+
+INCLUDES := -I$(BPATH)/../../src/parse/ -I$(BPATH)/../../src/ -I$(BPATH)/../../deps/
+OBJDIR := $(BPATH)/../../build/examples
 LIBS := -L$(OBJDIR)/../
-LDFLAGS := -rdynamic -lparse -llex -lutils -ltreemap -llist -larray -g
+LDFLAGS := -rdynamic -lparse -llex -lsyms -lutils -ltreemap -llist -larray -g
 
 UNAME = $(shell uname -o)
 ifeq ($(UNAME),FreeBSD)

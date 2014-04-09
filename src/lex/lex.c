@@ -20,6 +20,8 @@
 #include <utils/utils.h>
 #include <utils/env.h>
 
+#include <syms/types.h>
+
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -46,6 +48,7 @@ struct lexer* lexer_fromFile(FILE *file) {
   }
 
   lex->file = file;
+  lex->tokens = pool_new();
   env_setLine(line_read(lex->file, &lex->errcode));
   
   if (lexer_error(lex)) {
@@ -60,11 +63,39 @@ struct lexer* lexer_fromFile(FILE *file) {
   return lex;
   
 }
+
+void token_free(struct token *tok) {
+
+  if (tok) {
+
+    switch (tok->type) {
+
+    case LEX_CAST:
+      type_free((struct type*) tok->value);
+      break;
+
+    case LEX_ID:
+    case LEX_STRING:
+      free( (void*) tok->value);
+      break;
+
+    default:
+      break;
+
+    }
+
+    free(tok);
+  }
+
+}
+
 void lexer_close(struct lexer *lex) {
   
   if (lex->file) {
     fclose(lex->file);
   }
+
+  pool_release(lex->tokens, (void (*)(void *)) token_free);
 
   line_free(env.line);
   free(lex);
@@ -200,7 +231,7 @@ struct token* token_get(struct lexer *lex) {
     }
   }
 
-  struct token *res = calloc(1, sizeof(struct token));
+  struct token *res = pool_zalloc(lex->tokens, sizeof(struct token));
   
   res->lineno = lineno;
 
@@ -348,6 +379,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // cast
+  if (!strcmp("cast", data)) {
+    res->type = LEX_CAST;
+    return res;
+  }
+
   // func
   if (!strcmp("func", data)) {
     res->type = LEX_FUNC;
@@ -443,19 +480,6 @@ struct token* token_get(struct lexer *lex) {
   return res;
 }
 
-void token_free(struct token *tok) {
-
-  if (tok) {
-
-    if (tok->type == LEX_ID) {
-      free( (void*) tok->value);
-    }
-
-    free(tok);
-  }
-
-}
-
 const char* token_str(struct token *tok) {
   return tokentype_str(tok->type);
 }
@@ -470,6 +494,8 @@ const char* tokentype_str(enum token_type type) {
     return "'";
   case LEX_ASSIGN:
     return "=";
+  case LEX_CAST:
+    return "cast";
   case LEX_COMMA:
     return ",";
   case LEX_CPAR:
@@ -587,6 +613,7 @@ int8_t token_getPriority(struct token *tok) {
   case LEX_NOT:
     return 9;
 
+  case LEX_CAST:
   case LEX_PTR:
   case LEX_VAL:
     return 10;
@@ -602,6 +629,7 @@ int8_t token_getPriority(struct token *tok) {
 
 enum optype token_getOpType(struct token *tok) {
   switch (tok->type) {
+  case LEX_CAST:
   case LEX_DEC:
   case LEX_INC:
   case LEX_MINUS:

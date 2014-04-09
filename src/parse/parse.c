@@ -33,7 +33,7 @@ struct pnode* body(struct pnode *this, struct lexer *lex, bodyender be);
 extern struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be);
 struct type* type(struct pnode *this, struct lexer *lex);
 
-struct token* token_getOrDie(struct lexer *lex) {
+struct token* parser_getTok(struct lexer *lex) {
 
   struct token *tok;
   if (firstTok) {
@@ -64,7 +64,7 @@ struct token* token_getOrDie(struct lexer *lex) {
 struct pnode declaration_fake_node = {0};
 
 struct type* idType(struct pnode *this, struct lexer *lex) {
-  struct token *type = token_getOrDie(lex);
+  struct token *type = parser_getTok(lex);
   
   if(!type) {
     env.fail("Unexpected end of file during var declaration");
@@ -83,9 +83,9 @@ struct type* idType(struct pnode *this, struct lexer *lex) {
 
 struct type* funcType(struct pnode *this, struct lexer *lex) {
 
-  token_free(token_getOrDie(lex)); //discard 'func'
+  parser_getTok(lex); //discard 'func'
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected EOF in func type, expected '('");
@@ -94,8 +94,6 @@ struct type* funcType(struct pnode *this, struct lexer *lex) {
   if (tok->type != LEX_OPAR) {
     env.fail("Unexpected %s in func type, expected '('", token_str(tok));
   }
-
-  token_free(tok);
 
   Array *arr = array_new(3U);
   struct type *tp;
@@ -108,7 +106,7 @@ struct type* funcType(struct pnode *this, struct lexer *lex) {
       array_append(arr, (void*) tp);  
     }
 
-    tok = token_getOrDie(lex);
+    tok = parser_getTok(lex);
 
     if (!tok) {
       env.fail("Unexpected EOF during func type, expected ',' or ')'");
@@ -141,7 +139,7 @@ Pair* argTypeList(struct pnode *this, struct lexer *lex) {
   bool first = true;
 
   do {
-    tok = token_getOrDie(lex);
+    tok = parser_getTok(lex);
 
     if (!tok) {
      env.fail("Unexpected EOF, expected an identifier");
@@ -152,8 +150,7 @@ Pair* argTypeList(struct pnode *this, struct lexer *lex) {
         env.fail("Unexpected %s, expected an identifier", token_str(tok));
       }
 
-      token_free(tok);
-      tok = token_getOrDie(lex);
+      tok = parser_getTok(lex);
 
       if (!tok) {
        env.fail("Unexpected EOF, expected an identifier");
@@ -166,8 +163,6 @@ Pair* argTypeList(struct pnode *this, struct lexer *lex) {
     }
 
     array_append(names, str_clone((char*) tok->value));
-
-    token_free(tok);
 
     first = false;
   } while (nextTok->type == LEX_COMMA);
@@ -201,17 +196,16 @@ Symbols* argParams(struct pnode *this, struct lexer *lex) {
     if (first) {
       first = false;
     } else {
-      tok = token_getOrDie(lex);
+      tok = parser_getTok(lex);
 
       if (tok->type != LEX_COMMA) {
         env.fail("Unexpected %s in function declaration, expected ','", token_str(tok));
       }
-      token_free(tok);
     }
 
     if (nextTok->type == LEX_NEWLINE) {
 
-      token_free(token_getOrDie(lex)); //allow multiline parameter declarations
+      parser_getTok(lex); //allow multiline parameter declarations
 
     }
 
@@ -223,7 +217,7 @@ Symbols* argParams(struct pnode *this, struct lexer *lex) {
 }
 
 Symbols* structDef(struct pnode *root, struct lexer *lex) {
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected EOF, expected '('");
@@ -234,22 +228,21 @@ Symbols* structDef(struct pnode *root, struct lexer *lex) {
   }
 
   if (nextTok->type == LEX_NEWLINE) {
-    token_free(token_getOrDie(lex)); //discard newline after (
+    parser_getTok(lex); //discard newline after (
   }
 
-  token_free(tok);
   bool notEmpty = nextTok && nextTok->type != LEX_CPAR;
   Symbols *syms = argParams(root, lex);
 
   if (notEmpty) {
 
     if (nextTok->type == LEX_NEWLINE) {
-      token_free(token_getOrDie(lex)); //discard newline before )
+      parser_getTok(lex); //discard newline before )
     }
 
   } 
   
-  tok = token_getOrDie(lex);
+  tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected EOF, expected ')'");
@@ -259,13 +252,11 @@ Symbols* structDef(struct pnode *root, struct lexer *lex) {
     env.fail("Unexpected token %s, expected ')'", token_str(tok));
   }
 
-  token_free(tok);
-
   return syms;
 }
 
 struct type* structType(struct pnode *this, struct lexer *lex) {
-  token_free(token_getOrDie(lex)); //discard 'struct'
+  parser_getTok(lex); //discard 'struct'
   
   return type_makeStructType(structDef(this, lex));
 }
@@ -285,12 +276,12 @@ struct type* type(struct pnode *this, struct lexer *lex) {
   }
 
   case LEX_PTR: {
-    token_free(token_getOrDie(lex));
+    parser_getTok(lex);
     return type_makePtr(type(this, lex));
   }
 
   case LEX_VAL: {
-    token_free(token_getOrDie(lex)); //discard the meaningless 'val' 
+    parser_getTok(lex); //discard the meaningless 'val' 
     return type(this, lex);
   }
 
@@ -305,7 +296,7 @@ struct type* type(struct pnode *this, struct lexer *lex) {
 
 void varDeclGeneric(struct pnode *this, struct lexer *lex, bool decl) {
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected eof, expected an identifier");
@@ -347,8 +338,6 @@ void varDeclGeneric(struct pnode *this, struct lexer *lex, bool decl) {
     }
   }
 
-  token_free(tok);
-
 }
 
 void var(struct pnode *this, struct lexer *lex) {
@@ -361,7 +350,7 @@ void decl(struct pnode *this, struct lexer *lex) {
 
 void alias(struct pnode *this, struct lexer *lex) {
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected eof, expected an identifier");
@@ -380,8 +369,6 @@ void alias(struct pnode *this, struct lexer *lex) {
   }
 
   pnode_alias(this, id, tp);
-
-  token_free(tok);
 
 }
 
@@ -409,7 +396,7 @@ struct pnode* condStmt(struct pnode *root, struct lexer *lex, enum nonterminals 
 
   pnode_addLeaf(ret, cond);
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected end of file, expected a new line");
@@ -418,8 +405,6 @@ struct pnode* condStmt(struct pnode *root, struct lexer *lex, enum nonterminals 
   if (tok->type != LEX_NEWLINE) {
     env.fail("Unexpected token, got %s, expected a new line", token_str(tok));
   }
-
-  token_free(tok);
 
   ret->root = root;
 
@@ -435,7 +420,7 @@ bool whileBe(struct token *tok) {
 struct pnode* whileStmt(struct pnode *root, struct lexer *lex) {
   struct pnode *ret = condStmt(root, lex, PR_WHILE, whileBe);
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected end of file, expected '/while'");
@@ -445,8 +430,6 @@ struct pnode* whileStmt(struct pnode *root, struct lexer *lex) {
     env.fail("Unexpected token, got %s, expected '/while'", token_str(tok));
   }
 
-  token_free(tok);
-
   return ret;
 }
 
@@ -454,17 +437,16 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
   struct pnode *ret = condStmt(root, lex, PR_IF, ifElseBe);
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected end of file, expected '/if' or 'else'");
   }
 
   if (tok->type == LEX_ELSE) {
-    token_free(tok);
     ret->id = PR_IFELSE;
     
-    tok = token_getOrDie(lex);
+    tok = parser_getTok(lex);
 
     if (!tok) {
       env.fail("Unexpected end of file, expected a new line");
@@ -474,18 +456,14 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
       env.fail("Unexpected token, got %s, expected a new line", token_str(tok));
     }
 
-    token_free(tok);
-
     pnode_addLeaf(ret, body(ret, lex, ifBe));
     
-    tok = token_getOrDie(lex);
+    tok = parser_getTok(lex);
   }
 
   if (tok->type != LEX_ENDIF) {
     env.fail("Unexpected token, got %s, expected '/if'", token_str(tok));
   }
-
-  token_free(tok);  
 
   return ret;
 
@@ -493,7 +471,7 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
 struct pnode* returnStmt(struct pnode *root, struct lexer *lex) {
 
-  token_free(token_getOrDie(lex)); //scrap 'return' token
+  parser_getTok(lex); //scrap 'return' token
 
   struct type *rType = pnode_funcReturnType(root);
 
@@ -540,26 +518,26 @@ struct pnode* stmt(struct pnode *root, struct lexer *lex) {
 
   switch (nextTok->type) {
   case LEX_DECL: {
-    token_free(token_getOrDie(lex)); //discard
+    parser_getTok(lex); //discard
     decl(root, lex);
     ret = &declaration_fake_node;
     break;
   }
 
   case LEX_IF: {
-    token_free(token_getOrDie(lex)); //discard
+    parser_getTok(lex); //discard
     ret = ifStmt(root, lex);
     break;
   }
 
   case LEX_WHILE: {
-    token_free(token_getOrDie(lex)); //discard 
+    parser_getTok(lex); //discard 
     ret = whileStmt(root, lex);
     break;
   }
 
   case LEX_VAR: {
-    token_free(token_getOrDie(lex)); //discard
+    parser_getTok(lex); //discard
     var(root, lex);
     ret = &declaration_fake_node;
     break;
@@ -576,13 +554,11 @@ struct pnode* stmt(struct pnode *root, struct lexer *lex) {
   }
   }
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (tok->type != LEX_NEWLINE) {
     env.fail("Unexpected token, got %s, expected a new line", token_str(tok));
   }
-
-  token_free(tok);
 
   return ret;
 
@@ -619,18 +595,16 @@ void funcCommons(struct pnode *this, struct lexer *lex, bodyender be) {
 
   pnode_addLeaf(this, body(this, lex, be));
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!be(tok)) {
     env.fail("Unexpected token found: got %s, expected end of function (or entry)", token_str(tok)); 
   }
 
-  token_free(tok);
-
 }
 
 struct pnode* entry(struct pnode *root, struct lexer *lex) {
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected end of file in function");
@@ -639,8 +613,6 @@ struct pnode* entry(struct pnode *root, struct lexer *lex) {
   if (tok->type != LEX_NEWLINE) {
     env.fail("Unexpected token found: got %s, expected a new line after entry definition", token_str(tok));
   }
-
-  token_free(tok);
 
   struct pnode *ret = pnode_newfunc(PR_FUNC, "__helm_entry", type_none, symbols_new());
 
@@ -653,7 +625,7 @@ struct pnode* entry(struct pnode *root, struct lexer *lex) {
 
 struct pnode* func(struct pnode *root, struct lexer *lex) {
 
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     env.fail("Unexpected EOF, expected identifier");
@@ -664,8 +636,6 @@ struct pnode* func(struct pnode *root, struct lexer *lex) {
   }
 
   char *fName = str_clone((char*) tok->value);
-
-  token_free(tok);
 
   Symbols *syms = structDef(root, lex);
 
@@ -690,7 +660,7 @@ struct pnode* func(struct pnode *root, struct lexer *lex) {
     break;
   }
 
-  token_free(token_getOrDie(lex)); //discard new line
+  parser_getTok(lex); //discard new line
 
   struct pnode *ret = pnode_newfunc(PR_FUNC, fName, rType, syms);
 
@@ -704,7 +674,7 @@ struct pnode* func(struct pnode *root, struct lexer *lex) {
 }
 
 struct pnode* definition(struct pnode *root, struct lexer *lex) {
-  struct token *tok = token_getOrDie(lex);
+  struct token *tok = parser_getTok(lex);
 
   if (!tok) {
     return NULL;
@@ -712,8 +682,6 @@ struct pnode* definition(struct pnode *root, struct lexer *lex) {
 
   enum token_type type = tok->type;
   struct pnode *ret = NULL;
-
-  token_free(tok);
 
   switch (type) {
   case LEX_ALIAS:
@@ -739,21 +707,19 @@ struct pnode* definition(struct pnode *root, struct lexer *lex) {
     break;
   }
 
-  tok = token_getOrDie(lex);
+  tok = parser_getTok(lex);
 
   if (tok && tok->type != LEX_NEWLINE) {
     env.fail("Got token %s, expected a newline or EOF", token_str(tok));
   }
 
-  token_free(tok);
-
   return ret;
 }
 
-struct pnode* parse(FILE *file) {
+struct pnode* parser_parse(struct parser *parser, FILE *file) {
 
   struct pnode *program = pnode_new(PR_PROGRAM), *nextDef;  
-  struct lexer *lex = lexer_fromFile(file);
+  parser->lex = lexer_fromFile(file);
 
   while ((nextDef = definition(program, lex))) {
     if (nextDef != &declaration_fake_node) {

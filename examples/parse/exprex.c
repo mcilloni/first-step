@@ -156,7 +156,6 @@ int main(int argc, const char *argv[]) {
 
   putchar('\n');
 
-  token_free(nextTok);
   lexer_close(lex);
   pnode_free(res);
 

@@ -24,6 +24,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+char* ccode_csym(struct type *type, const char *name);
+
 void file_indent(FILE *out, uint8_t indent) {
   for (uint8_t i = 0; i < indent; ++i) {
     fputc(' ', out);
@@ -57,6 +59,19 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
   tok.type = (enum token_type) val;
 
   switch (root->id) {
+  case PR_CAST: {
+    if (array_len(root->leaves) != 1) {
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
+    }
+
+    char *tCast = ccode_csym((struct type*) val, "");
+    fprintf(out, "((%s) ", tCast);
+    free(tCast); 
+    ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
+    fputc(')', out);
+    break;
+  }
+
   case PR_BINOP:
     if (array_len(root->leaves) != 2) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));

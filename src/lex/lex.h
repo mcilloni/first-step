@@ -1,6 +1,8 @@
 #if !defined(_LEX_H)
 #define _LEX_H
 
+#include <list/pool.h>
+
 #include <utils/errors.h>
 #include <utils/lines.h>
 
@@ -14,8 +16,9 @@ enum token_type {
   LEX_AND,
   LEX_APOS,
   LEX_ASSIGN,
-  LEX_CPAR,
+  LEX_CAST,
   LEX_COMMA,
+  LEX_CPAR,
   LEX_DEC,
   LEX_DECL,
   LEX_DIFFERENT,
@@ -71,6 +74,8 @@ struct lexer {
 
   bool inString;
   char *saved;
+
+  Pool *tokens;
 };
 
 enum optype {
@@ -80,7 +85,6 @@ enum optype {
 };
 
 struct token* token_get(struct lexer *lex);
-void token_free(struct token* tok);
 
 void lexer_close(struct lexer *lex);
 void lexer_discardLine(struct lexer *lex);

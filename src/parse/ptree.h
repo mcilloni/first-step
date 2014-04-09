@@ -3,8 +3,8 @@
 
 #include "nonterminals.h"
 #include "pnleaves.h"
-#include "symbols.h"
-#include "types.h"
+#include <syms/symbols.h>
+#include <syms/types.h>
 
 #include <lex/lex.h>
 
@@ -47,7 +47,7 @@ Symbols* pnode_getSyms(struct pnode *pnode);
 Symbols* pnode_getFuncParams(struct pnode *pnode);
 struct type* pnode_getType(struct pnode *pnode, const char *name);
 uintmax_t pnode_getval(struct pnode *pnode);
-bool pnode_isConst(struct pnode *pnode);
+bool pnode_isConstNum(struct pnode *pnode);
 bool pnode_isFunc(struct pnode *pnode);
 bool pnode_isScope(struct pnode *pnode);
 bool pnode_isValue(struct pnode *pnode);

@@ -24,10 +24,12 @@ OPATHS = $(foreach obj, $(OBJS), $(OUTDIR)/$(obj))
 all: dir $(OBJS)
 	$(AR) -rc $(OBJDIR)/libparse.a $(OPATHS)
 	$(RANLIB) $(OBJDIR)/libparse.a
+	$(MAKE) -C syms
 
 clean:
 	rm -rf $(OUTDIR)
 	rm -f $(OBJDIR)/libparse.a
+	$(MAKE) -C syms clean
 
 dir:
 	mkdir -p $(OUTDIR)

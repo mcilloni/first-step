@@ -57,8 +57,6 @@ int main(int argc, char *argv[]) {
       break;
     }
 
-    token_free(tok);
-    
   } 
 
   int ret = EXIT_SUCCESS;

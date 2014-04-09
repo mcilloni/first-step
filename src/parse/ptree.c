@@ -16,7 +16,6 @@
  */
 
 #include "ptree.h"
-#include "types.h"
 
 #include <lex/lex.h>
 #include <utils/env.h>
@@ -204,6 +203,11 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
     break;
   }
 
+  case PR_CAST: {
+    ret = (struct type*) pexpr->value;
+    break;
+  }
+
   case PR_STRING: {
     ret = type_makePtr(type_getBuiltin("uint8"));
     break;
@@ -342,10 +346,9 @@ struct type* pnode_funcReturnType(struct pnode *pnode) {
   return pnode_funcReturnType(pnode->root);
 }
 
-bool nonterminals_isConst(enum nonterminals id) {
+bool nonterminals_isConstNum(enum nonterminals id) {
   switch (id) {
   case PR_NUMBER:
-  case PR_STRING:
     return true;
   default:
     return false;
@@ -379,13 +382,14 @@ bool nonterminals_isScope(enum nonterminals id) {
 
 bool nonterminals_isValue(enum nonterminals id) {
   switch (id) {
-  case PR_ID:
-  case PR_STRUCTID:
-  case PR_CALL:
-  case PR_STRING:
-  case PR_UNOP:
   case PR_BINOP:
+  case PR_CALL:
+  case PR_CAST:
+  case PR_ID:
   case PR_NUMBER:
+  case PR_STRING:
+  case PR_STRUCTID:
+  case PR_UNOP:
     return true;
 
   default:
@@ -393,8 +397,8 @@ bool nonterminals_isValue(enum nonterminals id) {
   }
 }
 
-bool pnode_isConst(struct pnode *pnode) {
-  return nonterminals_isConst(pnode->id); 
+bool pnode_isConstNum(struct pnode *pnode) {
+  return nonterminals_isConstNum(pnode->id); 
 }
 
 bool pnode_isScope(struct pnode *pnode) {
@@ -536,6 +540,11 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
   fputs(nt_str(val->id), stdout);
 
   switch(val->id) {
+  case PR_CAST: {
+    char buf[4096];
+    printf(" to type %s", type_str((struct type*) pnode_getval(val), buf, 4096));
+    break;
+  }
   case PR_NUMBER:
     printf(": %" PRIdMAX, (intmax_t) pnode_getval(val));
     break;

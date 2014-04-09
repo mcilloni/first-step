@@ -14,9 +14,11 @@ SRCS = $(wildcard *.c)
 BINS = $(patsubst %.c,%,$(SRCS))
 OPATHS = $(foreach obj, $(OBJS), $(OUTDIR)/$(obj))
 all: dir $(BINS) 
+	$(MAKE) -C syms
 
 clean:
 	rm -rf $(OUTDIR)
+	make -C syms clean
 
 dir:
 	mkdir -p $(OUTDIR)

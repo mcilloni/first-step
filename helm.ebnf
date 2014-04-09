@@ -47,9 +47,11 @@ id = letter, {(letter | cipher)}
 
 membAccess = id, ',', id
 
+cast = 'cast', '<', type, '>', '(', expr, ')'
+
 expr = ('(', exprC, ')') | exprC
 
-exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const | membAccess
+exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const | membAccess | cast
 
 boolVal = 'true' | 'false'
 

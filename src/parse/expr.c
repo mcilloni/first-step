@@ -335,8 +335,6 @@ void expr_fixParentheses(List **expr) {
 
   if ((first->type == LEX_OPAR) && (last->type == LEX_CPAR)) {
     *expr = list_extract(*expr, 1LU, len - 2);
-    token_free(first);
-    token_free(last);
   }
 
 }
@@ -353,6 +351,7 @@ enum operator_assoc expr_getOpAssociation(struct token *tok) {
   }
   case OPTYPE_UNARY: {
     switch(tok->type) {
+    case LEX_CAST:
     case LEX_MINUS:
     case LEX_NOT:
     case LEX_PTR:
@@ -429,6 +428,7 @@ bool expr_isUnOpCompatible(struct pnode *root, struct token *tok, struct pnode *
   case LEX_MINUS:
   case LEX_NOT:
     return pnode_evalType(operand, root)->kind != TYPE_FUNC;
+  case LEX_CAST:
   case LEX_PTR:
     return true;
   case LEX_VAL:
@@ -542,7 +542,6 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
       while((comma = expr_findComma(expr))) {
         tmp = list_extract(expr, 0, comma);
         pnode_addLeaf(ret, expr_treeize(ret, tmp));
-        token_free(*list_get(expr, 0));
         expr = list_extract(expr, 1, -1);
       }
 
@@ -657,7 +656,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
       if (tok->type == LEX_APOS) {
         List *tmp = list_extract(expr, posAfter + 1, 1);
         ret = expr_handleStructNode(root, left, (struct token*) *list_get(tmp, 0));
-        list_freeAll(tmp, (void (*)(void*)) token_free);
+        list_free(tmp);
         break;
       }
 
@@ -665,7 +664,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
       bool assign = tok->type == LEX_ASSIGN;
 
-      if (pnode_isConst(left) && pnode_isConst(right) && !assign) {
+      if (pnode_isConstNum(left) && pnode_isConstNum(right) && !assign) {
 
         ret = expr_evalBinary(tok, left, right);
         pnode_free(left);
@@ -710,18 +709,22 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
       }
 
 
-      if (pnode_isConst(operand)) {
+      if (pnode_isConstNum(operand)) {
         ret = expr_evalUnary(tok, operand);
         pnode_free(operand);
         break;
       }
 
-      ret = pnode_newval(expr_ntFromTokVal(tok), (uintmax_t) tok->type);
-      pnode_addLeaf(ret, operand);
-
       if (!expr_isUnOpCompatible(root, tok, operand)) {
         env.fail("Operator %s cannot be applied to an incompatible expression", token_str(tok));
       }
+
+      if (tok->type == LEX_CAST) {
+        ret = pnode_newval(PR_CAST, (uintmax_t) tok->value);
+      } else {
+        ret = pnode_newval(expr_ntFromTokVal(tok), (uintmax_t) tok->type);
+      }
+      pnode_addLeaf(ret, operand);
 
       break;
     } 
@@ -739,10 +742,38 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
     }
   }
 
-  //this actually frees only the original list
-  list_freeAll(expr, (void (*)(void*)) token_free);
+  list_free(expr);
 
   return ret;
+
+}
+
+extern struct type* type(struct pnode *root, struct lexer *lex);
+
+void expr_hijackCastToken(struct pnode *root, struct lexer *lex, struct token *castTok) {
+  struct token *tok = parser_getTok(lex);
+  
+  if (!tok) {
+    env.fail("Unexpected EOF, expected < after 'cast'");
+  }
+
+  if (tok->type != LEX_MINOR) {
+    env.fail("Unexpected %s, expected '<'", token_str(tok));
+  }
+
+  struct type *typeStr = type(root, lex);
+
+  tok = parser_getTok(lex);
+  
+  if (!tok) {
+    env.fail("Unexpected EOF, expected > after type in cast");
+  }
+
+  if (tok->type != LEX_MAJOR) {
+    env.fail("Unexpected %s, expected '>'", token_str(tok));
+  }
+
+  castTok->value = (uintmax_t) typeStr; 
 
 }
 
@@ -756,7 +787,12 @@ struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be) {
 
   struct token *tok;
   do {
-    tok = token_getOrDie(lex);
+    tok = parser_getTok(lex);
+
+    if (tok && tok->type == LEX_CAST) {
+      expr_hijackCastToken(root, lex, tok);
+    }
+
     list_append(list, tok);
   } while(!be(nextTok));
 
@@ -767,5 +803,6 @@ struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be) {
   struct pnode *ret = expr_treeize(root, list);
 
   return ret;
+
 }
 

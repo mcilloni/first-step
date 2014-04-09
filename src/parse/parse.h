@@ -3,12 +3,27 @@
 
 #include "ptree.h"
 
-#include "../lex/lex.h"
+#include <lex/lex.h>
+#include <list/pool.h>
+
+#include <stdint.h>
 
 typedef bool (*bodyender)(struct token*);
 
-struct token* token_getOrDie(struct lexer *lex);
+struct parser {
+  struct lexer *lex;
 
-struct pnode* parse(FILE *file);
+  bool firstTok;
+  struct token *nextTok;
+  uintmax_t lastLineno;
+
+  Pool *types;
+}
+
+struct token* parser_getTok(struct lexer *lex);
+
+struct parser* parser_new(void);
+struct pnode* parser_parse(struct parser *parser, FILE *file);
+void parser_close(struct parser *parser);
 
 #endif

@@ -1,8 +1,8 @@
 #if !defined(_NONTERMINALS_H)
 #define _NONTERMINALS_H
 
-#include "symbols.h"
-#include "../lex/lex.h"
+#include <syms/symbols.h>
+#include <lex/lex.h>
 
 enum nonterminals {
   PR_PROGRAM,
@@ -28,6 +28,7 @@ enum nonterminals {
   PR_ARITHEXP,
   PR_CONST,
   PR_CALL,
+  PR_CAST,
   PR_RETURN,
   PR_NUMBER,
   PR_BINOP,
