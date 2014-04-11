@@ -20,8 +20,6 @@
 #include <utils/utils.h>
 #include <utils/env.h>
 
-#include <syms/types.h>
-
 #include <ctype.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -69,10 +67,6 @@ void token_free(struct token *tok) {
   if (tok) {
 
     switch (tok->type) {
-
-    case LEX_CAST:
-      type_free((struct type*) tok->value);
-      break;
 
     case LEX_ID:
     case LEX_STRING:

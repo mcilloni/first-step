@@ -155,10 +155,10 @@ uintmax_t pnode_getval(struct pnode *pnode) {
   return ((struct pexpr*) pnode)->value;
 }
 
-void pnode_verifyNodesAreCompatible(struct pnode *root, struct pnode *assign, struct pnode *assigned) {
+void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode *assign, struct pnode *assigned) {
 
-  struct type *first = pnode_evalType(assign, root);
-  struct type *second = pnode_evalType(assigned, root);
+  struct type *first = pnode_evalType(pool, assign, root);
+  struct type *second = pnode_evalType(pool, assigned, root);
 
   switch(type_areCompatible(first, second)) {
   case TYPECOMP_NO:
@@ -171,12 +171,9 @@ void pnode_verifyNodesAreCompatible(struct pnode *root, struct pnode *assign, st
     break;
   }
 
-  type_free(first);
-  type_free(second);
-
 }
 
-struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
+struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope) {
 
   if (!scope) {
     scope = pnode;
@@ -199,7 +196,7 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
 
   switch (pnode->id){ 
   case PR_CALL: {
-    ret = ((struct ftype*) pnode_evalType(*leaves_get(pnode->leaves, 0), scope))->ret;
+    ret = ((struct ftype*) pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope))->ret;
     break;
   }
 
@@ -209,13 +206,13 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
   }
 
   case PR_STRING: {
-    ret = type_makePtr(type_getBuiltin("uint8"));
+    ret = type_makePtr(pool, type_getBuiltin("uint8"));
     break;
   }
 
   case PR_BINOP: {
   
-    struct type *firstType = pnode_evalType(*leaves_get(pnode->leaves, 0), scope);
+    struct type *firstType = pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope);
     struct pnode *second = *leaves_get(pnode->leaves, 1);
 
     if (pexpr->value == LEX_ASSIGN) {
@@ -224,7 +221,7 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
       if (token_isBooleanOp(pexpr->value)) {
         ret = type_getBuiltin("bool");
       } else {
-        ret = type_evalLarger(firstType, pnode_evalType(second, scope));
+        ret = type_evalLarger(firstType, pnode_evalType(pool, second, scope));
       }
     }
 
@@ -237,11 +234,11 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
   }
                 
   case PR_UNOP: {
-    ret = pnode_evalType(*leaves_get(pnode->leaves, 0), scope);
+    ret = pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope);
 
     switch((enum token_type) pnode_getval(pnode)) {
     case LEX_PTR:
-      ret = type_makePtr(ret);
+      ret = type_makePtr(pool, ret);
       break;
 
     case LEX_VAL:
@@ -266,7 +263,7 @@ struct type* pnode_evalType(struct pnode *pnode, struct pnode *scope) {
 
   pexpr->type = ret;
 
-  return type_secptr(ret);
+  return ret;
 
 }
 
@@ -462,7 +459,7 @@ struct pnode* pnode_new(enum nonterminals id) {
   return ret;
 }
 
-struct ftype* type_mkFunFromRetSyms(struct type *ret, Symbols *params) {
+struct ftype* type_mkFunFromRetSyms(Pool *pool, struct type *ret, Symbols *params) {
   size_t len = params ? params->size : 0U;
   Array *arp = array_new(len);
 
@@ -472,18 +469,18 @@ struct ftype* type_mkFunFromRetSyms(struct type *ret, Symbols *params) {
     Pair *pair;
     
     while ((pair = mapiter_next(iter))) {
-      array_append(arp, type_secptr(((struct symbol*) pair->value)->type));
+      array_append(arp, ((struct symbol*) pair->value)->type);
     }
 
   }
-  return (struct ftype*) type_makeFuncType(ret, arp);
+  return (struct ftype*) type_makeFuncType(pool, ret, arp);
 }
 
-struct pnode* pnode_newfunc(enum nonterminals id, const char *name, struct type *ret, Symbols *params) {
+struct pnode* pnode_newfunc(Pool *pool, enum nonterminals id, const char *name, struct type *ret, Symbols *params) {
   struct pfunc *retVal = (struct pfunc*) pnode_new(id);
 
   if (pnode_isFunc(&(retVal->node))) {
-    *retVal = (struct pfunc) {retVal->node, type_mkFunFromRetSyms(ret, params), str_clone(name), params};
+    *retVal = (struct pfunc) {retVal->node, type_mkFunFromRetSyms(pool, ret, params), str_clone(name), params};
   }
 
   return (struct pnode*) retVal;
@@ -515,7 +512,6 @@ void pnode_free(struct pnode *pnode) {
     struct pfunc *pfunc = (struct pfunc*) pnode;
 
     free((void*) pfunc->name);
-    type_free((struct type*) pfunc->ftype);
     symbols_free(pfunc->params);
   }
 
@@ -528,7 +524,7 @@ void pnode_free(struct pnode *pnode) {
   free(pnode);
 }
 
-void pnode_dump(struct pnode *val, uint64_t depth) {
+void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
   if (!val) {
     return;
   }
@@ -551,7 +547,7 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
   case PR_ID:
   case PR_STRUCTID: {
     char buf[2048];
-    printf(": %s, type %s", (const char*) pnode_getval(val), type_str(pnode_evalType(val, NULL), buf, 2048));
+    printf(": %s, type %s", (const char*) pnode_getval(val), type_str(pnode_evalType(pool, val, NULL), buf, 2048));
     break;
   }
   case PR_STRING:
@@ -585,12 +581,14 @@ void pnode_dump(struct pnode *val, uint64_t depth) {
   size_t len = array_len(val->leaves);
 
   for(size_t i = 0; i < len; ++i) {
-    pnode_dump(*leaves_get(val->leaves, i), depth + 1);
+    pnode_dump(pool, *leaves_get(val->leaves, i), depth + 1);
   }
 }
 
 void ptree_dump(struct pnode *root) {
-
-  pnode_dump(root, 0);
+  Pool *tmpPool = pool_new();
+  pnode_dump(tmpPool, root, 0);
+  
+  pool_release(tmpPool, (void (*)(void*)) type_free);
 }
 

@@ -15,10 +15,10 @@
  *
  */
 
-#include "../parse/parse.h"
-#include "../cgen/cgen.h"
-#include "../utils/env.h"
-#include "../utils/utils.h"
+#include <parse/parse.h>
+#include <cgen/cgen.h>
+#include <utils/env.h>
+#include <utils/utils.h>
 
 #include <errno.h>
 #include <stdio.h>
@@ -27,8 +27,12 @@
 
 int main(int argc, char *argv[]) {
 
-  struct pnode *parsed = parse(stdin);
+  struct parser *parser = parser_new();
+
+  struct pnode *parsed = parser_parse(parser, stdin);
   cgen(parsed, stdout);
+
+  parser_close(parser);
 
   return EXIT_SUCCESS;
 }

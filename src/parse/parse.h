@@ -18,9 +18,9 @@ struct parser {
   uintmax_t lastLineno;
 
   Pool *types;
-}
+};
 
-struct token* parser_getTok(struct lexer *lex);
+struct token* parser_getTok(struct parser *prs);
 
 struct parser* parser_new(void);
 struct pnode* parser_parse(struct parser *parser, FILE *file);

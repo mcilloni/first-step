@@ -29,9 +29,7 @@
 
 #include <unistd.h>
 
-extern struct pnode* expr(struct pnode*, struct lexer*, bodyender);
-extern struct token* token_getOrDie(struct lexer*);
-extern struct token *nextTok;
+extern struct pnode* expr(struct parser *prs, struct pnode*, bodyender);
 
 void printlist(List *list) {
   bool inside = false;
@@ -141,22 +139,25 @@ int main(int argc, const char *argv[]) {
 
   toLex[len] = 'a';
   toLex[len + 1] = 0;
-  struct lexer *lex = lexer_fromFile(fmemopen(toLex, strlen(toLex), "r"));
-  if (lex->errcode) {
-    env.fail("Cannot init lexer, errcode=%d", lex->errcode);
+  struct parser *prs = parser_new();
+  prs->lex = lexer_fromFile(fmemopen(toLex, strlen(toLex), "r"));
+
+  if (prs->lex->errcode) {
+    env.fail("Cannot init lexer, errcode=%d", prs->lex->errcode);
   }
 
-  if (lexer_error(lex)) {
+  if (lexer_error(prs->lex)) {
     env.fail("Errors during lexing of file");
   }
 
-  struct pnode *res = expr(NULL, lex, NULL);
+  struct pnode *res = expr(prs, NULL, NULL);
 
   printtree(res);
 
   putchar('\n');
 
-  lexer_close(lex);
+  lexer_close(prs->lex);
+  parser_close(prs);
   pnode_free(res);
 
   return EXIT_SUCCESS;

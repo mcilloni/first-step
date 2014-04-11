@@ -20,6 +20,7 @@ struct env {
 
 extern struct env env;
 
+void lineno_setLoc(uintmax_t *linLoc);
 struct lineno env_getLineno(void);
 void env_set(struct env set);
 void env_setDebug(bool on);

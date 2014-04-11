@@ -108,6 +108,7 @@ void printtree(struct pnode *root) {
 
 int main(int argc, const char *argv[]) {
   char *toLex = "val a = 7\na";
+  Pool *pool = pool_new();
 
   fputs("Expr: ", stdout);
 
@@ -126,7 +127,7 @@ int main(int argc, const char *argv[]) {
   }
 
   struct pnode *root = pnode_new(PR_PROGRAM);
-  pnode_addSymbol(root, "a", type_makePtr(type_getBuiltin("int8")), NULL);
+  pnode_addSymbol(root, "a", type_makePtr(pool, type_getBuiltin("int8")), NULL);
   struct pnode *res = expr(root, lex, NULL);
   pnode_addLeaf(root, res);
 
@@ -136,6 +137,7 @@ int main(int argc, const char *argv[]) {
 
   lexer_close(lex);
   pnode_free(root);
+  pool_release(pool, (void (*)(void*)) type_free);
 
   return EXIT_SUCCESS;
 }

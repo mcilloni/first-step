@@ -25,34 +25,30 @@
 #include <stdlib.h>
 #include <string.h>
 
-static bool firstTok = true;
-struct token *nextTok = NULL;
-extern uintmax_t lastLineno;
+struct pnode* body(struct parser *prs, struct pnode *this, bodyender be);
+extern struct pnode* expr(struct parser *prs, struct pnode *root, bodyender be);
+struct type* type(struct parser *prs, struct pnode *this);
 
-struct pnode* body(struct pnode *this, struct lexer *lex, bodyender be);
-extern struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be);
-struct type* type(struct pnode *this, struct lexer *lex);
-
-struct token* parser_getTok(struct lexer *lex) {
+struct token* parser_getTok(struct parser *prs) {
 
   struct token *tok;
-  if (firstTok) {
-    nextTok = token_get(lex);
+  if (prs->firstTok) {
+    prs->nextTok = token_get(prs->lex);
     
-    firstTok = false;
+    prs->firstTok = false;
   }
-  tok = nextTok;
-  nextTok = token_get(lex);
+  tok = prs->nextTok;
+  prs->nextTok = token_get(prs->lex);
 
   if (tok) {
-    lastLineno = tok->lineno;
+    prs->lastLineno = tok->lineno;
   }
 
   if (!tok) {
-    if (lexer_eof(lex)) {
+    if (lexer_eof(prs->lex)) {
       return NULL;
     }
-    if (lexer_error(lex)) {
+    if (lexer_error(prs->lex)) {
       env.fail("Error reading file: %s", strerror(errno));
     }
   }
@@ -63,8 +59,8 @@ struct token* parser_getTok(struct lexer *lex) {
 //there is no need for declarations to be into the syntax tree, so this placeholder will returned by stmt() and then discarded.
 struct pnode declaration_fake_node = {0};
 
-struct type* idType(struct pnode *this, struct lexer *lex) {
-  struct token *type = parser_getTok(lex);
+struct type* idType(struct parser *prs, struct pnode *this) {
+  struct token *type = parser_getTok(prs);
   
   if(!type) {
     env.fail("Unexpected end of file during var declaration");
@@ -81,11 +77,11 @@ struct type* idType(struct pnode *this, struct lexer *lex) {
   return ret;
 }
 
-struct type* funcType(struct pnode *this, struct lexer *lex) {
+struct type* funcType(struct parser *prs, struct pnode *this) {
 
-  parser_getTok(lex); //discard 'func'
+  parser_getTok(prs); //discard 'func'
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected EOF in func type, expected '('");
@@ -101,12 +97,12 @@ struct type* funcType(struct pnode *this, struct lexer *lex) {
   
   do {
 
-    tp = type(this, lex);
+    tp = type(prs, this);
     if (tp) {
       array_append(arr, (void*) tp);  
     }
 
-    tok = parser_getTok(lex);
+    tok = parser_getTok(prs);
 
     if (!tok) {
       env.fail("Unexpected EOF during func type, expected ',' or ')'");
@@ -124,22 +120,22 @@ struct type* funcType(struct pnode *this, struct lexer *lex) {
 
 endparms:
 
-  if (nextTok && (nextTok->type == LEX_ID || nextTok->type == LEX_FUNC || nextTok->type == LEX_PTR || nextTok->type == LEX_VAL)) {
-    retType = type(this, lex);    
+  if (prs->nextTok && (prs->nextTok->type == LEX_ID || prs->nextTok->type == LEX_FUNC || prs->nextTok->type == LEX_PTR || prs->nextTok->type == LEX_VAL)) {
+    retType = type(prs, this);    
   }
 
-  return type_makeFuncType(retType, arr);
+  return type_makeFuncType(prs->types, retType, arr);
 
 }
 
-Pair* argTypeList(struct pnode *this, struct lexer *lex) {
+Pair* argTypeList(struct parser *prs, struct pnode *this) {
   Pair *ret = malloc(sizeof(Pair));
   Array *names = array_new(3U);
   struct token *tok;
   bool first = true;
 
   do {
-    tok = parser_getTok(lex);
+    tok = parser_getTok(prs);
 
     if (!tok) {
      env.fail("Unexpected EOF, expected an identifier");
@@ -150,7 +146,7 @@ Pair* argTypeList(struct pnode *this, struct lexer *lex) {
         env.fail("Unexpected %s, expected an identifier", token_str(tok));
       }
 
-      tok = parser_getTok(lex);
+      tok = parser_getTok(prs);
 
       if (!tok) {
        env.fail("Unexpected EOF, expected an identifier");
@@ -165,9 +161,9 @@ Pair* argTypeList(struct pnode *this, struct lexer *lex) {
     array_append(names, str_clone((char*) tok->value));
 
     first = false;
-  } while (nextTok->type == LEX_COMMA);
+  } while (prs->nextTok->type == LEX_COMMA);
 
-  *ret = (Pair) { type(this, lex), names };
+  *ret = (Pair) { type(prs, this), names };
 
   return ret;
 }
@@ -187,37 +183,37 @@ void symPairAdd(Symbols *syms, Pair *pair) {
   pair_free(pair);
 }
 
-Symbols* argParams(struct pnode *this, struct lexer *lex) {
+Symbols* argParams(struct parser *prs, struct pnode *this) {
   Symbols *ret = symbols_new();
 
   bool first = true;
   struct token *tok;
-  while (nextTok->type != LEX_CPAR && nextTok->type != LEX_NEWLINE) {
+  while (prs->nextTok->type != LEX_CPAR && prs->nextTok->type != LEX_NEWLINE) {
     if (first) {
       first = false;
     } else {
-      tok = parser_getTok(lex);
+      tok = parser_getTok(prs);
 
       if (tok->type != LEX_COMMA) {
         env.fail("Unexpected %s in function declaration, expected ','", token_str(tok));
       }
     }
 
-    if (nextTok->type == LEX_NEWLINE) {
+    if (prs->nextTok->type == LEX_NEWLINE) {
 
-      parser_getTok(lex); //allow multiline parameter declarations
+      parser_getTok(prs); //allow multiline parameter declarations
 
     }
 
-    symPairAdd(ret, argTypeList(this, lex));
+    symPairAdd(ret, argTypeList(prs, this));
     
   }
 
   return ret;
 }
 
-Symbols* structDef(struct pnode *root, struct lexer *lex) {
-  struct token *tok = parser_getTok(lex);
+Symbols* structDef(struct parser *prs, struct pnode *root) {
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected EOF, expected '('");
@@ -227,22 +223,22 @@ Symbols* structDef(struct pnode *root, struct lexer *lex) {
     env.fail("Unexpected token %s, expected '('", token_str(tok));
   }
 
-  if (nextTok->type == LEX_NEWLINE) {
-    parser_getTok(lex); //discard newline after (
+  if (prs->nextTok->type == LEX_NEWLINE) {
+    parser_getTok(prs); //discard newline after (
   }
 
-  bool notEmpty = nextTok && nextTok->type != LEX_CPAR;
-  Symbols *syms = argParams(root, lex);
+  bool notEmpty = prs->nextTok && prs->nextTok->type != LEX_CPAR;
+  Symbols *syms = argParams(prs, root);
 
   if (notEmpty) {
 
-    if (nextTok->type == LEX_NEWLINE) {
-      parser_getTok(lex); //discard newline before )
+    if (prs->nextTok->type == LEX_NEWLINE) {
+      parser_getTok(prs); //discard newline before )
     }
 
   } 
   
-  tok = parser_getTok(lex);
+  tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected EOF, expected ')'");
@@ -255,48 +251,48 @@ Symbols* structDef(struct pnode *root, struct lexer *lex) {
   return syms;
 }
 
-struct type* structType(struct pnode *this, struct lexer *lex) {
-  parser_getTok(lex); //discard 'struct'
+struct type* structType(struct parser *prs, struct pnode *this) {
+  parser_getTok(prs); //discard 'struct'
   
-  return type_makeStructType(structDef(this, lex));
+  return type_makeStructType(prs->types, structDef(prs, this));
 }
 
-struct type* type(struct pnode *this, struct lexer *lex) {
-  if (!nextTok) {
+struct type* type(struct parser *prs, struct pnode *this) {
+  if (!prs->nextTok) {
     env.fail("Unexpected EOF, expected a type");
   }
 
-  switch (nextTok->type) {
+  switch (prs->nextTok->type) {
   case LEX_FUNC: {
-    return funcType(this, lex);
+    return funcType(prs, this);
   }
 
   case LEX_STRUCT: {
-    return structType(this, lex);
+    return structType(prs, this);
   }
 
   case LEX_PTR: {
-    parser_getTok(lex);
-    return type_makePtr(type(this, lex));
+    parser_getTok(prs);
+    return type_makePtr(prs->types, type(prs, this));
   }
 
   case LEX_VAL: {
-    parser_getTok(lex); //discard the meaningless 'val' 
-    return type(this, lex);
+    parser_getTok(prs); //discard the meaningless 'val' 
+    return type(prs, this);
   }
 
   default: { 
-    if ((nextTok->type != LEX_ID)) {
+    if ((prs->nextTok->type != LEX_ID)) {
       return NULL;
     }
-    return idType(this, lex);
+    return idType(prs, this);
   }
   }
 }
 
-void varDeclGeneric(struct pnode *this, struct lexer *lex, bool decl) {
+void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected eof, expected an identifier");
@@ -312,7 +308,7 @@ void varDeclGeneric(struct pnode *this, struct lexer *lex, bool decl) {
     env.fail("%s is a reserved identifier", id);
   }
 
-  struct type *tp = type(this, lex);
+  struct type *tp = type(prs, this);
 
   if (!tp) {
     char buf[2048];
@@ -340,17 +336,17 @@ void varDeclGeneric(struct pnode *this, struct lexer *lex, bool decl) {
 
 }
 
-void var(struct pnode *this, struct lexer *lex) {
-  varDeclGeneric(this, lex, false);
+void var(struct parser *prs, struct pnode *this) {
+  varDeclGeneric(prs, this, false);
 }
 
-void decl(struct pnode *this, struct lexer *lex) {
-  varDeclGeneric(this, lex, true);
+void decl(struct parser *prs, struct pnode *this) {
+  varDeclGeneric(prs, this, true);
 }
 
-void alias(struct pnode *this, struct lexer *lex) {
+void alias(struct parser *prs, struct pnode *this) {
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected eof, expected an identifier");
@@ -361,7 +357,7 @@ void alias(struct pnode *this, struct lexer *lex) {
   }
 
   const char *id = (const char*) tok->value;
-  struct type *tp = type(this, lex);
+  struct type *tp = type(prs, this);
 
   if (!tp) {
     char buf[4096];
@@ -380,23 +376,21 @@ bool ifBe(struct token *tok) {
   return tok->type == LEX_ENDIF;
 }
 
-struct pnode* condStmt(struct pnode *root, struct lexer *lex, enum nonterminals nt, bodyender be) {
+struct pnode* condStmt(struct parser *prs, struct pnode *root, enum nonterminals nt, bodyender be) {
 
   struct pnode* ret = pnode_new(nt);
 
-  struct pnode *cond = expr(root, lex, NULL);
-  struct type *condType = pnode_evalType(cond, root);
+  struct pnode *cond = expr(prs, root, NULL);
+  struct type *condType = pnode_evalType(prs->types, cond, root);
 
   if (condType != type_getBuiltin("bool")) {
     char buf[4096];
     env.fail("Expected expression of bool type in statement condition, got %s", type_str(condType, buf, 4096));
   }
 
-  type_free(condType);
-
   pnode_addLeaf(ret, cond);
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected end of file, expected a new line");
@@ -408,7 +402,7 @@ struct pnode* condStmt(struct pnode *root, struct lexer *lex, enum nonterminals 
 
   ret->root = root;
 
-  pnode_addLeaf(ret, body(ret, lex, be));
+  pnode_addLeaf(ret, body(prs, ret, be));
 
   return ret;
 }
@@ -417,10 +411,10 @@ bool whileBe(struct token *tok) {
   return tok->type == LEX_ENDWHILE;
 }
 
-struct pnode* whileStmt(struct pnode *root, struct lexer *lex) {
-  struct pnode *ret = condStmt(root, lex, PR_WHILE, whileBe);
+struct pnode* whileStmt(struct parser *prs, struct pnode *root) {
+  struct pnode *ret = condStmt(prs, root, PR_WHILE, whileBe);
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected end of file, expected '/while'");
@@ -433,11 +427,11 @@ struct pnode* whileStmt(struct pnode *root, struct lexer *lex) {
   return ret;
 }
 
-struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
+struct pnode* ifStmt(struct parser *prs, struct pnode *root) {
 
-  struct pnode *ret = condStmt(root, lex, PR_IF, ifElseBe);
+  struct pnode *ret = condStmt(prs, root, PR_IF, ifElseBe);
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected end of file, expected '/if' or 'else'");
@@ -446,7 +440,7 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
   if (tok->type == LEX_ELSE) {
     ret->id = PR_IFELSE;
     
-    tok = parser_getTok(lex);
+    tok = parser_getTok(prs);
 
     if (!tok) {
       env.fail("Unexpected end of file, expected a new line");
@@ -456,9 +450,9 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
       env.fail("Unexpected token, got %s, expected a new line", token_str(tok));
     }
 
-    pnode_addLeaf(ret, body(ret, lex, ifBe));
+    pnode_addLeaf(ret, body(prs, ret, ifBe));
     
-    tok = parser_getTok(lex);
+    tok = parser_getTok(prs);
   }
 
   if (tok->type != LEX_ENDIF) {
@@ -469,9 +463,9 @@ struct pnode* ifStmt(struct pnode *root, struct lexer *lex) {
 
 }
 
-struct pnode* returnStmt(struct pnode *root, struct lexer *lex) {
+struct pnode* returnStmt(struct parser *prs, struct pnode *root) {
 
-  parser_getTok(lex); //scrap 'return' token
+  parser_getTok(prs); //scrap 'return' token
 
   struct type *rType = pnode_funcReturnType(root);
 
@@ -479,13 +473,13 @@ struct pnode* returnStmt(struct pnode *root, struct lexer *lex) {
     env.fail("return outside of a function");
   }
 
-  if (!nextTok) {
+  if (!prs->nextTok) {
     env.fail("Unexpected EOF");
   }
 
-  struct pnode *exprNode = (nextTok->type == LEX_NEWLINE) ? expr_empty : expr(root, lex, NULL);
+  struct pnode *exprNode = (prs->nextTok->type == LEX_NEWLINE) ? expr_empty : expr(prs, root, NULL);
 
-  struct type *type = pnode_evalType(exprNode, root);
+  struct type *type = pnode_evalType(prs->types, exprNode, root);
 
   switch(type_areCompatible(rType, type)) {
   case TYPECOMP_NO:
@@ -506,55 +500,55 @@ struct pnode* returnStmt(struct pnode *root, struct lexer *lex) {
 
 }
 
-struct pnode* stmt(struct pnode *root, struct lexer *lex) {
+struct pnode* stmt(struct parser *prs, struct pnode *root) {
 
-  if (!nextTok) {
+  if (!prs->nextTok) {
     env.fail("Unexpected end of file, expected a statement");
   }
 
   struct pnode *ret;
 
-  struct token savedNext = *nextTok;
+  struct token savedNext = *prs->nextTok;
 
-  switch (nextTok->type) {
+  switch (prs->nextTok->type) {
   case LEX_DECL: {
-    parser_getTok(lex); //discard
-    decl(root, lex);
+    parser_getTok(prs); //discard
+    decl(prs, root);
     ret = &declaration_fake_node;
     break;
   }
 
   case LEX_IF: {
-    parser_getTok(lex); //discard
-    ret = ifStmt(root, lex);
+    parser_getTok(prs); //discard
+    ret = ifStmt(prs, root);
     break;
   }
 
   case LEX_WHILE: {
-    parser_getTok(lex); //discard 
-    ret = whileStmt(root, lex);
+    parser_getTok(prs); //discard 
+    ret = whileStmt(prs, root);
     break;
   }
 
   case LEX_VAR: {
-    parser_getTok(lex); //discard
-    var(root, lex);
+    parser_getTok(prs); //discard
+    var(prs, root);
     ret = &declaration_fake_node;
     break;
   }
 
   case LEX_RETURN: 
-    ret = returnStmt(root, lex);
+    ret = returnStmt(prs, root);
     break;  
 
   default: {
-    if (!(ret = expr(root, lex, NULL))) {
+    if (!(ret = expr(prs, root, NULL))) {
       env.fail("Unexpected token %s, expected 'var', 'if' or anything evaluable as an expression", token_str(&savedNext));
     }
   }
   }
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (tok->type != LEX_NEWLINE) {
     env.fail("Unexpected token, got %s, expected a new line", token_str(tok));
@@ -564,7 +558,7 @@ struct pnode* stmt(struct pnode *root, struct lexer *lex) {
 
 }
 
-struct pnode* body(struct pnode *root, struct lexer *lex, bodyender be) {
+struct pnode* body(struct parser *prs, struct pnode *root, bodyender be) {
 
   struct pnode *ret = pnode_new(PR_BODY);
 
@@ -572,8 +566,8 @@ struct pnode* body(struct pnode *root, struct lexer *lex, bodyender be) {
 
   struct pnode *nextStmt;
 
-  while(!be(nextTok)) {
-    nextStmt = stmt(ret, lex);
+  while(!be(prs->nextTok)) {
+    nextStmt = stmt(prs, ret);
     if (nextStmt != &declaration_fake_node) {
       pnode_addLeaf(ret, nextStmt);
     }
@@ -591,11 +585,11 @@ bool funcBe(struct token *tok) {
   return tok->type == LEX_ENDFUNC;
 }
 
-void funcCommons(struct pnode *this, struct lexer *lex, bodyender be) {
+void funcCommons(struct parser *prs, struct pnode *this, bodyender be) {
 
-  pnode_addLeaf(this, body(this, lex, be));
+  pnode_addLeaf(this, body(prs, this, be));
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (!be(tok)) {
     env.fail("Unexpected token found: got %s, expected end of function (or entry)", token_str(tok)); 
@@ -603,8 +597,8 @@ void funcCommons(struct pnode *this, struct lexer *lex, bodyender be) {
 
 }
 
-struct pnode* entry(struct pnode *root, struct lexer *lex) {
-  struct token *tok = parser_getTok(lex);
+struct pnode* entry(struct parser *prs, struct pnode *root) {
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected end of file in function");
@@ -614,18 +608,18 @@ struct pnode* entry(struct pnode *root, struct lexer *lex) {
     env.fail("Unexpected token found: got %s, expected a new line after entry definition", token_str(tok));
   }
 
-  struct pnode *ret = pnode_newfunc(PR_FUNC, "__helm_entry", type_none, symbols_new());
+  struct pnode *ret = pnode_newfunc(prs->types, PR_FUNC, "__helm_entry", type_none, symbols_new());
 
   ret->root = root; //in this case, this is needed
 
-  funcCommons(ret, lex, entryBe);
+  funcCommons(prs, ret, entryBe);
 
   return ret;
 }
 
-struct pnode* func(struct pnode *root, struct lexer *lex) {
+struct pnode* func(struct parser *prs, struct pnode *root) {
 
-  struct token *tok = parser_getTok(lex);
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected EOF, expected identifier");
@@ -637,44 +631,44 @@ struct pnode* func(struct pnode *root, struct lexer *lex) {
 
   char *fName = str_clone((char*) tok->value);
 
-  Symbols *syms = structDef(root, lex);
+  Symbols *syms = structDef(prs, root);
 
-  if (!nextTok) {
+  if (!prs->nextTok) {
     env.fail("Unexpected EOF, expected type or a newline");
   }
 
   struct type *rType = type_none;
 
-  switch(nextTok->type) {
+  switch(prs->nextTok->type) {
   case LEX_ID:
   case LEX_FUNC:
   case LEX_PTR:
   case LEX_STRUCT:
   case LEX_VAL:
-    rType = type(root, lex);
+    rType = type(prs, root);
     break;
   case LEX_NEWLINE:
     break;
   default:
-    env.fail("Unexpected %s, expected type or a new line", token_str(nextTok));
+    env.fail("Unexpected %s, expected type or a new line", token_str(prs->nextTok));
     break;
   }
 
-  parser_getTok(lex); //discard new line
+  parser_getTok(prs); //discard new line
 
-  struct pnode *ret = pnode_newfunc(PR_FUNC, fName, rType, syms);
+  struct pnode *ret = pnode_newfunc(prs->types, PR_FUNC, fName, rType, syms);
 
   ret->root = root;
 
   free(fName);
 
-  funcCommons(ret, lex, funcBe);
+  funcCommons(prs, ret, funcBe);
   return ret;
   
 }
 
-struct pnode* definition(struct pnode *root, struct lexer *lex) {
-  struct token *tok = parser_getTok(lex);
+struct pnode* definition(struct parser *prs, struct pnode *root) {
+  struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     return NULL;
@@ -685,21 +679,21 @@ struct pnode* definition(struct pnode *root, struct lexer *lex) {
 
   switch (type) {
   case LEX_ALIAS:
-    alias(root, lex);
+    alias(prs, root);
     ret = &declaration_fake_node;
     break;
   case LEX_DECL:
-    decl(root, lex);
+    decl(prs, root);
     ret = &declaration_fake_node;
     break;
   case LEX_ENTRY:
-    ret = entry(root, lex);
+    ret = entry(prs, root);
     break;
   case LEX_FUNC:
-    ret = func(root, lex);
+    ret = func(prs, root);
     break;
   case LEX_VAR:
-    var(root, lex);
+    var(prs, root);
     ret = &declaration_fake_node;
     break;
   default: 
@@ -707,7 +701,7 @@ struct pnode* definition(struct pnode *root, struct lexer *lex) {
     break;
   }
 
-  tok = parser_getTok(lex);
+  tok = parser_getTok(prs);
 
   if (tok && tok->type != LEX_NEWLINE) {
     env.fail("Got token %s, expected a newline or EOF", token_str(tok));
@@ -716,12 +710,16 @@ struct pnode* definition(struct pnode *root, struct lexer *lex) {
   return ret;
 }
 
-struct pnode* parser_parse(struct parser *parser, FILE *file) {
+struct pnode* parser_parse(struct parser *prs, FILE *file) {
 
   struct pnode *program = pnode_new(PR_PROGRAM), *nextDef;  
-  parser->lex = lexer_fromFile(file);
 
-  while ((nextDef = definition(program, lex))) {
+  lineno_setLoc(&prs->lastLineno);
+
+  prs->lex = lexer_fromFile(file);
+  prs->firstTok = true;
+
+  while ((nextDef = definition(prs, program))) {
     if (nextDef != &declaration_fake_node) {
       pnode_addLeaf(program, nextDef);    
     }
@@ -732,7 +730,7 @@ struct pnode* parser_parse(struct parser *parser, FILE *file) {
     return NULL;
   }
 
-  lexer_close(lex);
+  lexer_close(prs->lex);
 
   return program;
 }

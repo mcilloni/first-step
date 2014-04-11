@@ -29,13 +29,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-extern struct token *nextTok;
-
 struct pnode enVd = {PR_EXPR, NULL, NULL};
 
 struct pnode *expr_empty = &enVd;
 
-struct pnode* expr_treeize(struct pnode *root, List *expr);
+struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr);
 
 enum operator_assoc {
   ASSOC_NOTOP,
@@ -65,7 +63,7 @@ uintmax_t uintpow(uintmax_t base, uintmax_t exp) {
 
 }
 
-void expr_callCheckAliases(struct pnode *call) {
+void expr_callCheckAliases(struct parser *prs, struct pnode *call) {
   Leaves *lv = call->leaves;
 
   size_t len = array_len(lv);
@@ -105,7 +103,7 @@ void expr_callCheckAliases(struct pnode *call) {
   for (size_t i = 0; i < pLen; ++i) {
     
     typeA = (struct type*) *array_get(ftype->params, i);
-    typeB = pnode_evalType((struct pnode*) *leaves_get(lv, i + 1), NULL);
+    typeB = pnode_evalType(prs->types, (struct pnode*) *leaves_get(lv, i + 1), NULL);
 
     if (!type_areCompatible(typeA, typeB)) {
       char buf[2048], cuf[2048];
@@ -396,7 +394,7 @@ struct pnode* expr_handleSingle(struct pnode *root, List *expr) {
     return ret;
 }
 
-bool expr_isBinOpCompatible(struct pnode *root, struct token *tok, struct pnode *left, struct pnode *right) {
+bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token *tok, struct pnode *left, struct pnode *right) {
   
   switch (tok->type) {
   case LEX_AND:
@@ -409,8 +407,8 @@ bool expr_isBinOpCompatible(struct pnode *root, struct token *tok, struct pnode 
   case LEX_PLUS:
   case LEX_POW:
   case LEX_TIMES: {
-    struct type *tleft = pnode_evalType(left, root);
-    struct type *tright = pnode_evalType(right, root);
+    struct type *tleft = pnode_evalType(prs->types, left, root);
+    struct type *tright = pnode_evalType(prs->types, right, root);
     return ((tleft->kind == TYPE_NUMERIC) && (tright->kind == TYPE_NUMERIC)) || ((tleft->kind == TYPE_PTR) && (tright->kind == TYPE_PTR));
   }
   default:
@@ -420,19 +418,19 @@ bool expr_isBinOpCompatible(struct pnode *root, struct token *tok, struct pnode 
 
 }
 
-bool expr_isUnOpCompatible(struct pnode *root, struct token *tok, struct pnode *operand) {
+bool expr_isUnOpCompatible(struct parser *prs, struct pnode *root, struct token *tok, struct pnode *operand) {
   
   switch (tok->type) {
   case LEX_DEC:
   case LEX_INC:
   case LEX_MINUS:
   case LEX_NOT:
-    return pnode_evalType(operand, root)->kind != TYPE_FUNC;
+    return pnode_evalType(prs->types, operand, root)->kind != TYPE_FUNC;
   case LEX_CAST:
   case LEX_PTR:
     return true;
   case LEX_VAL:
-    return pnode_evalType(operand, root)->kind == TYPE_PTR;
+    return pnode_evalType(prs->types, operand, root)->kind == TYPE_PTR;
   default:
     env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
     return false;
@@ -445,8 +443,6 @@ bool expr_nextIsEnd(struct token *tok) {
   if (!tok) {
     env.fail("Unexpected end of file in expression body");
   }
-
-  env.debug("nextTok@%p: %s", nextTok, token_str(nextTok));
 
   switch (tok->type) {
   case LEX_NEWLINE:
@@ -509,7 +505,7 @@ size_t expr_findComma(List *expr) {
   return 0;
 }
 
-struct pnode* expr_handleCall(struct pnode *root, List *expr) {
+struct pnode* expr_handleCall(struct parser *prs, struct pnode *root, List *expr) {
   
   size_t len = list_len(expr);
 
@@ -541,15 +537,15 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
       
       while((comma = expr_findComma(expr))) {
         tmp = list_extract(expr, 0, comma);
-        pnode_addLeaf(ret, expr_treeize(ret, tmp));
+        pnode_addLeaf(ret, expr_treeize(prs, ret, tmp));
         expr = list_extract(expr, 1, -1);
       }
 
-      pnode_addLeaf(ret, expr_treeize(ret, expr));
+      pnode_addLeaf(ret, expr_treeize(prs, ret, expr));
     
     }
 
-    expr_callCheckAliases(ret);
+    expr_callCheckAliases(prs, ret);
 
     return ret;
   }
@@ -557,7 +553,7 @@ struct pnode* expr_handleCall(struct pnode *root, List *expr) {
   return NULL;
 }
 
-struct pnode* expr_handleStructNode(struct pnode *root, struct pnode *left, struct token *rtok) {
+struct pnode* expr_handleStructNode(struct parser *prs, struct pnode *root, struct pnode *left, struct token *rtok) {
 
   if (rtok->type != LEX_ID) {
     env.fail("Cannot extract non-identifier '%s' from structure", token_str(rtok));
@@ -567,7 +563,7 @@ struct pnode* expr_handleStructNode(struct pnode *root, struct pnode *left, stru
 
   struct pnode *right = pnode_newval(PR_STRUCTID, (uintmax_t) str_clone(member));
 
-  struct type *ltype = pnode_evalType(left, root), *otype = NULL;
+  struct type *ltype = pnode_evalType(prs->types, left, root), *otype = NULL;
 
   if (type_isPtr(ltype)) {
     otype = ltype;
@@ -592,15 +588,14 @@ struct pnode* expr_handleStructNode(struct pnode *root, struct pnode *left, stru
 
   struct pexpr *pexpr = (struct pexpr*) pnode_newval(PR_BINOP, LEX_APOS);
 
-  pexpr->type = type_secptr(sym->type);
-  ((struct pexpr*) right)->type = type_secptr(sym->type);
+  pexpr->type = sym->type;
+  ((struct pexpr*) right)->type = sym->type;
  
   struct pnode *ret = (struct pnode*) pexpr;
 
   pnode_addLeaf(ret, left);
   pnode_addLeaf(ret, right);
 
-  type_free(otype);
   return (struct pnode*) pexpr;
 }
 
@@ -618,7 +613,7 @@ bool expr_isValidAssign(struct pnode *node) {
   return tt == LEX_PTR || tt == LEX_VAL;
 }
 
-struct pnode* expr_treeize(struct pnode *root, List *expr) {
+struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
 
   if (!list_len(expr)) {
     return expr_empty;    
@@ -629,7 +624,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
   struct pnode *ret = NULL;
 
-  if ((ret = expr_handleCall(root, expr))) {
+  if ((ret = expr_handleCall(prs, root, expr))) {
     return ret;
   }
 
@@ -649,18 +644,18 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         env.fail("Binary operator %s found at expression start", token_str(tok));
       }
 
-      struct pnode *left = expr_treeize(root, list_extract(expr, 0, pos));
+      struct pnode *left = expr_treeize(prs, root, list_extract(expr, 0, pos));
 
       size_t posAfter = expr_findLowPriorityOp(expr);
 
       if (tok->type == LEX_APOS) {
         List *tmp = list_extract(expr, posAfter + 1, 1);
-        ret = expr_handleStructNode(root, left, (struct token*) *list_get(tmp, 0));
+        ret = expr_handleStructNode(prs, root, left, (struct token*) *list_get(tmp, 0));
         list_free(tmp);
         break;
       }
 
-      struct pnode *right = expr_treeize(root, list_extract(expr, posAfter + 1, -1));
+      struct pnode *right = expr_treeize(prs, root, list_extract(expr, posAfter + 1, -1));
 
       bool assign = tok->type == LEX_ASSIGN;
 
@@ -679,11 +674,11 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
       pnode_addLeaf(ret, right);
 
       if (assign) {
-        pnode_verifyNodesAreCompatible(root, left, right);
+        pnode_verifyNodesAreCompatible(prs->types, root, left, right);
       } else {
-        if (!expr_isBinOpCompatible(root, tok, left, right)) {
-          struct type *ltype = pnode_evalType(left, root);
-          struct type *rtype = pnode_evalType(right, root);
+        if (!expr_isBinOpCompatible(prs, root, tok, left, right)) {
+          struct type *ltype = pnode_evalType(prs->types, left, root);
+          struct type *rtype = pnode_evalType(prs->types, right, root);
           env.fail("Cannot apply operator %s to types %s and %s", token_str(tok), ltype->name, rtype->name);
         }
       }
@@ -699,13 +694,13 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
           env.fail("Operator %s cannot bind to anything on its left", token_str(tok));
         }
 
-        operand = expr_treeize(root, list_extract(expr, 0, pos));
+        operand = expr_treeize(prs, root, list_extract(expr, 0, pos));
       } else {
         if (pos + 1 == list_len(expr)) {
           env.fail("Operator %s cannot bind to anything on its right", token_str(tok));
         }
 
-        operand = expr_treeize(root, list_extract(expr, pos + 1, -1));
+        operand = expr_treeize(prs, root, list_extract(expr, pos + 1, -1));
       }
 
 
@@ -715,7 +710,7 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
         break;
       }
 
-      if (!expr_isUnOpCompatible(root, tok, operand)) {
+      if (!expr_isUnOpCompatible(prs, root, tok, operand)) {
         env.fail("Operator %s cannot be applied to an incompatible expression", token_str(tok));
       }
 
@@ -748,10 +743,10 @@ struct pnode* expr_treeize(struct pnode *root, List *expr) {
 
 }
 
-extern struct type* type(struct pnode *root, struct lexer *lex);
+extern struct type* type(struct parser *prs, struct pnode *root);
 
-void expr_hijackCastToken(struct pnode *root, struct lexer *lex, struct token *castTok) {
-  struct token *tok = parser_getTok(lex);
+void expr_hijackCastToken(struct parser *prs, struct pnode *root, struct token *castTok) {
+  struct token *tok = parser_getTok(prs);
   
   if (!tok) {
     env.fail("Unexpected EOF, expected < after 'cast'");
@@ -761,9 +756,9 @@ void expr_hijackCastToken(struct pnode *root, struct lexer *lex, struct token *c
     env.fail("Unexpected %s, expected '<'", token_str(tok));
   }
 
-  struct type *typeStr = type(root, lex);
+  struct type *typeStr = type(prs, root);
 
-  tok = parser_getTok(lex);
+  tok = parser_getTok(prs);
   
   if (!tok) {
     env.fail("Unexpected EOF, expected > after type in cast");
@@ -777,7 +772,7 @@ void expr_hijackCastToken(struct pnode *root, struct lexer *lex, struct token *c
 
 }
 
-struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be) {
+struct pnode* expr(struct parser *prs, struct pnode *root, bodyender be) {
 
   if (!be) {
     be = (bodyender) expr_nextIsEnd;
@@ -787,20 +782,20 @@ struct pnode* expr(struct pnode *root, struct lexer *lex, bodyender be) {
 
   struct token *tok;
   do {
-    tok = parser_getTok(lex);
+    tok = parser_getTok(prs);
 
     if (tok && tok->type == LEX_CAST) {
-      expr_hijackCastToken(root, lex, tok);
+      expr_hijackCastToken(prs, root, tok);
     }
 
     list_append(list, tok);
-  } while(!be(nextTok));
+  } while(!be(prs->nextTok));
 
   if (!list_len(list)) {
     env.fail("Empty expression body");
   }
 
-  struct pnode *ret = expr_treeize(root, list);
+  struct pnode *ret = expr_treeize(prs, root, list);
 
   return ret;
 

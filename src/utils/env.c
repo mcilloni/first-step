@@ -26,14 +26,14 @@
 
 static bool debug_on = false;
 static uintmax_t errors = 0;
-uintmax_t lastLineno = 0;
+uintmax_t *lastLineno;
 static const uintmax_t MAX_ERRORS = 20;
 
 int std_printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va) {
 
   int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET, color, level);
   if (env.line) {
-    ret += fprintf(out, ", line %zu): ", lastLineno);
+    ret += fprintf(out, ", line %zu): ", *lastLineno);
   } else {
     ret += fputs("): ", out);
   }
@@ -155,3 +155,6 @@ void env_setLine(struct line *line) {
   env.line = line;
 }
 
+void lineno_setLoc(uintmax_t *loc) {
+  lastLineno = loc;
+}

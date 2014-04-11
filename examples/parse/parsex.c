@@ -69,13 +69,17 @@ int main(int argc, char *argv[]) {
 
   uintmax_t t1 = t.tv_sec*1000000LU + t.tv_usec;
 
-  struct pnode *ret = parse(fopen(argv[1], "r"));
+  struct parser *parser = parser_new();
+
+  struct pnode *ret = parser_parse(parser, fopen(argv[1], "r"));
 
   gettimeofday(&t, &tzp);
 
   ptree_dump(ret);
 
   printf("\nParsing took %" PRIuMAX " µs\n", (t.tv_sec*1000000LU + t.tv_usec) - t1);
+
+  parser_close(parser);
 
   return EXIT_SUCCESS;
 }

@@ -33,17 +33,27 @@ void file_indent(FILE *out, uint8_t indent) {
 }
 
 const char* ccode_opConv(struct token *tok, struct pnode *leftSupportNode) {
+  Pool *pool = pool_new();
+  const char *ret = NULL;
   switch(tok->type) {
   case LEX_AND:
-    return "&&";
+    ret = "&&";
+    break;
   case LEX_APOS: {
-    return (pnode_evalType(leftSupportNode, NULL)->kind == TYPE_PTR) ? "->" : ".";
+    ret = (pnode_evalType(pool, leftSupportNode, NULL)->kind == TYPE_PTR) ? "->" : ".";
+    break;
   }
   case LEX_OR:
-    return "||";
+    ret = "||";
+    break;
   default: 
-    return token_str(tok);
+    ret = token_str(tok);
+    break;
   }
+
+  pool_release(pool, (void (*)(void*)) type_free);
+
+  return ret;
 }
 
 void ccode_genBody(struct pnode *body, FILE *out, uint8_t indent);
