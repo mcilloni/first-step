@@ -82,6 +82,13 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
     break;
   }
 
+  case PR_SIZE: {
+    char *tType = ccode_csym((struct type*) val, "");
+    fprintf(out, "sizeof(%s) ", tType);
+    free(tType); 
+    break;
+  }
+
   case PR_BINOP:
     if (array_len(root->leaves) != 2) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));

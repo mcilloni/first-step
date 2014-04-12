@@ -20,11 +20,11 @@ enum symbols_resp {
 
 extern Symbols* (*symbols_new) (void);
 enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *type, bool decl);
-extern bool (*symbols_defined)(Symbols *symt, const char *id);
+bool symbols_defined(Symbols *symt, const char *id);
 void symbols_dump(Symbols *symt, const char *title, int8_t depth);
 struct symbol* symbols_get(Symbols *symt, const char *id);
 void symbols_free(Symbols *symt);
 
-bool id_isReservedBool(const char *id);
+struct symbol* symbol_getBuiltin(const char *id);
 
 #endif

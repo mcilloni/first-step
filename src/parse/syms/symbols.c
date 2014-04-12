@@ -24,7 +24,10 @@
 #include <string.h>
 
 Symbols* (*symbols_new) (void) = strmap_new;
-bool (*symbols_defined)(Symbols *symt, const char *id) = (bool (*)(Symbols*,const char*)) map_contains;
+
+bool symbols_defined(Symbols *symt, const char *id) {
+  return symbol_getBuiltin(id) || map_contains(symt, id);
+}
 
 void printdepth(int8_t depth) {
   for (int8_t i = 0; i < depth; ++i) {
@@ -76,13 +79,19 @@ void symbols_free(Symbols *symt) {
 }
 
 struct symbol* symbols_get(Symbols *symt, const char *id) {
+
   struct symbol *ret;
+
+  if ((ret = symbol_getBuiltin(id))) {
+    return ret;
+  }
 
   if (map_get(symt, id, (void**) &ret)) {
     return ret;
   }
 
   return NULL;
+
 }
 
 enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *type, bool decl) {
@@ -99,7 +108,20 @@ enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *t
   return SYM_ADDED;
 }
 
-bool id_isReservedBool(const char *id) {
-  return !strcmp(id, "true") || !strcmp(id, "false");
+extern struct type type_bool;
+
+struct symbol sym_false = { false, &type_bool };
+struct symbol sym_true = { false, &type_bool };
+
+struct symbol* symbol_getBuiltin(const char *name) {
+  if (!strcmp(name, "false")) {
+    return &sym_false;
+  }
+
+  if (!strcmp(name, "true")) {
+    return &sym_true;
+  }
+
+  return NULL;
 }
 

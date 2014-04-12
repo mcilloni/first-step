@@ -67,6 +67,8 @@ const char* nt_str(enum nonterminals nt) {
     return "Function call";
   case PR_CAST:
     return "Type cast";
+  case PR_SIZE:
+    return "Size operator";
   case PR_RETURN:
     return "Return";
   case PR_NUMBER:

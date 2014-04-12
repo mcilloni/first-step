@@ -379,6 +379,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // size
+  if (!strcmp("size", data)) {
+    res->type = LEX_SIZE;
+    return res;
+  }
+
   // func
   if (!strcmp("func", data)) {
     res->type = LEX_FUNC;
@@ -542,6 +548,8 @@ const char* tokentype_str(enum token_type type) {
     return "+";
   case LEX_RETURN:
     return "return";
+  case LEX_SIZE:
+    return "size";
   case LEX_STRING:
     return "string";
   case LEX_STRUCT:
@@ -603,19 +611,19 @@ int8_t token_getPriority(struct token *tok) {
   case LEX_POW:
     return 8;
 
+  case LEX_CAST:
   case LEX_MINUS:
   case LEX_NOT:
-    return 9;
-
-  case LEX_CAST:
   case LEX_PTR:
+  case LEX_SIZE:
   case LEX_VAL:
-    return 10;
+    return 9;
 
   case LEX_APOS:
   case LEX_INC:
   case LEX_DEC:
-    return 11;
+    return 10;
+
   default:
     return -1;
   }

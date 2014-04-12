@@ -175,6 +175,10 @@ void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode
 
 struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope) {
 
+  if (pnode->id == PR_SIZE) {
+    return type_getBuiltin("uint64");
+  }
+
   if (!scope) {
     scope = pnode;
   }
@@ -302,8 +306,10 @@ struct type* pnode_isRootAndIdIsFunc(struct pnode *pnode, const char *id) {
 
 struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
 
-  if (id_isReservedBool(id)) {
-    return type_getBuiltin("bool");
+  struct symbol *bt;
+
+  if ((bt = symbol_getBuiltin(id))) {
+    return bt->type;
   }
 
   if (!pnode) {
@@ -318,8 +324,18 @@ struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
 
   struct symbol *sym = NULL; 
 
+  bool isFunc = pnode_isFunc(pnode);
+
+  if (isFunc) {
+    struct pfunc *pfunc = (struct pfunc*) pnode;
+  
+    if (!strcmp(pfunc->name, id)) {
+      return (struct type*) pfunc->ftype;
+    }
+  }
+
   if (!pnode_isScope(pnode) || !(sym = symbols_get(((struct pscope*) pnode)->symbols, id))) {
-    if (!pnode_isFunc(pnode) || !(sym = symbols_get(((struct pfunc*) pnode)->params, id))) {
+    if (!isFunc || !(sym = symbols_get(((struct pfunc*) pnode)->params, id))) {
       return pnode_symbolType(pnode->root, id);
     }
   }
@@ -384,6 +400,7 @@ bool nonterminals_isValue(enum nonterminals id) {
   case PR_CAST:
   case PR_ID:
   case PR_NUMBER:
+  case PR_SIZE:
   case PR_STRING:
   case PR_STRUCTID:
   case PR_UNOP:
@@ -404,7 +421,7 @@ bool pnode_isScope(struct pnode *pnode) {
 
 bool pnode_isInCurrentScope(struct pnode *pnode, const char *id) {
 
-  if (id_isReservedBool(id)) {
+  if (symbol_getBuiltin(id)) {
     return true;
   }
 
@@ -548,6 +565,11 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
   case PR_STRUCTID: {
     char buf[2048];
     printf(": %s, type %s", (const char*) pnode_getval(val), type_str(pnode_evalType(pool, val, NULL), buf, 2048));
+    break;
+  }
+  case PR_SIZE: {
+    char buf[4096];
+    printf(" of type %s", type_str((struct type*) pnode_getval(val), buf, 4096));
     break;
   }
   case PR_STRING:

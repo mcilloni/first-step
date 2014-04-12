@@ -304,7 +304,7 @@ void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
 
   const char *id = (const char*) tok->value;
 
-  if (id_isReservedBool(id)) {
+  if (symbol_getBuiltin(id)) {
     env.fail("%s is a reserved identifier", id);
   }
 

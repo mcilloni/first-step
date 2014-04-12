@@ -15,8 +15,9 @@
  *
  */
 
-// This whole source is pretty inefficient and also pretty dumb; it should be rewritten entirely because it is not optimal and has a few bugs, but still, it works.
+// This whole source is pretty inefficient and also pretty dumb; it should be rewritten entirely because it is not optimal and has huge limitations, but still, it works.
 // I'm not concerned about this because I intend this to be just an experimental, bootstrap compiler, so I don't care about performances, or ugliness, or anything.
+// Future compilers will have a decent EBNF definition for priority and such :(
 
 #include "parse.h"
 
@@ -328,6 +329,10 @@ void expr_fixMinus(List *expr) {
 void expr_fixParentheses(List **expr) {
   size_t len = list_len(*expr);
 
+  if (len <= 1) {
+    return;
+  }
+
   struct token *first = (struct token*) *list_get(*expr, 0LU);
   struct token *last = (struct token*) *list_get(*expr, len - 1);
 
@@ -380,15 +385,23 @@ struct pnode* expr_handleSingle(struct pnode *root, List *expr) {
       ret = pnode_newval(PR_ID, (uintptr_t) id);
       break;
     }
+
     case LEX_NUMBER:
       ret = pnode_newval(PR_NUMBER, tok->value);
       break;
+
+    case LEX_SIZE:
+      ret = pnode_newval(PR_SIZE, tok->value);
+      break;
+
     case LEX_STRING:
       ret = pnode_newval(PR_STRING, (uintptr_t) str_clone((const char*) tok->value));
       break;
+
     default:
       env.fail("Unexpected token found, got %s, expected a constant or identifier", token_str(tok));
       break;
+
     }
 
     return ret;
@@ -518,6 +531,9 @@ struct pnode* expr_handleCall(struct parser *prs, struct pnode *root, List *expr
   struct token *last = (struct token*) *list_get(expr, len - 1);
 
   if (first->type == LEX_ID && second->type == LEX_OPAR && last->type == LEX_CPAR) {
+
+    //Expressions are really bad implemented this way. Don't care.
+
     struct pnode *ret = pnode_newval(PR_CALL, 0U);
 
     ret->root = root;
@@ -772,6 +788,34 @@ void expr_hijackCastToken(struct parser *prs, struct pnode *root, struct token *
 
 }
 
+void expr_hijackSizeOp(struct parser *prs, struct pnode *root, struct token *sizeTok) {
+
+  struct token *tok = parser_getTok(prs);
+  
+  if (!tok) {
+    env.fail("Unexpected EOF, expected ( after 'size'");
+  }
+
+  if (tok->type != LEX_OPAR) {
+    env.fail("Unexpected %s, expected '('", token_str(tok));
+  }
+
+  struct type *typeStr = type(prs, root);
+
+  tok = parser_getTok(prs);
+  
+  if (!tok) {
+    env.fail("Unexpected EOF, expected ) after type in size");
+  }
+
+  if (tok->type != LEX_CPAR) {
+    env.fail("Unexpected %s, expected ')'", token_str(tok));
+  }
+
+  sizeTok->value = (uintmax_t) typeStr; 
+
+}
+
 struct pnode* expr(struct parser *prs, struct pnode *root, bodyender be) {
 
   if (!be) {
@@ -784,8 +828,14 @@ struct pnode* expr(struct parser *prs, struct pnode *root, bodyender be) {
   do {
     tok = parser_getTok(prs);
 
+    // pure abomination. 
     if (tok && tok->type == LEX_CAST) {
       expr_hijackCastToken(prs, root, tok);
+    }
+
+    // again.
+    if (tok && tok->type == LEX_SIZE) {
+      expr_hijackSizeOp(prs, root, tok);
     }
 
     list_append(list, tok);
