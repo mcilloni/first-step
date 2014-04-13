@@ -199,6 +199,11 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
   } 
 
   switch (pnode->id){ 
+  case PR_ACCESS: {
+    ret = ((struct ptype*) pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope))->val;
+    break;
+  }
+
   case PR_CALL: {
     ret = ((struct ftype*) pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope))->ret;
     break;
@@ -395,6 +400,7 @@ bool nonterminals_isScope(enum nonterminals id) {
 
 bool nonterminals_isValue(enum nonterminals id) {
   switch (id) {
+  case PR_ACCESS:
   case PR_BINOP:
   case PR_CALL:
   case PR_CAST:

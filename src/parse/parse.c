@@ -271,6 +271,33 @@ struct type* type(struct parser *prs, struct pnode *this) {
     return structType(prs, this);
   }
 
+  case LEX_OBRAC: {
+    parser_getTok(prs); 
+    struct token *tok = parser_getTok(prs);
+
+    if (!tok) {
+      env.fail("Unexpected EOF, expected an integer");
+    }
+
+    if (tok->type != LEX_NUMBER) {
+      env.fail("Unexpected %s, expected a number", token_str(tok));
+    }
+
+    size_t size = (size_t) tok->value;
+
+    tok = parser_getTok(prs);
+
+    if (!tok) {
+      env.fail("Unexpected EOF, expected ']'");
+    }
+
+    if (tok->type != LEX_CBRAC) {
+      env.fail("Unexpected %s, expected ']'", token_str(tok));
+    }
+
+    return type_makeArray(prs->types, type(prs, this), size);
+  }
+
   case LEX_PTR: {
     parser_getTok(prs);
     return type_makePtr(prs->types, type(prs, this));

@@ -22,6 +22,7 @@
 #include <utils/utils.h>
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 struct type type_bool = { TYPE_BOOL, "bool", 1, true };
@@ -162,9 +163,12 @@ bool type_equal(struct type *a, struct type *b) {
 }
 
 enum type_compatible type_areCompatible(struct type *assign, struct type *assigned) {
-  if (assign->kind == assigned->kind) {
+  enum type_kind first = type_isArray(assign) ? TYPE_PTR : assign->kind;
+  enum type_kind second = type_isArray(assigned) ? TYPE_PTR : assigned->kind;
 
-    switch (assign->kind) { 
+  if (first == second) {
+
+    switch (first) { 
     case TYPE_BOOL:
       return TYPECOMP_YES;
     case TYPE_NUMERIC:
@@ -232,12 +236,16 @@ struct type* type_evalNumberType(int64_t number) {
   return &type_int64;
 }
 
+bool type_isArray(struct type *type) {
+  return type->kind == TYPE_ARRAY;
+}
+
 bool type_isFunc(struct type *type) {
   return type->kind == TYPE_FUNC;
 }
 
 bool type_isPtr(struct type *type) {
-  return type->kind == TYPE_PTR;
+  return type->kind == TYPE_PTR || type_isArray(type);
 }
 
 bool type_isStruct(struct type *type) {
@@ -298,6 +306,14 @@ struct type* type_makeStructType(Pool *pool, Symbols *args) {
   *stype = (struct stype) {{TYPE_STRUCT, NULL, 0}, args};
 
   return (struct type*) stype;
+}
+
+struct type* type_makeArray(Pool *pool, struct type *val, size_t len) {
+  struct atype *atype = pool_zalloc(pool, sizeof(struct atype));
+
+  *atype = (struct atype) {{{TYPE_ARRAY, NULL, ptrSize}, val}, len};
+
+  return (struct type*) atype;
 }
 
 void aliases_defineFuncId(Aliases *aliases, Pool *pool, const char *name, struct type *ret, Array *args) {
@@ -470,15 +486,22 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
     
     return base;
   }
-
+                  
+  case TYPE_ARRAY:
   case TYPE_PTR: {
-    if (bufLen < 5) {
+    if (bufLen < 10) {
       return buffer;
     }
 
-    strncpy(buffer, "ptr ", bufLen);
+    size_t i = 4U;
 
-    type_str(((struct ptype*) type)->val, buffer + 4, bufLen - 4);
+    if (type->kind == TYPE_ARRAY) {
+      i = snprintf(buffer, bufLen, "[%zu] ", ((struct atype*) type)->len);
+    } else {
+      strncpy(buffer, "ptr ", bufLen);
+    }
+
+    type_str(((struct ptype*) type)->val, buffer + i, bufLen - i);
 
     return buffer;
   }

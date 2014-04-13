@@ -18,7 +18,9 @@
 #include "colors.h"
 #include "env.h"
 
-#include <execinfo.h>
+#if !defined(EMSCRIPTEN)
+  #include <execinfo.h>
+#endif
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -88,6 +90,7 @@ int default_print_fail(const char *fmt, ...) {
 
   va_end(va);
 
+#if !defined(EMSCRIPTEN)
   void *array[100];
   size_t size = backtrace(array, 100);
   char** strings = backtrace_symbols(array, size);
@@ -98,6 +101,7 @@ int default_print_fail(const char *fmt, ...) {
   }
   
   free(strings);
+#endif
 
   exit(EXIT_FAILURE);
 

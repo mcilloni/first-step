@@ -35,7 +35,7 @@ assign = id, '=', expr
 
 alias = 'alias', id, type
 
-typeModifier = 'val' | 'ptr'
+typeModifier = 'val' | 'ptr' | ('[', number, ']')
 
 funcType = 'func', '(', [type,{',', type}], ')', [type]
 
@@ -47,11 +47,13 @@ id = letter, {(letter | cipher)}
 
 membAccess = id, ',', id
 
+arrayAccess = expr, '[', expr, ']'
+
 cast = 'cast', '<', type, '>', '(', expr, ')'
 
 expr = ('(', exprC, ')') | exprC
 
-exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const | membAccess | cast
+exprC =  dec | inc | id | (expr, binOp, expr) | (unOp,expr) | assign | const | membAccess | cast | arrayAccess
 
 boolVal = 'true' | 'false'
 

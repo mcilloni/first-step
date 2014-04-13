@@ -30,7 +30,9 @@ int main(int argc, char *argv[]) {
   struct parser *parser = parser_new();
 
   struct pnode *parsed = parser_parse(parser, stdin);
-  cgen(parsed, stdout);
+  if (parsed) {
+    cgen(parsed, stdout);
+  }
 
   parser_close(parser);
 

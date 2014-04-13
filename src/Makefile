@@ -4,6 +4,10 @@ ifndef CC
 	CC=clang
 endif
 
+ifndef AR
+	AR=ar
+endif
+
 ifndef RANLIB
 	RANLIB=ranlib
 endif

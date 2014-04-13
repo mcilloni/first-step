@@ -106,7 +106,7 @@ void lexer_discardLine(struct lexer *lex) {
 }
 
 bool ch_isPar(char c) {
-  return ( c == '(') || ( c == ')');
+  return c == '(' || c == ')' || c == '[' || c == ']';
 }
 
 bool ch_id(char c) {
@@ -331,6 +331,18 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // ]
+  if (!strcmp("]", data)) {
+    res->type = LEX_CBRAC;
+    return res;
+  }
+
+  // [
+  if (!strcmp("[", data)) {
+    res->type = LEX_OBRAC;
+    return res;
+  }
+
   // )
   if (!strcmp(")", data)) {
     res->type = LEX_CPAR;
@@ -498,6 +510,8 @@ const char* tokentype_str(enum token_type type) {
     return "cast";
   case LEX_COMMA:
     return ",";
+  case LEX_CBRAC:
+    return "]";
   case LEX_CPAR:
     return ")";
   case LEX_DEC:
@@ -540,6 +554,8 @@ const char* tokentype_str(enum token_type type) {
     return "!";
   case LEX_NUMBER:
     return "a number";
+  case LEX_OBRAC:
+    return "[";
   case LEX_OPAR:
     return "(";
   case LEX_PTR:
@@ -620,6 +636,7 @@ int8_t token_getPriority(struct token *tok) {
     return 9;
 
   case LEX_APOS:
+  case LEX_CBRAC: //HACK: use ] as operator for precedence purposes
   case LEX_INC:
   case LEX_DEC:
     return 10;
@@ -632,6 +649,7 @@ int8_t token_getPriority(struct token *tok) {
 enum optype token_getOpType(struct token *tok) {
   switch (tok->type) {
   case LEX_CAST:
+  case LEX_CBRAC:
   case LEX_DEC:
   case LEX_INC:
   case LEX_MINUS:

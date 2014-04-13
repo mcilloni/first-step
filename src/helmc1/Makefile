@@ -10,7 +10,9 @@ ifndef CC
 	CC=clang 
 endif
 
-AR=ar
+ifndef AR
+	AR=ar 
+endif
 
 ifndef RANLIB
 	RANLIB=ranlib
@@ -31,6 +33,10 @@ dir:
 	mkdir -p $(OUTDIR)
 
 helmrt.o:  
-	$(OBJDIR)/helmc1 < helmrt.helm > $(OUTDIR)/helmrt.c
+ifneq (,$(findstring LLVM,$(shell file $(OBJDIR)/helmc1)))
+		lli $(OBJDIR)/helmc1 < helmrt.helm > $(OUTDIR)/helmrt.c
+else
+		$(OBJDIR)/helmc1 < helmrt.helm > $(OUTDIR)/helmrt.c
+endif
 	$(CC) $(INCLUDES) -c $(OUTDIR)/helmrt.c -o $(OUTDIR)/helmrt.o -w
 	rm -f $(OUTDIR)/helmrt.c

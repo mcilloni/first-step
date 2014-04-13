@@ -63,6 +63,8 @@ const char* nt_str(enum nonterminals nt) {
     return "Arithmetic expression";
   case PR_CONST:
     return "Constant";
+  case PR_ACCESS:
+    return "Array access";
   case PR_CALL:
     return "Function call";
   case PR_CAST:

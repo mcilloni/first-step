@@ -27,6 +27,7 @@ enum nonterminals {
   PR_EXPRC,
   PR_ARITHEXP,
   PR_CONST,
+  PR_ACCESS,
   PR_CALL,
   PR_CAST,
   PR_SIZE,

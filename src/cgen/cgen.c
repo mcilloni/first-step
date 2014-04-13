@@ -69,6 +69,18 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
   tok.type = (enum token_type) val;
 
   switch (root->id) {
+  case PR_ACCESS: {
+    if (array_len(root->leaves) != 2) {
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
+    }
+
+    ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
+    fputc('[', out);
+    ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
+    fputc(']', out);
+    break;
+  }
+
   case PR_CAST: {
     if (array_len(root->leaves) != 1) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));
@@ -269,6 +281,13 @@ char* ccode_csym(struct type *type, const char *name) {
     free(ags);
     free(pm);
     break;
+  }
+
+  case TYPE_ARRAY: {
+    struct atype *atype = (struct atype*) type;
+    char buf[4096];
+    snprintf(buf, 4095,"%s[%zu]", name, atype->len);
+    return ccode_csym(((struct ptype*) type)->val, buf);
   }
                   
   case TYPE_PTR: {

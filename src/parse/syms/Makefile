@@ -12,7 +12,9 @@ ifndef CC
 	CC=clang 
 endif
 
-AR=ar
+ifndef AR
+	AR=ar
+endif
 
 ifndef RANLIB
 	RANLIB=ranlib
@@ -24,7 +26,7 @@ SRCS = $(wildcard *.c)
 OBJS = $(patsubst %.c,%.o,$(SRCS))
 OPATHS = $(foreach obj, $(OBJS), $(OUTDIR)/$(obj))
 all: dir $(OBJS)
-	$(AR) -rc $(OBJDIR)/libsyms.a $(OPATHS)
+	$(AR) rc $(OBJDIR)/libsyms.a $(OPATHS)
 	$(RANLIB) $(OBJDIR)/libsyms.a
 
 clean:

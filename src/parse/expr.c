@@ -257,6 +257,7 @@ size_t expr_findLowPriorityOp(List *expr) {
       }
       --par;
       break;
+
     default:
       if (!par) {
         tmp = token_getPriority(tok);
@@ -629,6 +630,33 @@ bool expr_isValidAssign(struct pnode *node) {
   return tt == LEX_PTR || tt == LEX_VAL;
 }
 
+List* expr_matchCBrac(List *expr, size_t cbPos) {
+  size_t cbCount = 0;
+  struct token *tok;
+
+  for (int64_t i = cbPos - 1; i >= 0; --i) {
+    tok = (struct token*) *list_get(expr, i);
+
+    if (tok->type == LEX_CBRAC) {
+      ++cbCount;
+    }
+
+    if (tok->type == LEX_OBRAC) {
+      if (cbCount) {
+        --cbCount;
+      } else {
+        List *tmp = list_extract(expr, i, cbPos - i + 1);
+        List *ret = list_extract(tmp, 1, cbPos - i - 1); 
+        list_free(tmp);
+        return ret;
+      }
+    }
+  }
+
+  env.fail("Unmatched [] pair");
+  return NULL;
+}
+
 struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
 
   if (!list_len(expr)) {
@@ -704,6 +732,31 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
     case OPTYPE_UNARY: {
 
       struct pnode *operand;
+      
+      if (tok->type == LEX_CBRAC) {
+        List *access = expr_matchCBrac(expr, pos);
+
+        struct pnode *aNode = expr_treeize(prs, root, access);
+
+        if (pnode_evalType(prs->types, aNode, root)->kind != TYPE_NUMERIC) {
+          env.fail("Non-numeric expression inside array access");
+        }
+
+        struct pnode *rest = expr_treeize(prs, root, expr);
+        struct type *typeEx = pnode_evalType(prs->types, rest, root);
+
+        if (!type_isPtr(typeEx)) {
+          char buf[4096];
+          env.fail("Non-pointer type %s is not accessible", type_str(typeEx, buf, 4096));
+        }
+
+        ret = pnode_new(PR_ACCESS);
+
+        pnode_addLeaf(ret, rest);
+        pnode_addLeaf(ret, aNode);
+
+        return ret;
+      }
 
       if (expr_getOpAssociation(tok) == ASSOC_LEFT) {
         if (!pos) {
