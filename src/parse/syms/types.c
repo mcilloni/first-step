@@ -86,6 +86,8 @@ bool type_equal(struct type *a, struct type *b) {
   }
 
   switch(a->kind) {
+  case TYPE_ALIAS:
+    return !strcmp(a->name, b->name);
   case TYPE_FUNC: {
     struct ftype *f1 = (struct ftype*) a;
     struct ftype *f2 = (struct ftype*) b;
@@ -122,35 +124,28 @@ bool type_equal(struct type *a, struct type *b) {
     struct stype *s1 = (struct stype*) a;
     struct stype *s2 = (struct stype*) b;
 
-    if (s1->symbols->size != s2->symbols->size) {
+    size_t len = symbols_len(s1->symbols);
+
+    if (len != symbols_len(s2->symbols)) {
       return false;
     }
 
-    MapIter *iter1 = mapiter_start(s1->symbols);
-    MapIter *iter2 = mapiter_start(s2->symbols);
-    Pair *pair1, *pair2;
-    struct symbol *sym1, *sym2;
+    struct spair *pair1, *pair2;
 
-    while ((pair1 = mapiter_next(iter1)), (pair2 = mapiter_next(iter2))) {
+    for (size_t i = 0; i < len; ++i) {
+      pair1 = *list_get(s1->symbols, i); 
+      pair2 = *list_get(s2->symbols, i);
 
-      if (strcmp((char*) pair1->key, (char*) pair2->key)) {
+      if (strcmp(pair1->id, pair2->id)) {
         return false;
       }
 
-      sym1 = (struct symbol*) pair1->value;
-      sym2 = (struct symbol*) pair2->value;
 
-      if (!type_equal(sym1->type, sym2->type)) {
+      if (!type_equal(pair1->sym->type, pair2->sym->type)) {
         return false;
       }
-
-      pair_free(pair1);
-      pair_free(pair2);
 
     }
-
-    mapiter_free(iter1);
-    mapiter_free(iter2);
 
     break;
   }
@@ -169,6 +164,8 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
   if (first == second) {
 
     switch (first) { 
+    case TYPE_ALIAS:
+      return strcmp(assign->name, assigned->name) ? TYPECOMP_NO : TYPECOMP_YES;
     case TYPE_BOOL:
       return TYPECOMP_YES;
     case TYPE_NUMERIC:
@@ -236,6 +233,10 @@ struct type* type_evalNumberType(int64_t number) {
   return &type_int64;
 }
 
+bool type_isAlias(struct type *type) {
+  return type->kind == TYPE_ALIAS;
+}
+
 bool type_isArray(struct type *type) {
   return type->kind == TYPE_ARRAY;
 }
@@ -253,10 +254,12 @@ bool type_isStruct(struct type *type) {
 }
 
 void type_free(struct type *type) {
-  if (type) {
-    if (type->kind >= TYPE_FUNC) {
-      free(type);
+  if (type && type->kind >= TYPE_FUNC) {
+    if (type->kind == TYPE_ALIAS) {
+      free(type->name);
     }
+
+    free(type);
   }
 }
 
@@ -282,6 +285,14 @@ struct type* aliases_get(Aliases *aliases, const char *name) {
   }
 
   return ret;
+}
+
+struct type* type_makeAlias(Pool *pool, const char *name) {
+  struct type *alias = pool_zalloc(pool, sizeof(struct type));
+
+  *alias = (struct type) {TYPE_ALIAS, str_clone(name), 0};
+
+  return alias;
 }
 
 struct type* type_makeFuncType(Pool *pool, struct type *ret, Array *args) {
@@ -368,6 +379,11 @@ void aliases_dump(Aliases *aliases, const char *title, int8_t depth) {
 
 char* type_str(struct type *type, char *buffer, size_t bufLen) {
   switch (type->kind) {
+  case TYPE_ALIAS: {
+    strncpy(buffer, type->name, bufLen);
+    return buffer;
+  }
+
   case TYPE_STRUCT: {
     Symbols *syms = ((struct stype*) type)->symbols;
     size_t wrtn = 7U;
@@ -380,12 +396,12 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
 
     buffer += wrtn;
 
-    struct symbol *sym;
-    MapIter *iter = mapiter_start(syms);
-    Pair *pair;
+    size_t len = symbols_len(syms);
+    struct spair *pair;
     bool first = true;
 
-    while((pair = mapiter_next(iter))) {
+    for (size_t i = 0; i < len; ++i) {
+      pair = *list_get(syms, i);
       if (first) {
         first = false;
       } else {
@@ -399,8 +415,8 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
         buffer += 2;
       }
 
-      strncpy(buffer, (char*) pair->key, bufLen - wrtn);
-      wrtn += strlen((char*) pair->key);
+      strncpy(buffer, (char*) pair->id, bufLen - wrtn);
+      wrtn += strlen((char*) pair->id);
       
       buffer = base + wrtn;
 
@@ -415,8 +431,7 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
       }
       
       buffer = base + wrtn;
-      sym = (struct symbol*) pair->value;
-      type_str(sym->type, buffer, bufLen - wrtn);
+      type_str(pair->sym->type, buffer, bufLen - wrtn);
       wrtn += strlen(buffer);
       
       if (wrtn >= bufLen) {
@@ -424,12 +439,9 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
       }
       
       buffer = base + wrtn;
-      pair_free(pair);
     }
 
     strncpy(buffer, ")", bufLen - wrtn);
-
-    mapiter_free(iter);
 
     return base;
   }

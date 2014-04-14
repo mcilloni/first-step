@@ -163,7 +163,13 @@ Pair* argTypeList(struct parser *prs, struct pnode *this) {
     first = false;
   } while (prs->nextTok->type == LEX_COMMA);
 
-  *ret = (Pair) { type(prs, this), names };
+  struct type *tp = type(prs, this);
+
+  if (tp->kind == TYPE_ALIAS) {
+    env.fail("Cannot instantiate non-specified type %s", tp->name);
+  }
+
+  *ret = (Pair) { tp, names };
 
   return ret;
 }
@@ -384,6 +390,9 @@ void alias(struct parser *prs, struct pnode *this) {
   }
 
   const char *id = (const char*) tok->value;
+  
+  pnode_alias(this, id, type_makeAlias(prs->types, id));
+
   struct type *tp = type(prs, this);
 
   if (!tp) {

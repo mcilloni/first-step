@@ -1,0 +1,12 @@
+alias lel struct (a int8, b ptr lel)
+alias vul struct (p ptr vul, b ptr lel)
+entry 
+  
+  var l lel
+  var v vul
+
+  l'b = ptr l
+  v'b = l'b
+  v'p = ptr v
+
+/entry

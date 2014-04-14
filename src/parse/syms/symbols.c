@@ -17,16 +17,38 @@
 
 #include "symbols.h"
 #include "types.h"
-#include "../utils/utils.h"
+#include <utils/utils.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-Symbols* (*symbols_new) (void) = strmap_new;
+Symbols* (*symbols_new) (void) = list_new;
+size_t (*symbols_len)(Symbols*) = list_len;
 
 bool symbols_defined(Symbols *symt, const char *id) {
-  return symbol_getBuiltin(id) || map_contains(symt, id);
+  return (bool) symbols_get(symt, id);
+}
+
+struct symbol* symbols_get(Symbols *symt, const char *id) {
+  struct spair *sp;
+  struct symbol *sym;
+
+  if ((sym = symbol_getBuiltin(id))) {
+    return sym;
+  } 
+
+  size_t len = list_len(symt);
+
+  for (size_t i = 0; i < len; ++i) {
+    sp = (struct spair*) *list_get(symt, i);
+
+    if (!strcmp(sp->id, id)) {
+      return sp->sym;
+    }
+  }
+
+  return NULL;
 }
 
 void printdepth(int8_t depth) {
@@ -36,7 +58,8 @@ void printdepth(int8_t depth) {
 }
 
 void symbols_dump(Symbols *symt, const char *title, int8_t depth) {
-  if (!symt->size) {
+  size_t len = list_len(symt);
+  if (!len) {
     return;
   }
 
@@ -51,47 +74,29 @@ void symbols_dump(Symbols *symt, const char *title, int8_t depth) {
     return;
   }
 
-  MapIter *iter = mapiter_start(symt);
-  Pair *pair;
-  const char *name;
-  struct symbol *sym;
+  struct spair *sp;
   char buf[2048];
 
-  while((pair = mapiter_next(iter))) {
+  for (size_t i = 0; i < len; ++i) {
     printdepth(depth);
-    name = (const char*) pair->key;
-    sym = (struct symbol*) pair->value;
+    sp = (struct spair*) *list_get(symt, i);
 
-    printf("%s: %s %s\n", name, (sym->decl ? "decl" : "var"), type_str(sym->type, buf, 2048));
-
-    pair_free(pair);
+    printf("%s: %s %s\n", sp->id, (sp->sym->decl ? "decl" : "var"), type_str(sp->sym->type, buf, 2048));
   }
-
-  mapiter_free(iter);
 }
 
 void symbol_free(struct symbol *sym) {
   free(sym);
 }
 
-void symbols_free(Symbols *symt) {
-  map_freeSpec(symt, NULL, (void (*)(void*)) symbol_free);  
+void spair_free(struct spair *sp) {
+  free((void*) sp->id);
+  symbol_free(sp->sym);
+  free(sp);
 }
 
-struct symbol* symbols_get(Symbols *symt, const char *id) {
-
-  struct symbol *ret;
-
-  if ((ret = symbol_getBuiltin(id))) {
-    return ret;
-  }
-
-  if (map_get(symt, id, (void**) &ret)) {
-    return ret;
-  }
-
-  return NULL;
-
+void symbols_free(Symbols *symt) {
+  list_freeAll(symt, (void (*)(void*)) spair_free);  
 }
 
 enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *type, bool decl) {
@@ -99,12 +104,14 @@ enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *t
     return SYM_EXISTS;
   }
 
-  struct symbol *sym = malloc(sizeof(struct symbol));
+  struct spair *sp = malloc(sizeof(struct spair));
+  sp->sym = malloc(sizeof(struct symbol));
 
-  *sym = (struct symbol) {decl, type};
+  *sp->sym = (struct symbol) {decl, type};
+  sp->id = str_clone(id);
 
+  list_append(symt, sp);
 
-  map_put(symt, (void*) str_clone(id), (void*) sym, FREE_KEY | FREE_VALUE);
   return SYM_ADDED;
 }
 

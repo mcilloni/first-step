@@ -17,7 +17,7 @@
 
 #include "cgen.h"
 
-#include "../utils/env.h"
+#include <utils/env.h>
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -300,12 +300,13 @@ char* ccode_csym(struct type *type, const char *name) {
     struct stype *stype = (struct stype*) type;
     fputs("struct { ", strFile);
 
-    MapIter *iter = mapiter_start(stype->symbols);
-    Pair *pair;
+    struct spair *pair;
+    size_t len = symbols_len(stype->symbols);
     char *tmp;
 
-    while((pair = mapiter_next(iter))) {
-      tmp = ccode_csym(((struct symbol*) pair->value)->type, (char*) pair->key);
+    for (size_t i = 0; i < len; ++i) {
+      pair = *list_get(stype->symbols, i);
+      tmp = ccode_csym(pair->sym->type, pair->id);
       fprintf(strFile, "%s; ", tmp);
     }
 
@@ -325,41 +326,49 @@ char* ccode_csym(struct type *type, const char *name) {
   return str;
 }
 
-/*void ccode_declAliases(Aliases *syms, FILE *out, uint8_t indent) {
+void ccode_declAliases(Aliases *syms, FILE *out, uint8_t indent) {
   
   MapIter *iter = mapiter_start(syms);
-
+  struct type *tp;
+  char *id;
   Pair *decl;
   
   while ((decl = mapiter_next(iter))) {
     file_indent(out, indent);
-    char *csym = ccode_csym((struct type*) decl->value, (char*) decl->key);
-    fprintf(out, "typedef %s;\n", csym);
-    pair_free(decl);
+    tp = (struct type*) decl->value;
+    id = (char*) decl->key;
+    char *csym = NULL;
+    
+    if (type_isStruct(tp)) {
+      csym = ccode_csym(tp, "");
+      fprintf(out, "typedef struct %s %s;\n", id, id);
+      fprintf(out, "struct %s %s;\n", id, csym + 7);
+    } else {
+      csym = ccode_csym(tp, id);
+      fprintf(out, "typedef %s;\n", csym);
+    }
+
     free(csym);
+    pair_free(decl);
   }
 
   mapiter_free(iter);
 
-}*/
+}
 
 void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
   
-  MapIter *iter = mapiter_start(syms);
+  size_t len = symbols_len(syms);
 
-  Pair *decl;
-  struct symbol *sym;
+  struct spair *decl;
   
-  while ((decl = mapiter_next(iter))) {
-    sym = (struct symbol*) decl->value;
+  for (size_t i = 0; i < len; ++i) {
+    decl = *list_get(syms, i);
     file_indent(out, indent);
-    char *csym = ccode_csym(sym->type, (char*) decl->key);
-    fprintf(out, "%s%s;\n", (sym->decl ? "extern " : ""), csym);
-    pair_free(decl);
+    char *csym = ccode_csym(decl->sym->type, decl->id);
+    fprintf(out, "%s%s;\n", (decl->sym->decl ? "extern " : ""), csym);
     free(csym);
   }
-
-  mapiter_free(iter);
 
 }
 
@@ -382,31 +391,29 @@ void ccode_genFuncHead(struct pfunc *node, FILE *out) {
 
   fprintf(tmf, "%s(", node->name);
   
-  if (!node->params->size) {
+  size_t len = symbols_len(node->params);
+
+  if (!len) {
     fputs("void", tmf);
   } else {
-    MapIter *iter = mapiter_start(node->params);
-    Pair *pair;
+    struct spair *pair;
     bool first = true;
     char *param;
     
-    while ((pair = mapiter_next(iter))) {
+    for (size_t i = 0; i < len; ++i) {
+      pair = *list_get(node->params, i);
       if (first) {
         first = false;
       } else {
         fputs(", ", tmf);
       }
 
-      param = ccode_csym(((struct symbol*) pair->value)->type, (char*) pair->key);
+      param = ccode_csym(pair->sym->type, pair->id);
 
       fputs(param, tmf);
 
       free(param);
-
-      pair_free(pair);
     }
-
-    mapiter_free(iter);
   }
  
   fclose(tmf); 
@@ -468,13 +475,13 @@ void cgen(struct pnode *tree, FILE *out) {
     env.fail("Cannot generate anything from a broken tree. Expected %s, found %s", nt_str(PR_PROGRAM), nt_str(tree->id));
   }
  
-//  ccode_declAliases(pnode_getAliases(tree), out, 0);
+  ccode_declAliases(pnode_getAliases(tree), out, 0);
   ccode_declSyms(pnode_getSyms(tree), out, 0);
 
   size_t len = array_len(tree->leaves);
   for (size_t i = 0; i < len; ++i) {
     ccode_genDef(*leaves_get(tree->leaves, i), out);
   }
-  
+
 }
 

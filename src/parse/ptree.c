@@ -113,7 +113,7 @@ void pnode_alias(struct pnode *pnode, const char *name, struct type *type) {
 
     struct type *oldType = aliases_alias(pscope->aliases, name, type);
 
-    if (oldType) {
+    if (oldType && oldType->kind != TYPE_ALIAS) {
       char buf[4096];
       env.fail("Alias %s already assigned to type %s", type_str(oldType, buf, 4096));
     }
@@ -155,15 +155,33 @@ uintmax_t pnode_getval(struct pnode *pnode) {
   return ((struct pexpr*) pnode)->value;
 }
 
+struct type* fixAlias(Pool *pool, struct pnode *root, struct type *type) {
+  if (type_isPtr(type)) {
+    struct ptype *ptype = (struct ptype*) type;
+
+    if (type_isAlias(ptype->val)) {
+      return type_makePtr(pool, pnode_getType(root, ptype->val->name));
+    }
+  }
+
+  return type;
+}
+
 void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode *assign, struct pnode *assigned) {
 
-  struct type *first = pnode_evalType(pool, assign, root);
-  struct type *second = pnode_evalType(pool, assigned, root);
+  struct type *first = fixAlias(pool, root, pnode_evalType(pool, assign, root));
+
+  struct type *second = fixAlias(pool, root, pnode_evalType(pool, assigned, root));
 
   switch(type_areCompatible(first, second)) {
-  case TYPECOMP_NO:
-    env.fail("Cannot assign an expression of type %s to a location of type %s", second->name, first->name);
+  case TYPECOMP_NO: {
+    char buf[4096];
+    char cuf[4096];
+
+    env.fail("Cannot assign an expression of type %s to a location of type %s", type_str(second, buf, 4096), type_str(first, cuf, 4096));
     break;
+  }
+
   case TYPECOMP_SMALLER:
     env.warning("Coercing an expression of type %s to smaller type %s", second->name, first->name);
     break;
@@ -268,6 +286,10 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
  
   default: 
     ret = NULL;
+  }
+
+  if (ret->kind == TYPE_ALIAS) {
+    ret = pnode_getType(scope, ret->name);
   }
 
   pexpr->type = ret;
@@ -483,16 +505,17 @@ struct pnode* pnode_new(enum nonterminals id) {
 }
 
 struct ftype* type_mkFunFromRetSyms(Pool *pool, struct type *ret, Symbols *params) {
-  size_t len = params ? params->size : 0U;
+  size_t len = params ? symbols_len(params) : 0U;
   Array *arp = array_new(len);
 
   if (len) {
 
-    MapIter *iter = mapiter_start(params);
-    Pair *pair;
+    size_t len = symbols_len(params);
+    struct spair *pair;
     
-    while ((pair = mapiter_next(iter))) {
-      array_append(arp, ((struct symbol*) pair->value)->type);
+    for (size_t i = 0; i < len; ++i) {
+      pair = *list_get(params, i);
+      array_append(arp, pair->sym->type);
     }
 
   }

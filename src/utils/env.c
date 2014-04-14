@@ -18,7 +18,7 @@
 #include "colors.h"
 #include "env.h"
 
-#if !defined(EMSCRIPTEN)
+#if !defined(EMSCRIPTEN) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   #include <execinfo.h>
 #endif
 
@@ -90,7 +90,7 @@ int default_print_fail(const char *fmt, ...) {
 
   va_end(va);
 
-#if !defined(EMSCRIPTEN)
+#if !defined(EMSCRIPTEN) && !defined(__OpenBSD__) && !defined(__NetBSD__)
   void *array[100];
   size_t size = backtrace(array, 100);
   char** strings = backtrace_symbols(array, size);

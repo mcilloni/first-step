@@ -605,8 +605,14 @@ struct pnode* expr_handleStructNode(struct parser *prs, struct pnode *root, stru
 
   struct pexpr *pexpr = (struct pexpr*) pnode_newval(PR_BINOP, LEX_APOS);
 
-  pexpr->type = sym->type;
-  ((struct pexpr*) right)->type = sym->type;
+  struct type *tp = sym->type;
+
+  if (tp->kind == TYPE_ALIAS) {
+    tp = pnode_getType(root, tp->name); //if alias, get this real struct name
+  }
+
+  pexpr->type = tp;
+  ((struct pexpr*) right)->type = tp;
  
   struct pnode *ret = (struct pnode*) pexpr;
 

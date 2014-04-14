@@ -21,6 +21,7 @@ enum type_kind {
   TYPE_FUNC,
   TYPE_PTR,
   TYPE_STRUCT,
+  TYPE_ALIAS,
   TYPE_ARRAY
 };
 
@@ -33,7 +34,7 @@ enum type_compatible {
 
 struct type {
   enum type_kind kind;
-  const char *name;
+  char *name;
   size_t size;
   bool uns;
 };
@@ -73,12 +74,14 @@ struct type* type_evalNumberType(int64_t number);
 void type_free(struct type *type);
 struct type* type_getBuiltin(const char *name); 
 struct type* type_getTypeDef(Aliases *aliases, const char *name);
+bool type_isAlias(struct type *type);
 bool type_isArray(struct type *type);
 bool type_isFunc(struct type *type);
 bool type_isPtr(struct type *type);
 bool type_isStruct(struct type *type);
 struct type* type_makeFuncType(Pool *pool, struct type *ret, Array *args);
 struct type* type_makePtr(Pool *pool, struct type *val);
+struct type* type_makeAlias(Pool *pool, const char *name);
 struct type* type_makeArray(Pool *pool, struct type *val, size_t len);
 struct type* type_makeStructType(Pool *pool, Symbols *args);
 char* type_str(struct type *type, char *buffer, size_t bufLen);
