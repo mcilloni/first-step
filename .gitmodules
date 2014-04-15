@@ -16,3 +16,6 @@
 [submodule "deps/treemap"]
 	path = deps/treemap
 	url = https://github.com/mcilloni/treemap
+[submodule "deps/btrace-obsd"]
+	path = deps/btrace-obsd
+	url = git://opensource.conformal.com/backtrace.git

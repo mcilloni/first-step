@@ -327,6 +327,33 @@ void expr_fixMinus(List *expr) {
   } 
 }
 
+bool expr_matchPar(List *expr) {
+
+  size_t len = list_len(expr);
+  struct token *tok;
+  size_t opars = 0U;
+
+  for (size_t i = 1; i < len - 1; ++i) {
+    tok = *list_get(expr, i);
+
+    switch (tok->type) {
+    case LEX_OPAR:
+      ++opars;
+      break;
+    case LEX_CPAR:
+      if (opars) {
+        --opars;
+      } else {
+        return true;
+      }
+    default:
+      break;
+    }
+  }
+
+  return false;
+}
+
 void expr_fixParentheses(List **expr) {
   size_t len = list_len(*expr);
 
@@ -338,7 +365,9 @@ void expr_fixParentheses(List **expr) {
   struct token *last = (struct token*) *list_get(*expr, len - 1);
 
   if ((first->type == LEX_OPAR) && (last->type == LEX_CPAR)) {
-    *expr = list_extract(*expr, 1LU, len - 2);
+    if (len < 5 || !expr_matchPar(*expr)) {
+      *expr = list_extract(*expr, 1LU, len - 2);
+    }
   }
 
 }
