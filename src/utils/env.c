@@ -18,7 +18,7 @@
 #include "colors.h"
 #include "env.h"
 
-#if !defined(EMSCRIPTEN) && !defined(__NetBSD__) && !defined(__OpenBSD)
+#if !defined(EMSCRIPTEN) && !defined(__NetBSD__) && !defined(__OpenBSD__)
   #include <execinfo.h>
 #elif defined(__OpenBSD__)
   #include <backtrace/backtrace.h>
