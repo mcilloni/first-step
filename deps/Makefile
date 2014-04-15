@@ -12,9 +12,15 @@ endif
 
 UNAME = $(shell uname) 
 
+ifeq ($(UNAME), OpenBSD)
+	MORETARG = btrace
+else
+	MORETARG = 
+endif
+
 .PHONY: all clean btrace
 
-all: clean btrace
+all: clean $(MORETARG)
 	$(MAKE) -C array
 	$(MAKE) -C list
 	$(MAKE) -C treemap
@@ -31,12 +37,10 @@ clean:
 	rm -rf backtrace
 
 btrace:
-ifeq ($(UNAME), OpenBSD)
 	mkdir backtrace
 	cp btrace-obsd/libbacktrace/backtrace.c backtrace
 	cp btrace-obsd/libbacktrace/backtrace.h backtrace
-	$(CC) -o backtrace/backtrace.o backtrace/backtrace.c
+	$(CC) -c -o backtrace/backtrace.o backtrace/backtrace.c
 	$(AR) rc ../build/libbacktrace.a backtrace/backtrace.o
 	$(RANLIB) ../build/libbacktrace.a
-endif
 
