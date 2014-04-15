@@ -1,5 +1,9 @@
 UNAME = $(shell uname)
 
+ifndef RANLIB
+	RANLIB = ranlib
+endif
+
 all:
 ifeq ($(UNAME), OpenBSD)
 	cp ../btrace-obsd/libbacktrace/backtrace.c .
