@@ -17,14 +17,7 @@ UNAME = $(shell uname)
 
 all: 
 	install -d ../build/
-ifeq ($(UNAME), OpenBSD)
-	mkdir backtrace
-	cp btrace-obsd/libbacktrace/backtrace.c backtrace
-	cp btrace-obsd/libbacktrace/backtrace.h backtrace
-	$(CC) -c -o backtrace/backtrace.o backtrace/backtrace.c
-	$(AR) rc ../build/libbacktrace.a backtrace/backtrace.o
-	$(RANLIB) ../build/libbacktrace.a
-endif
+	$(MAKE) -C backtrace
 	$(MAKE) -C array
 	$(MAKE) -C list
 	$(MAKE) -C treemap
@@ -32,12 +25,12 @@ endif
 
 clean:
 	$(MAKE) -C array clean
+	$(MAKE) -C backtrace clean
 	$(MAKE) -C list clean
 	$(MAKE) -C treemap clean
 	rm -f ../build/array.a
+	rm -f ../build/backtrace.a
 	rm -f ../build/list.a
 	rm -f ../build/treemap.a
-	rm -rf backtrace
 
-btrace:
 
