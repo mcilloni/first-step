@@ -1,0 +1,13 @@
+decl puts func(ptr uint8)
+
+entry
+
+  var i ptr int8
+
+  i = null
+
+  if i == null
+    puts("ABC")
+  /if
+
+/entry

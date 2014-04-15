@@ -439,21 +439,30 @@ struct pnode* expr_handleSingle(struct pnode *root, List *expr) {
 
 bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token *tok, struct pnode *left, struct pnode *right) {
   
+  struct type *tleft = pnode_evalType(prs->types, left, root);
+  struct type *tright = pnode_evalType(prs->types, right, root);
+  bool lnull = type_isNull(tleft);
+  bool rnull = type_isNull(tright);
+  bool lptr = type_isPtr(tleft);
+  bool rptr = type_isPtr(tright);
+
   switch (tok->type) {
+  case LEX_DIV:
+  case LEX_PLUS:
+  case LEX_POW:
+  case LEX_TIMES: 
+    if (lnull || rnull) {
+      return false;
+    }
   case LEX_AND:
   case LEX_DIFFERENT:
-  case LEX_DIV:
   case LEX_EQUAL:
   case LEX_MAJOR:
   case LEX_MINOR:
-  case LEX_OR:
-  case LEX_PLUS:
-  case LEX_POW:
-  case LEX_TIMES: {
-    struct type *tleft = pnode_evalType(prs->types, left, root);
-    struct type *tright = pnode_evalType(prs->types, right, root);
-    return ((tleft->kind == TYPE_NUMERIC) && (tright->kind == TYPE_NUMERIC)) || ((tleft->kind == TYPE_PTR) && (tright->kind == TYPE_PTR));
+  case LEX_OR: {
+    return ((tleft->kind == TYPE_NUMERIC) && (tright->kind == TYPE_NUMERIC)) || (lptr && rptr) || (lptr && rnull) || (lnull && rptr);
   }
+
   default:
     env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
     return false;
@@ -463,6 +472,10 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
 
 bool expr_isUnOpCompatible(struct parser *prs, struct pnode *root, struct token *tok, struct pnode *operand) {
   
+  if (type_isNull(pnode_evalType(prs->types, operand, root))) {
+    return false;
+  }
+
   switch (tok->type) {
   case LEX_DEC:
   case LEX_INC:

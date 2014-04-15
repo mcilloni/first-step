@@ -23,6 +23,8 @@ enum symbols_resp {
   SYM_EXISTS
 };
 
+extern struct symbol *sym_null;
+
 extern Symbols* (*symbols_new) (void);
 enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *type, bool decl);
 extern size_t (*symbols_len)(Symbols*);

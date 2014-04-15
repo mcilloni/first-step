@@ -120,6 +120,12 @@ extern struct type type_bool;
 struct symbol sym_false = { false, &type_bool };
 struct symbol sym_true = { false, &type_bool };
 
+extern struct type nTNull;
+
+struct symbol smNll = { false, &nTNull };
+
+struct symbol *sym_null = &smNll;
+
 struct symbol* symbol_getBuiltin(const char *name) {
   if (!strcmp(name, "false")) {
     return &sym_false;
@@ -127,6 +133,10 @@ struct symbol* symbol_getBuiltin(const char *name) {
 
   if (!strcmp(name, "true")) {
     return &sym_true;
+  }
+
+  if (!strcmp(name, "null")) {
+    return sym_null;
   }
 
   return NULL;

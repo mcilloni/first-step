@@ -12,6 +12,8 @@ ifndef RANLIB
 	RANLIB=ranlib
 endif
 
+VERSION = $(shell cat ../VERSION)
+
 .PHONY: all clean
 
 all: 
@@ -21,7 +23,9 @@ all:
 	$(MAKE) -C cgen DEPTH=.
 	$(MAKE) -C helmc1 DEPTH=.
 	cp -f ../build/helmc1-build/helmrt.o ../build
-	cp -f helmc.sh ../build/helmc
+	cp -f header.txt ../build/helmc
+	echo "VERSION=$(VERSION)" >> ../build/helmc
+	cat helmc.sh >> ../build/helmc
 	chmod +x ../build/helmc
 
 clean:

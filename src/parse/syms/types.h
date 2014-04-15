@@ -16,6 +16,7 @@ enum type_kind {
   TYPE_NONE = 0,
   TYPE_BOOL,
   TYPE_NUMERIC,
+  TYPE_NULL,
 
   //free
   TYPE_FUNC,
@@ -65,6 +66,7 @@ struct stype {
 };
 
 extern struct type *type_none;
+extern struct type *type_null;
 
 typedef Map Aliases;
 
@@ -77,6 +79,7 @@ struct type* type_getTypeDef(Aliases *aliases, const char *name);
 bool type_isAlias(struct type *type);
 bool type_isArray(struct type *type);
 bool type_isFunc(struct type *type);
+bool type_isNull(struct type *type);
 bool type_isPtr(struct type *type);
 bool type_isStruct(struct type *type);
 struct type* type_makeFuncType(Pool *pool, struct type *ret, Array *args);

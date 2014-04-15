@@ -457,6 +457,7 @@ void ccode_printDefaultHeaders(FILE *out) {
   fputs("#include <stdbool.h>\n"
         "#include <stddef.h>\n"
         "#include <stdint.h>\n\n"
+        "static const void *null = NULL;\n\n"
         "typedef int8_t int8;\n"
         "typedef int16_t int16;\n"
         "typedef int32_t int32;\n"

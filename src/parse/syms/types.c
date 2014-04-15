@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
+const size_t ptrSize = 8;
+
 struct type type_bool = { TYPE_BOOL, "bool", 1, true };
 struct type type_int8 = { TYPE_NUMERIC, "int8", 1, false };
 struct type type_int16 = { TYPE_NUMERIC, "int16", 2, false };
@@ -34,50 +36,54 @@ struct type type_uint8 = { TYPE_NUMERIC, "uint8", 1, true };
 struct type type_uint16 = { TYPE_NUMERIC, "uint16", 2, true };
 struct type type_uint32 = { TYPE_NUMERIC, "uint32", 4, true };
 struct type type_uint64 = { TYPE_NUMERIC, "uint64", 8, true };
+struct type nTNull = { TYPE_NULL, "null", ptrSize, false };
 struct type nTNex = {0};
 
-size_t ptrSize = 8;
-
 struct type *type_none = &nTNex;
+struct type *type_null = &nTNull;
 
 struct type* type_getBuiltin(const char *name) {
- if (!strcmp(name, "bool")) {
-  return &type_bool;
- }
+  if (!strcmp(name, "bool")) {
+    return &type_bool;
+  }
 
- if (!strcmp(name, "int8")) {
-  return &type_int8;
- }
+  if (!strcmp(name, "int8")) {
+    return &type_int8;
+  }
 
- if (!strcmp(name, "int16")) {
-  return &type_int16;
- }
+  if (!strcmp(name, "int16")) {
+    return &type_int16;
+  }
 
- if (!strcmp(name, "int32")) {
-  return &type_int32;
- }
+  if (!strcmp(name, "int32")) {
+    return &type_int32;
+  }
 
- if (!strcmp(name, "int64")) {
-  return &type_int64;
- }
- 
- if (!strcmp(name, "uint8")) {                                                                                                                                       
-  return &type_uint8;                                                                                                           
- }                                                                                                                                    
+  if (!strcmp(name, "int64")) {
+    return &type_int64;
+  }
+   
+  if (!strcmp(name, "uint8")) { 
+    return &type_uint8;                                                                                                           
+  }                                                                                                                                    
 
- if (!strcmp(name, "uint16")) {                                                                        
-  return &type_uint16;                                                                                     
- }                                                                                                                                              
-                                                                                                                                             
- if (!strcmp(name, "uint32")) {                                                                                     
-  return &type_uint32;                                                                                                     
- }                                                                                                                      
-                                                                                                                       
- if (!strcmp(name, "uint64")) {                                                                                              
-  return &type_uint64;                                                                                  
- }                
- 
- return NULL;
+  if (!strcmp(name, "uint16")) {                                                                        
+    return &type_uint16;                                                                                     
+  }                                                                                                                                              
+                                                                                                                                               
+  if (!strcmp(name, "uint32")) {                                                                                     
+    return &type_uint32;                                                                                                     
+  }                                                                                                                      
+                                                                                                                         
+  if (!strcmp(name, "uint64")) {                                                                                              
+    return &type_uint64;                                                                                  
+  }                
+
+  if (!strcmp(name, "null")) {
+    env.fail("null is a reserved type");
+  }
+   
+  return NULL;
 }
 
 bool type_equal(struct type *a, struct type *b) {
@@ -161,6 +167,10 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
   enum type_kind first = type_isArray(assign) ? TYPE_PTR : assign->kind;
   enum type_kind second = type_isArray(assigned) ? TYPE_PTR : assigned->kind;
 
+  if (first == TYPE_NULL) {
+    return TYPECOMP_NO;
+  }
+
   if (first == second) {
 
     switch (first) { 
@@ -196,6 +206,10 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
     default:
       break;
     }
+  }
+
+  if (first == TYPE_PTR && second == TYPE_NULL) {
+    return TYPECOMP_YES;
   }
 
   return TYPECOMP_NO;
@@ -239,6 +253,10 @@ bool type_isAlias(struct type *type) {
 
 bool type_isArray(struct type *type) {
   return type->kind == TYPE_ARRAY;
+}
+
+bool type_isNull(struct type *type) {
+  return type == type_null;
 }
 
 bool type_isFunc(struct type *type) {
@@ -381,6 +399,11 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
   switch (type->kind) {
   case TYPE_ALIAS: {
     strncpy(buffer, type->name, bufLen);
+    return buffer;
+  }
+  
+  case TYPE_NULL: {
+    strncpy(buffer, "nullptr", bufLen);
     return buffer;
   }
 
