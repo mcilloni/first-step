@@ -10,6 +10,8 @@ ifndef RANLIB
 	RANLIB=ranlib
 endif
 
+.PHONY: all clean ex
+
 all: 
 	$(MAKE) -C deps
 	$(MAKE) -C src

@@ -12,6 +12,8 @@ endif
 
 UNAME = $(shell uname) 
 
+.PHONY: all clean btrace
+
 all: clean btrace
 	$(MAKE) -C array
 	$(MAKE) -C list

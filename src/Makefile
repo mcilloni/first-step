@@ -12,6 +12,8 @@ ifndef RANLIB
 	RANLIB=ranlib
 endif
 
+.PHONY: all clean
+
 all: 
 	$(MAKE) -C utils DEPTH=.
 	$(MAKE) -C lex DEPTH=.
