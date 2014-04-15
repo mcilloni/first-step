@@ -31,7 +31,7 @@ clean:
 	rm -rf backtrace
 
 btrace:
-ifeq ($(UNAME),OpenBSD)
+ifeq ($(UNAME), OpenBSD)
 	mkdir backtrace
 	cp btrace-obsd/libbacktrace/backtrace.c backtrace
 	cp btrace-obsd/libbacktrace/backtrace.h backtrace
