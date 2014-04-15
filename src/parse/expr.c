@@ -758,7 +758,8 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
         if (!expr_isBinOpCompatible(prs, root, tok, left, right)) {
           struct type *ltype = pnode_evalType(prs->types, left, root);
           struct type *rtype = pnode_evalType(prs->types, right, root);
-          env.fail("Cannot apply operator %s to types %s and %s", token_str(tok), ltype->name, rtype->name);
+          char buf[4096], cuf[4096];
+          env.fail("Cannot apply operator %s to types %s and %s", token_str(tok), type_str(ltype, buf, 4096), type_str(rtype, cuf, 4096));
         }
       }
       break;
@@ -808,7 +809,7 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
       }
 
 
-      if (pnode_isConstNum(operand)) {
+      if (tok->type != LEX_CAST && pnode_isConstNum(operand)) {
         ret = expr_evalUnary(tok, operand);
         pnode_free(operand);
         break;
