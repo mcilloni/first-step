@@ -4,7 +4,7 @@ ifndef BPATH
 
 endif
 
-UNAME = $(shell uname -o)
+UNAME = $(shell uname)
 
 INCLUDES := -I$(BPATH)/../ -I$(BPATH)/../parse/ -I$(BPATH)/../../deps/ -g
 OBJDIR := $(BPATH)/../../build

@@ -10,7 +10,7 @@ ifndef RANLIB
 	RANLIB=ranlib
 endif
 
-UNAME = $(shell uname -o) 
+UNAME = $(shell uname) 
 
 all: clean btrace
 	$(MAKE) -C array

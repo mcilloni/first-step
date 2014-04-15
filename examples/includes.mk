@@ -7,7 +7,7 @@ OBJDIR := $(BPATH)/../../build/examples
 LIBS := -L$(OBJDIR)/../
 LDFLAGS := -rdynamic -lparse -llex -lsyms -lutils -ltreemap -llist -larray -g
 
-UNAME = $(shell uname -o)
+UNAME = $(shell uname)
 
 ifeq ($(UNAME),OpenBSD)
 	LDFLAGS += -lbacktrace
