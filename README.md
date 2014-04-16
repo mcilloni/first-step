@@ -88,6 +88,8 @@ The compiler is structured in this way:
 /src/utils: miscellaneous utilities of some sort
 /src/helmc.sh: a Bash script which is used to create /build/helmc. This script takes care of invocation of helmc1 and compiling of the generated C code.
 /deps: contains some basic data structures used by the compiler, like array, list and treemap, and a backtrace lib for OpenBSD.
+/examples: examples and basic tests about the utils, lex and parse libraries. This contains the utility helmtree and can be built using make ex (or gmake on BSD)
+/tests: sample Helm programs.
 
 
 
