@@ -502,6 +502,8 @@ const char* tokentype_str(enum token_type type) {
     return "NONE";
   case LEX_ALIAS:
     return "alias";
+  case LEX_AND:
+    return "and";
   case LEX_APOS:
     return "'";
   case LEX_ASSIGN:
@@ -558,6 +560,8 @@ const char* tokentype_str(enum token_type type) {
     return "[";
   case LEX_OPAR:
     return "(";
+  case LEX_OR:
+    return "or";
   case LEX_PTR:
     return "ptr";
   case LEX_PLUS:

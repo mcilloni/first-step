@@ -465,7 +465,9 @@ void ccode_printDefaultHeaders(FILE *out) {
         "typedef uint8_t uint8;\n"
         "typedef uint16_t uint16;\n"
         "typedef uint32_t uint32;\n"
-        "typedef uint64_t uint64;\n\n", out);
+        "typedef uint64_t uint64;\n"
+        "typedef uintptr_t uintptr;\n"
+        "typedef void* data;\n\n", out);
 }
 
 void cgen(struct pnode *tree, FILE *out) {

@@ -65,6 +65,7 @@ struct stype {
   Symbols *symbols;
 };
 
+extern struct type *type_data;
 extern struct type *type_none;
 extern struct type *type_null;
 
@@ -78,8 +79,10 @@ struct type* type_getBuiltin(const char *name);
 struct type* type_getTypeDef(Aliases *aliases, const char *name);
 bool type_isAlias(struct type *type);
 bool type_isArray(struct type *type);
+bool type_isBool(struct type *type);
 bool type_isFunc(struct type *type);
 bool type_isNull(struct type *type);
+bool type_isNumeric(struct type *type);
 bool type_isPtr(struct type *type);
 bool type_isStruct(struct type *type);
 struct type* type_makeFuncType(Pool *pool, struct type *ret, Array *args);

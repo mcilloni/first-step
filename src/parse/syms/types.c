@@ -25,8 +25,11 @@
 #include <stdio.h>
 #include <string.h>
 
-const size_t ptrSize = 8;
+const size_t ptrSize = sizeof(uintptr_t);
 
+struct type nTNex = {0};
+struct type nTNull = { TYPE_NULL, "null", ptrSize, false };
+struct ptype nPTDat = {{ TYPE_PTR, "data", ptrSize, false }, &nTNex };
 struct type type_bool = { TYPE_BOOL, "bool", 1, true };
 struct type type_int8 = { TYPE_NUMERIC, "int8", 1, false };
 struct type type_int16 = { TYPE_NUMERIC, "int16", 2, false };
@@ -36,9 +39,9 @@ struct type type_uint8 = { TYPE_NUMERIC, "uint8", 1, true };
 struct type type_uint16 = { TYPE_NUMERIC, "uint16", 2, true };
 struct type type_uint32 = { TYPE_NUMERIC, "uint32", 4, true };
 struct type type_uint64 = { TYPE_NUMERIC, "uint64", 8, true };
-struct type nTNull = { TYPE_NULL, "null", ptrSize, false };
-struct type nTNex = {0};
+struct type type_uintptr = { TYPE_NUMERIC, "uintptr", ptrSize, true };
 
+struct type *type_data = (struct type*) &nPTDat;
 struct type *type_none = &nTNex;
 struct type *type_null = &nTNull;
 
@@ -78,6 +81,14 @@ struct type* type_getBuiltin(const char *name) {
   if (!strcmp(name, "uint64")) {                                                                                              
     return &type_uint64;                                                                                  
   }                
+
+  if (!strcmp(name, "uintptr")) {
+    return &type_uintptr;
+  }
+
+  if (!strcmp(name, "data")) {
+    return type_data;
+  }
 
   if (!strcmp(name, "null")) {
     env.fail("null is a reserved type");
@@ -198,6 +209,10 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
     }   
 
     case TYPE_PTR: {
+      if (assign == type_data) {
+        return TYPECOMP_YES;
+      }
+
       struct ptype *ptr1 = (struct ptype*) assign;
       struct ptype *ptr2 = (struct ptype*) assigned;
 
@@ -255,8 +270,16 @@ bool type_isArray(struct type *type) {
   return type->kind == TYPE_ARRAY;
 }
 
+bool type_isBool(struct type *type) {
+  return type->kind == TYPE_BOOL;
+}
+
 bool type_isNull(struct type *type) {
   return type == type_null;
+}
+
+bool type_isNumeric(struct type *type) {
+  return type->kind == TYPE_NUMERIC;
 }
 
 bool type_isFunc(struct type *type) {
@@ -272,7 +295,7 @@ bool type_isStruct(struct type *type) {
 }
 
 void type_free(struct type *type) {
-  if (type && type->kind >= TYPE_FUNC) {
+  if (type && type != type_data && type->kind >= TYPE_FUNC) {
     if (type->kind == TYPE_ALIAS) {
       free(type->name);
     }
@@ -525,6 +548,11 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
   case TYPE_ARRAY:
   case TYPE_PTR: {
     if (bufLen < 10) {
+      return buffer;
+    }
+
+    if (type == type_data) {
+      strncpy(buffer, "data", bufLen);
       return buffer;
     }
 

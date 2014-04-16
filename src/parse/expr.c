@@ -455,12 +455,15 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
       return false;
     }
   case LEX_AND:
+  case LEX_OR: 
+    if (type_isBool(tleft) && type_isBool(tright)) {
+      return true;
+    }
   case LEX_DIFFERENT:
   case LEX_EQUAL:
   case LEX_MAJOR:
-  case LEX_MINOR:
-  case LEX_OR: {
-    return ((tleft->kind == TYPE_NUMERIC) && (tright->kind == TYPE_NUMERIC)) || (lptr && rptr) || (lptr && rnull) || (lnull && rptr);
+  case LEX_MINOR: {
+    return (type_isNumeric(tleft) && type_isNumeric(tright)) || (lptr && rptr) || (lptr && rnull) || (lnull && rptr);
   }
 
   default:
