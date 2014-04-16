@@ -14,5 +14,6 @@ clean:
 	rm $(BINS)
 
 %: %.helm 
-	$(HELMC) $<  
+	@echo [HELMC] $<
+	@$(HELMC) $<  
 
