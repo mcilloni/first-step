@@ -109,7 +109,12 @@ function compile {
 
     OTMP="${2}.o"
 
-    $CC -o "$OTMP" -c "$CTMP" -Wno-parentheses-equality -Wno-incompatible-pointer-types -g
+    if [[ $CC == "clang" ]]
+    then
+      $CC -o "$OTMP" -c "$CTMP" -Wno-parentheses-equality -Wno-incompatible-pointer-types -g
+    else 
+      $CC -o "$OTMP" -c "$CTMP" -w -g
+    fi
 
     OBJS+=( "$OTMP" )
 
