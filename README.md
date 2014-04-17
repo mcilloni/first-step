@@ -15,7 +15,7 @@ The codebase is still in its early phase, and bugs are frequent.
 
 helmc currently implements:
 
-- integers
+- integers (int8, int16, int32, int64, uint8, uint16, uint32, uint64, uintptr)
 - assignments
 - arithmetical expressions
 - functions
@@ -25,6 +25,10 @@ helmc currently implements:
 - external declarations of symbols (using the keyword *decl*)
 - type coercion (through the cast<*type*> operator)
 - size(*type*) operator 
+- naïve type inference (with assignment)
+- bool type with true and false keywords
+- null identifier, assignable to every pointer type.
+- data type, a special pointer type capable of holding a pointer of any type (like C pointers to void) 
 
 helmc will implement someday:
 
@@ -32,7 +36,7 @@ helmc will implement someday:
 - vaguely meaningful diagnostic messages
 
 helmc will not implement:
-- syntactical sugar, i.e type inference, declare and assign (var i int8 = 6) and anything not essential to bootstrap the future Helm compiler.
+- syntactical sugar, i.e anything not essential to bootstrap the future Helm compiler.
 - modules, because they are a complex feature that is not necessary for the sake of bootstrapping a new compiler.
 - good diagnostics of any sort
 

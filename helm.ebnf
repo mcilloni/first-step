@@ -22,12 +22,12 @@ while = 'while', expr, stmtEnd, body, '/while'
 
 elseBlock = 'else', body
 
-var = 'var', (mulVar | singleVar)
-decl = 'decl', mulVar
+var = 'var', singleVar
+decl = 'decl', declType
 stmtEnd = newLine | ';'
 
-mulVar = varDecl,{(',', varDecl)}, type
-singleVar = assign | (id, type)
+singleVar = assign | declType
+declType = id, type
 
 varDecl = id | assign
 

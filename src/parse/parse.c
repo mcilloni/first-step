@@ -323,6 +323,14 @@ struct type* type(struct parser *prs, struct pnode *this) {
   }
 }
 
+bool nextIsEndEofAware(struct token *tok) {
+  if (!tok || tok->type == LEX_NEWLINE) {
+    return true;
+  }
+
+  return false;
+}
+
 void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
 
   struct token *tok = parser_getTok(prs);
@@ -341,7 +349,30 @@ void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
     env.fail("%s is a reserved identifier", id);
   }
 
-  struct type *tp = type(prs, this);
+  struct type *tp = NULL;
+  
+  if (!prs->nextTok) {
+    env.fail("Unexpected EOF, expected '=' or a type");
+  }
+
+  struct pnode *extra = NULL;
+
+  if (prs->nextTok->type == LEX_ASSIGN) {
+    if (decl) {
+      env.fail("Cannot assign on declaration to a decl variable");
+    }
+
+    parser_getTok(prs); //discard '='
+    bodyender be = NULL;
+    if (this->id == PR_PROGRAM) {
+      be = nextIsEndEofAware;
+    }
+
+    extra = expr(prs, this, be);
+    tp = pnode_evalType(prs->types, extra, this);
+  } else {    
+    tp = type(prs, this);
+  }
 
   if (!tp) {
     char buf[2048];
@@ -351,10 +382,17 @@ void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
   struct type *declType = pnode_symbolType(this,id);
 
   enum symbols_resp resp;
+  bool res = false;
+  
+  if (extra) {
+    res = pnode_addSymbolAndInit(this, id, tp, extra, &resp);
+  } else {
+    bool (*symreg)(struct pnode*, const char*, struct type*, enum symbols_resp*) = decl ? pnode_declSymbol : pnode_addSymbol;
 
-  bool (*symreg)(struct pnode*, const char*, struct type*, enum symbols_resp*) = decl ? pnode_declSymbol : pnode_addSymbol;
+    res = symreg(this, id, tp, &resp);
+  }
 
-  if (!symreg(this, id, tp, &resp)) {
+  if (!res) {
     env.fail("Internal error, cannot add symbol to table");
   }
 

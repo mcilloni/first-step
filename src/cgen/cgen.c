@@ -366,7 +366,15 @@ void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
     decl = *list_get(syms, i);
     file_indent(out, indent);
     char *csym = ccode_csym(decl->sym->type, decl->id);
-    fprintf(out, "%s%s;\n", (decl->sym->decl ? "extern " : ""), csym);
+    fprintf(out, "%s%s", (decl->sym->decl ? "extern " : ""), csym);
+    if (decl->sym->optData) {
+      if (decl->sym->decl) {
+        env.fail("Cannot assign anything to extern variable");
+      }
+      fputs(" = ", out);
+      ccode_genRecExpr((struct pnode*) decl->sym->optData, out);
+    }
+    fputs(";\n", out);
     free(csym);
   }
 

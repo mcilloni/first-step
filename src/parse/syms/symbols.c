@@ -57,7 +57,7 @@ void printdepth(int8_t depth) {
   }
 }
 
-void symbols_dump(Symbols *symt, const char *title, int8_t depth) {
+void symbols_dump(Symbols *symt, Pool *pool, const char *title, void (*dumpExtra)(Pool*, void*, uint64_t), int8_t depth) {
   size_t len = list_len(symt);
   if (!len) {
     return;
@@ -82,11 +82,21 @@ void symbols_dump(Symbols *symt, const char *title, int8_t depth) {
     sp = (struct spair*) *list_get(symt, i);
 
     printf("%s: %s %s\n", sp->id, (sp->sym->decl ? "decl" : "var"), type_str(sp->sym->type, buf, 2048));
+
+    if (sp->sym->optData) {
+      dumpExtra(pool, sp->sym->optData, depth + 1);
+    }
   }
 }
 
 void symbol_free(struct symbol *sym) {
-  free(sym);
+  if (sym) {
+    if (sym->freeOpt) {
+      sym->freeOpt(sym->optData);
+    }
+
+    free(sym);
+  }
 }
 
 void spair_free(struct spair *sp) {
@@ -100,6 +110,10 @@ void symbols_free(Symbols *symt) {
 }
 
 enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *type, bool decl) {
+  return symbols_registerWithOpt(symt, id, type, NULL, NULL, decl);
+}
+
+enum symbols_resp symbols_registerWithOpt(Symbols *symt, const char *id, struct type *type, void *optData, void (*freeOpt)(void*), bool decl) {
   if (symbols_defined(symt, (void*) id)) {
     return SYM_EXISTS;
   }
@@ -107,7 +121,7 @@ enum symbols_resp symbols_register(Symbols *symt, const char *id, struct type *t
   struct spair *sp = malloc(sizeof(struct spair));
   sp->sym = malloc(sizeof(struct symbol));
 
-  *sp->sym = (struct symbol) {decl, type};
+  *sp->sym = (struct symbol) {decl, type, optData, freeOpt};
   sp->id = str_clone(id);
 
   list_append(symt, sp);

@@ -31,7 +31,7 @@ void pnode_addLeaf(struct pnode *pnode, struct pnode *leaf) {
   array_append(pnode->leaves, leaf);
 }
 
-bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp, bool decl) {
+bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type, struct pnode *init, enum symbols_resp *resp, bool decl) {
   if (!pnode) {
     return false;
   }
@@ -39,7 +39,7 @@ bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type,
   enum symbols_resp res;
 
   if (!pnode_isScope(pnode)) {
-    bool ret = pnode_addSymbolReal(pnode->root, id, type, &res, decl);
+    bool ret = pnode_addSymbolReal(pnode->root, id, type, init, &res, decl);
     
     if (resp) {
       *resp = res;
@@ -52,7 +52,7 @@ bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type,
     env.fail("Identifier %s is already a type identifier");
   }
 
-  res = symbols_register(((struct pscope*) pnode)->symbols, id, type, decl);
+  res = symbols_registerWithOpt(((struct pscope*) pnode)->symbols, id, type, init, (void (*)(void*)) pnode_free, decl);
   
   if (resp) {
     *resp = res;
@@ -62,11 +62,15 @@ bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type,
 }
 
 bool pnode_addSymbol(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp) {
-  return pnode_addSymbolReal(pnode, id, type, resp, false);
+  return pnode_addSymbolReal(pnode, id, type, NULL, resp, false);
+}
+
+bool pnode_addSymbolAndInit(struct pnode *pnode, const char *id, struct type *type, struct pnode *init, enum symbols_resp *resp) {
+  return pnode_addSymbolReal(pnode, id, type, init, resp, false);
 }
 
 bool pnode_declSymbol(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp) {
-  return pnode_addSymbolReal(pnode, id, type, resp, true);
+  return pnode_addSymbolReal(pnode, id, type, NULL, resp, true);
 }
 
 Symbols* pnode_getFuncParams(struct pnode *pnode) {
@@ -617,7 +621,7 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
     char buf[2048];    
     printf(" %s of type %s\n", pfunc->name, type_str((struct type*) pfunc->ftype, buf, 2048));
 
-    symbols_dump(pfunc->params, "Parameters:", depth + 1); 
+    symbols_dump(pfunc->params, pool, "Parameters:", (void (*)(Pool *, void *, uint64_t)) pnode_dump, depth + 1); 
   } else { 
     putchar('\n');
   }
@@ -625,7 +629,7 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
   if (pnode_isScope(val)) {
     struct pscope *pscope = (struct pscope*) val;
 
-    symbols_dump(pscope->symbols, "Symbols:", depth + 1);
+    symbols_dump(pscope->symbols, pool, "Symbols:", (void (*)(Pool *, void *, uint64_t)) pnode_dump, depth + 1);
     aliases_dump(pscope->aliases, "Aliases:", depth + 1);
   }
 

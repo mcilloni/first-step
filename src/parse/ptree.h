@@ -40,6 +40,7 @@ extern struct pnode *expr_empty;
 
 void pnode_addLeaf(struct pnode *pnode, struct pnode *leaf);
 bool pnode_addSymbol(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp);
+bool pnode_addSymbolAndInit(struct pnode *pnode, const char *id, struct type *type, struct pnode *init, enum symbols_resp *resp);
 bool pnode_declSymbol(struct pnode *pnode, const char *id, struct type *type, enum symbols_resp *resp);
 struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope);
 void pnode_free(struct pnode *pnode);
