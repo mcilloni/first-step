@@ -27,7 +27,7 @@ bool isStrAlnum(const char *str) {
   size_t len = strlen(str);
 
   for(size_t i = 0; i < len; ++i) {
-    if(!isalnum(str[i])) {
+    if(!isalnum((int) str[i])) {
       return false;
     }
   }
@@ -53,7 +53,7 @@ bool isStrNum(const char *str) {
   size_t i;
 
   for (i = 1; i < len; ++i) {
-    if(!isdigit(str[i])) {
+    if(!isdigit((int) str[i])) {
       return false;
     }
   }
