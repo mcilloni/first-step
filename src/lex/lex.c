@@ -105,15 +105,15 @@ void lexer_discardLine(struct lexer *lex) {
       }
 }
 
-bool ch_isPar(char c) {
+bool ch_isPar(signed char c) {
   return c == '(' || c == ')' || c == '[' || c == ']';
 }
 
-bool ch_id(char c) {
+bool ch_id(signed char c) {
   return isalnum(c) || c == '_';
 }
 
-bool ch_sym(char c) {
+bool ch_sym(signed char c) {
   return c != '_' && ispunct(c);
 }
 
