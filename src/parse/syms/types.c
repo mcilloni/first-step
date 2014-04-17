@@ -25,7 +25,9 @@
 #include <stdio.h>
 #include <string.h>
 
-const size_t ptrSize = sizeof(uintptr_t);
+//According to gcc, a const value is not good inside an initializer. 
+//According to me, gcc is a huge pile of crap.
+#define ptrSize  sizeof(uintptr_t)
 
 struct type nTNex = {0};
 struct type nTNull = { TYPE_NULL, "null", ptrSize, false };

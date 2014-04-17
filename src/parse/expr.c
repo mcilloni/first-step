@@ -625,10 +625,9 @@ struct pnode* expr_handleStructNode(struct parser *prs, struct pnode *root, stru
 
   struct pnode *right = pnode_newval(PR_STRUCTID, (uintmax_t) str_clone(member));
 
-  struct type *ltype = pnode_evalType(prs->types, left, root), *otype = NULL;
+  struct type *ltype = pnode_evalType(prs->types, left, root);
 
   if (type_isPtr(ltype)) {
-    otype = ltype;
     ltype = ((struct ptype*) ltype)->val;
   }
 
