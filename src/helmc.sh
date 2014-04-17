@@ -46,14 +46,19 @@ trap cleanup EXIT
 if test -z "$CC" 
 then
 
-  if exists 'clang'
+  if [[ $(uname) == *CYGWIN* ]]
   then
-    CC='clang'
-  elif exists 'gcc'
-  then
-    CC='gcc'
+    CC=gcc
   else
-    CC='cc'
+    if exists 'clang'
+    then
+      CC='clang'
+    elif exists 'gcc'
+    then
+      CC='gcc'
+    else
+      CC='cc'
+    fi
   fi
 
 fi
