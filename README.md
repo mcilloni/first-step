@@ -66,8 +66,8 @@ You don't. I've used POSIX functionality here and there (like backtraces, fmemop
 
 > How do I compile this on Windows with Cygwin?
 
-I think this could work on cygwin. Try using CC="gcc" make in a cygwin prompt, you can omit the CC="gcc" part if you have a working clang for cygwin installed.
-You will also need to change "clang" with "gcc" inside firststep.c .
+This works on cygwin, just don't use clang because the Cygwin-shipped version of it is old as hell.
+helmc automatically uses gcc instead of clang on Cygwin because of this.
 
 > How do I compile this on OpenBSD?
 
