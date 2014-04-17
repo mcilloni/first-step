@@ -44,7 +44,7 @@ bool isStrNum(const char *str) {
   }
 
   char first = *str;
-  bool firstDigit = isdigit(first);
+  bool firstDigit = isdigit((int) first);
 
   if(first != '-' && first != '+' && !firstDigit) {
     return false;

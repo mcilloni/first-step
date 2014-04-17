@@ -11,7 +11,7 @@ BINS = $(patsubst %.helm,%,$(SRCS))
 all: $(BINS)
 
 clean:
-	rm $(BINS)
+	rm -f $(BINS)
 
 %: %.helm 
 	@echo [HELMC] $<

@@ -162,7 +162,7 @@ bool stok(struct lexer *lex, char *data, size_t max) {
       
       if(!lex->inString) {
 
-        if (isblank(ch)) {
+        if (isblank((int) ch)) {
           if(i) {
             break;
           } else {

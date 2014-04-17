@@ -37,7 +37,7 @@ int std_printout(FILE *out, const char *level, const char *color, const char *fm
 
   int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET, color, level);
   if (env.line) {
-    ret += fprintf(out, ", line %zu): ", *lastLineno);
+    ret += fprintf(out, ", line %ju): ", *lastLineno);
   } else {
     ret += fputs("): ", out);
   }

@@ -77,7 +77,7 @@ struct line* line_read(FILE *file, enum errors *err) {
         break;
       }
 
-      if(!ret->len && isblank(ch)) {
+      if(!ret->len && isblank((int) ch)) {
         break;
       }
 
