@@ -177,7 +177,7 @@ bool stok(struct lexer *lex, char *data, size_t max) {
           continue;
         }
 
-        if ((ch_isPar(lex->peek) || (ch_id(ch) && ch_sym(lex->peek)) || (ch_sym(ch) && ch_id(lex->peek)))) {
+        if (ch_isPar(ch) || ch_isPar(lex->peek) || (ch_id(ch) && ch_sym(lex->peek)) || (ch_sym(ch) && ch_id(lex->peek))) {
           break;
         }
 
