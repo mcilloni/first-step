@@ -12,4 +12,4 @@ ifeq ($(UNAME), OpenBSD)
 endif
 
 clean:
-	rm backtrace.o
+	rm -f backtrace.o

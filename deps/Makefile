@@ -18,6 +18,7 @@ UNAME = $(shell uname)
 all: 
 	install -d ../build/
 	$(MAKE) -C backtrace
+	$(MAKE) -C memstream
 	$(MAKE) -C array
 	$(MAKE) -C list
 	$(MAKE) -C treemap
@@ -26,6 +27,7 @@ all:
 clean:
 	$(MAKE) -C array clean
 	$(MAKE) -C backtrace clean
+	$(MAKE) -C memstream clean
 	$(MAKE) -C list clean
 	$(MAKE) -C treemap clean
 	rm -f ../build/array.a

@@ -9,6 +9,10 @@ LDFLAGS := -rdynamic -lparse -llex -lsyms -lutils -ltreemap -llist -larray -g
 
 UNAME = $(shell uname)
 
+ifeq ($(UNAME),NetBSD)
+	LDFLAGS += -lmemstream
+endif
+
 ifeq ($(UNAME),OpenBSD)
 	LDFLAGS += -lbacktrace
 endif
@@ -17,4 +21,6 @@ ifeq ($(UNAME),FreeBSD)
 	LDFLAGS += -lexecinfo
 endif
 
-
+ifeq ($(UNAME),Darwin)
+	LDFLAGS += -lmemstream
+endif
