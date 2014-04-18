@@ -1,21 +1,9 @@
-[submodule "treemap"]
-	path = treemap
-	url = https://github.com/mcilloni/treemap.git
-[submodule "array"]
-	path = array
-	url = https://github.com/mcilloni/array.git
-[submodule "list"]
-	path = list
-	url = https://github.com/mcilloni/list
 [submodule "deps/array"]
 	path = deps/array
-	url = https://github.com/mcilloni/array
+	url = git://github.com/mcilloni/array
 [submodule "deps/list"]
 	path = deps/list
-	url = https://github.com/mcilloni/list
+	url = git://github.com/mcilloni/list
 [submodule "deps/treemap"]
 	path = deps/treemap
-	url = https://github.com/mcilloni/treemap
-[submodule "deps/btrace-obsd"]
-	path = deps/btrace-obsd
-	url = git://opensource.conformal.com/backtrace.git
+	url = git://github.com/mcilloni/treemap
