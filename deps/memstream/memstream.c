@@ -120,22 +120,30 @@ static int memstream_write(void *cookie, const char *buf, int count)
     return count;
 }
 
-static fpos_t memstream_seek(void *cookie, fpos_t offset, int whence)
+static off_t memstream_seek(void *cookie, off_t offset, int whence)
 {
-    struct memstream *ms= (struct memstream *)cookie;
-    fpos_t pos= 0;							memstream_check(ms);
-									memstream_info(("memstream_seek %p %i %i\n", ms, (int)offset, whence));
-    switch (whence) {
-	case SEEK_SET:	pos= offset;			break;
-	case SEEK_CUR:	pos= ms->position + offset;	break;
-	case SEEK_END:	pos= ms->size + offset;		break;
-	default:	errno= EINVAL;			return -1;
-    }
-    if (pos >= ms->capacity) memstream_grow(ms, pos);
-    ms->position= pos;
-    if (ms->size < ms->position) *ms->sizeloc= ms->size= ms->position;	memstream_print(ms);  memstream_info(("=> %i\n", (int)pos));
-									assert(ms->size < ms->capacity && ms->contents[ms->size] == 0);
-    return pos;
+  struct memstream *ms= (struct memstream *)cookie;
+  off_t pos = 0;
+  memstream_check(ms);		
+  switch (whence) {
+	case SEEK_SET:	
+    pos = offset;			
+    break;
+	case SEEK_CUR:	
+    pos = ms->position + offset;	
+    break;
+	case SEEK_END:	
+    pos = ms->size + offset;		
+    break;
+	default:	
+    errno = EINVAL;			
+    return -1;
+  }
+  if (pos >= ms->capacity) memstream_grow(ms, pos);
+  ms->position= pos;
+  if (ms->size < ms->position) *ms->sizeloc= ms->size= ms->position;	memstream_print(ms);  memstream_info(("=> %i\n", (int)pos));
+                assert(ms->size < ms->capacity && ms->contents[ms->size] == 0);
+  return pos;
 }
 
 static int memstream_close(void *cookie)
