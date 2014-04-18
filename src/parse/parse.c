@@ -357,6 +357,16 @@ void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
 
   struct pnode *extra = NULL;
 
+  if (prs->nextTok->type != LEX_ASSIGN) {
+    tp = type(prs, this); //side effect will change nextTok, so I should stop changing the line below with an else breaking everything
+    if (!tp) {
+      char buf[2048];
+      env.fail("Cannot declare symbol %s of not defined type %s", id, type_str(tp, buf, 2048));
+    }
+  }
+
+  struct type *assType;
+
   if (prs->nextTok->type == LEX_ASSIGN) {
     if (decl) {
       env.fail("Cannot assign on declaration to a decl variable");
@@ -369,15 +379,27 @@ void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
     }
 
     extra = expr(prs, this, be);
-    tp = pnode_evalType(prs->types, extra, this);
-  } else {    
-    tp = type(prs, this);
-  }
+    assType = pnode_evalType(prs->types, extra, this);
 
-  if (!tp) {
-    char buf[2048];
-    env.fail("Cannot declare symbol %s of not defined type %s", id, type_str(tp, buf, 2048));
-  }
+    if (!tp) {
+      tp = assType;
+    } else {
+      switch (type_areCompatible(tp, assType)) {
+      case TYPECOMP_NO: {
+        char buf[4096], cuf[4096];
+        env.fail("Cannot assign expression of type %s to type %s", type_str(assType, cuf, 4096), type_str(tp, buf, 4096));
+        break;
+      }
+      case TYPECOMP_SMALLER: {
+        char buf[4096], cuf[4096];
+        env.warning("Assigning expression of type %s to smaller type %s", type_str(assType, cuf, 4096), type_str(tp, buf, 4096));
+        break;
+      }
+      default:
+        break;
+      }
+    }
+  }    
 
   struct type *declType = pnode_symbolType(this,id);
 

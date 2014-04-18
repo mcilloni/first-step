@@ -16,4 +16,5 @@ var a = 8
 
 entry
   var b = ptr a
+  var c int8 = 16
 /entry
