@@ -24,6 +24,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(__NetBSD__) || (defined(__APPLE__) && defined(__MACH__))
+  #include <memstream/memstream.h>
+#endif
+
 char* ccode_csym(struct type *type, const char *name);
 
 void file_indent(FILE *out, uint8_t indent) {

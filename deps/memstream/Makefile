@@ -5,11 +5,11 @@ ifndef RANLIB
 endif
 
 ifeq ($(UNAME), NetBSD)
-	NEEDED =
+	NEEDED = yes
 endif
 
 ifeq ($(UNAME), Darwin)
-	NEEDED = 
+	NEEDED = yes
 endif
 
 all:
