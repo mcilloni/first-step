@@ -18,7 +18,7 @@ all: dir $(BINS)
 
 clean:
 	rm -rf $(OUTDIR)
-	make -C syms clean
+	$(MAKE) -C syms clean
 
 dir:
 	mkdir -p $(OUTDIR)
