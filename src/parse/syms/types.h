@@ -9,7 +9,6 @@
 
 #include <array/array.h>
 #include <list/pool.h>
-#include <treemap/map.h>
 
 enum type_kind {
   //don't free
@@ -65,11 +64,16 @@ struct stype {
   Symbols *symbols;
 };
 
+struct apair {
+  char *name;
+  struct type *type;
+};
+
 extern struct type *type_data;
 extern struct type *type_none;
 extern struct type *type_null;
 
-typedef Map Aliases;
+typedef List Aliases;
 
 enum type_compatible type_areCompatible(struct type *assign, struct type *assigned);
 struct type* type_evalLarger(struct type *first, struct type *second);
@@ -96,6 +100,7 @@ extern Aliases* (*aliases_new)(void);
 void* aliases_alias(Aliases *aliases, const char *alias, struct type *type);
 void aliases_dump(Aliases *aliases, const char *title, int8_t depth);
 void aliases_free(Aliases *aliases);
+extern size_t (*aliases_len)(Aliases *aliases);
 
 struct type* aliases_get(Aliases *aliases, const char *name);
 

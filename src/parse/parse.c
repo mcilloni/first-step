@@ -21,6 +21,8 @@
 #include <utils/env.h>
 #include <utils/utils.h>
 
+#include <treemap/map.h>
+
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,9 +57,6 @@ struct token* parser_getTok(struct parser *prs) {
 
   return tok;
 }
-
-//there is no need for declarations to be into the syntax tree, so this placeholder will returned by stmt() and then discarded.
-struct pnode declaration_fake_node = {0};
 
 struct type* idType(struct parser *prs, struct pnode *this) {
   struct token *type = parser_getTok(prs);
@@ -331,7 +330,7 @@ bool nextIsEndEofAware(struct token *tok) {
   return false;
 }
 
-void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
+struct pnode* varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
 
   struct token *tok = parser_getTok(prs);
 
@@ -427,14 +426,16 @@ void varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) {
     }
   }
 
+  return pnode_newval(PR_DECLARATION, (uintmax_t) str_clone(id));
+
 }
 
-void var(struct parser *prs, struct pnode *this) {
-  varDeclGeneric(prs, this, false);
+struct pnode* var(struct parser *prs, struct pnode *this) {
+  return varDeclGeneric(prs, this, false);
 }
 
-void decl(struct parser *prs, struct pnode *this) {
-  varDeclGeneric(prs, this, true);
+struct pnode* decl(struct parser *prs, struct pnode *this) {
+  return varDeclGeneric(prs, this, true);
 }
 
 void alias(struct parser *prs, struct pnode *this) {
@@ -609,8 +610,7 @@ struct pnode* stmt(struct parser *prs, struct pnode *root) {
   switch (prs->nextTok->type) {
   case LEX_DECL: {
     parser_getTok(prs); //discard
-    decl(prs, root);
-    ret = &declaration_fake_node;
+    ret = decl(prs, root);
     break;
   }
 
@@ -628,8 +628,7 @@ struct pnode* stmt(struct parser *prs, struct pnode *root) {
 
   case LEX_VAR: {
     parser_getTok(prs); //discard
-    var(prs, root);
-    ret = &declaration_fake_node;
+    ret = var(prs, root);
     break;
   }
 
@@ -664,9 +663,7 @@ struct pnode* body(struct parser *prs, struct pnode *root, bodyender be) {
 
   while(!be(prs->nextTok)) {
     nextStmt = stmt(prs, ret);
-    if (nextStmt != &declaration_fake_node) {
-      pnode_addLeaf(ret, nextStmt);
-    }
+    pnode_addLeaf(ret, nextStmt);
   }
 
   return ret;
@@ -763,6 +760,8 @@ struct pnode* func(struct parser *prs, struct pnode *root) {
   
 }
 
+struct pnode declaration_fake_node = {0};
+
 struct pnode* definition(struct parser *prs, struct pnode *root) {
   struct token *tok = parser_getTok(prs);
 
@@ -779,8 +778,7 @@ struct pnode* definition(struct parser *prs, struct pnode *root) {
     ret = &declaration_fake_node;
     break;
   case LEX_DECL:
-    decl(prs, root);
-    ret = &declaration_fake_node;
+    ret = decl(prs, root);
     break;
   case LEX_ENTRY:
     ret = entry(prs, root);
@@ -789,8 +787,7 @@ struct pnode* definition(struct parser *prs, struct pnode *root) {
     ret = func(prs, root);
     break;
   case LEX_VAR:
-    var(prs, root);
-    ret = &declaration_fake_node;
+    ret = var(prs, root);
     break;
   default: 
     env.fail("Unexpected token found: got %s, expected 'decl', 'entry', 'func', 'var'", token_str(tok));

@@ -159,7 +159,7 @@ uintmax_t pnode_getval(struct pnode *pnode) {
   return ((struct pexpr*) pnode)->value;
 }
 
-struct type* fixAlias(Pool *pool, struct pnode *root, struct type *type) {
+struct type* pnode_fixAlias(Pool *pool, struct pnode *root, struct type *type) {
   if (type_isPtr(type)) {
     struct ptype *ptype = (struct ptype*) type;
 
@@ -173,9 +173,9 @@ struct type* fixAlias(Pool *pool, struct pnode *root, struct type *type) {
 
 void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode *assign, struct pnode *assigned) {
 
-  struct type *first = fixAlias(pool, root, pnode_evalType(pool, assign, root));
+  struct type *first = pnode_fixAlias(pool, root, pnode_evalType(pool, assign, root));
 
-  struct type *second = fixAlias(pool, root, pnode_evalType(pool, assigned, root));
+  struct type *second = pnode_fixAlias(pool, root, pnode_evalType(pool, assigned, root));
 
   switch(type_areCompatible(first, second)) {
   case TYPECOMP_NO: {
@@ -336,7 +336,6 @@ struct type* pnode_isRootAndIdIsFunc(struct pnode *pnode, const char *id) {
 }
 
 struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
-
   struct symbol *bt;
 
   if ((bt = symbol_getBuiltin(id))) {
@@ -372,6 +371,28 @@ struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
   }
 
   return sym->type;
+
+}
+
+struct symbol* pnode_matchSymbolForDeclaration(struct pnode *pnode, const char *name) {
+  struct symbol *sym;
+
+  if ((sym = symbol_getBuiltin(name))) {
+    return sym;
+  }
+
+  if (!pnode) {
+    return NULL;
+  }
+
+  if (pnode_isScope(pnode)) {
+    struct pscope *pscope = (struct pscope*) pnode;
+    if ((sym = symbols_get(pscope->symbols, name))) {
+      return sym;
+    }
+  }
+
+  return pnode_matchSymbolForDeclaration(pnode->root, name);
 
 }
 
@@ -430,6 +451,7 @@ bool nonterminals_isValue(enum nonterminals id) {
   case PR_BINOP:
   case PR_CALL:
   case PR_CAST:
+  case PR_DECLARATION:
   case PR_ID:
   case PR_NUMBER:
   case PR_SIZE:
@@ -591,6 +613,12 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
     printf(" to type %s", type_str((struct type*) pnode_getval(val), buf, 4096));
     break;
   }
+  case PR_DECLARATION: {
+    char *id = (char*) pnode_getval(val), buf[4096];
+    struct symbol *sym = pnode_matchSymbolForDeclaration(val, id);
+    printf(": %s %s %s", (sym->decl) ? "decl" : "var", id, type_str(sym->type, buf, 4096));
+    break;
+  }
   case PR_NUMBER:
     printf(": %" PRIdMAX, (intmax_t) pnode_getval(val));
     break;
@@ -629,7 +657,6 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
   if (pnode_isScope(val)) {
     struct pscope *pscope = (struct pscope*) val;
 
-    symbols_dump(pscope->symbols, pool, "Symbols:", (void (*)(Pool *, void *, uint64_t)) pnode_dump, depth + 1);
     aliases_dump(pscope->aliases, "Aliases:", depth + 1);
   }
 

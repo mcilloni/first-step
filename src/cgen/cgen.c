@@ -18,6 +18,9 @@
 #include "cgen.h"
 
 #include <utils/env.h>
+#include <syms/types.h>
+
+#include <treemap/map.h>
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -221,8 +224,33 @@ void ccode_genWhile(struct pnode *whileNode, FILE *out, uint8_t indent) {
   ccode_genSimpleBlock(whileNode, "while", out, indent);
 }
 
+void ccode_genDecl(struct pnode *decl, FILE *out, uint8_t indent) {
+  char *id = (char*) pnode_getval(decl);
+  struct symbol *sym = pnode_matchSymbolForDeclaration(decl, id);
+
+  if (!sym) {
+    env.fail("Broken tree, can't find symbol info into table");
+  }
+
+  file_indent(out, indent);
+  char *csym = ccode_csym(sym->type, id);
+  fprintf(out, "%s%s", (sym->decl ? "extern " : ""), csym);
+  if (sym->optData) {
+    if (sym->decl) {
+      env.fail("Cannot assign anything to extern variable");
+    }
+    fputs(" = ", out);
+    ccode_genRecExpr((struct pnode*) sym->optData, out);
+  }
+  fputs(";\n\n", out);
+  free(csym);
+}
+
 void ccode_genStmt(struct pnode *stmt, FILE *out, uint8_t indent) {
   switch (stmt->id) {
+  case PR_DECLARATION:
+    ccode_genDecl(stmt, out, indent);
+    break;
   case PR_IF:
     ccode_genIf(stmt, out, indent);
     break;
@@ -296,7 +324,7 @@ char* ccode_csym(struct type *type, const char *name) {
                   
   case TYPE_PTR: {
     char buf[4096];
-    snprintf(buf, 4095,"*%s", name);
+    snprintf(buf, 4095,"(*%s)", name);
     return ccode_csym(((struct ptype*) type)->val, buf);
   }
 
@@ -332,35 +360,29 @@ char* ccode_csym(struct type *type, const char *name) {
 
 void ccode_declAliases(Aliases *syms, FILE *out, uint8_t indent) {
   
-  MapIter *iter = mapiter_start(syms);
-  struct type *tp;
-  char *id;
-  Pair *decl;
+  size_t len = aliases_len(syms);
+  struct apair *decl;
   
-  while ((decl = mapiter_next(iter))) {
+  for (size_t i = 0; i < len; ++i) {
+    decl = *list_get(syms, i);
     file_indent(out, indent);
-    tp = (struct type*) decl->value;
-    id = (char*) decl->key;
     char *csym = NULL;
     
-    if (type_isStruct(tp)) {
-      csym = ccode_csym(tp, "");
-      fprintf(out, "typedef struct %s %s;\n", id, id);
-      fprintf(out, "struct %s %s;\n", id, csym + 7);
+    if (type_isStruct(decl->type)) {
+      csym = ccode_csym(decl->type, "");
+      fprintf(out, "typedef struct %s %s;\n", decl->name, decl->name);
+      fprintf(out, "struct %s %s;\n", decl->name, csym + 7);
     } else {
-      csym = ccode_csym(tp, id);
+      csym = ccode_csym(decl->type, decl->name);
       fprintf(out, "typedef %s;\n", csym);
     }
 
     free(csym);
-    pair_free(decl);
   }
-
-  mapiter_free(iter);
 
 }
 
-void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
+/*void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
   
   size_t len = symbols_len(syms);
 
@@ -382,13 +404,13 @@ void ccode_declSyms(Symbols *syms, FILE *out, uint8_t indent) {
     free(csym);
   }
 
-}
+}*/
 
 void ccode_genBody(struct pnode *body, FILE *out, uint8_t indent) {
   size_t len = array_len(body->leaves);
 
 //ccode_declAliases(pnode_getAliases(body), out, indent);
-  ccode_declSyms(pnode_getSyms(body), out, indent);
+//ccode_declSyms(pnode_getSyms(body), out, indent);
 
   for (size_t i = 0; i < len; ++i) {
     ccode_genStmt(*leaves_get(body->leaves, i), out, indent);
@@ -451,6 +473,11 @@ void ccode_genFunc(struct pnode *node, FILE *out) {
 void ccode_genDef(struct pnode *def, FILE *out) {
 
   switch (def->id) {
+  case PR_DECLARATION: {
+    ccode_genDecl(def, out, 0);
+    break;
+  }
+
   case PR_FUNC:
     ccode_genFunc(def, out);
     break;
@@ -491,7 +518,7 @@ void cgen(struct pnode *tree, FILE *out) {
   }
  
   ccode_declAliases(pnode_getAliases(tree), out, 0);
-  ccode_declSyms(pnode_getSyms(tree), out, 0);
+//ccode_declSymbols(pnode_getSymbols(tree), out, 0);
 
   size_t len = array_len(tree->leaves);
   for (size_t i = 0; i < len; ++i) {

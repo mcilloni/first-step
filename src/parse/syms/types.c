@@ -306,28 +306,60 @@ void type_free(struct type *type) {
   }
 }
 
-Aliases* (*aliases_new)(void) = (Aliases* (*)(void)) strmap_new;
+Aliases* (*aliases_new)(void) = (Aliases* (*)(void)) list_new;
+size_t (*aliases_len)(Aliases *aliases) = (size_t (*)(Aliases*)) list_len;
 
-void* aliases_alias(Aliases* aliases, const char* id, struct type* type) {
-  return map_put(aliases, str_clone(id), type, FREE_KEY);
-}
-
-void aliases_free(Aliases* aliases) {
-  map_freeSpec(aliases, NULL, (void (*)(void*)) type_free);
-}
-
-struct type* aliases_get(Aliases *aliases, const char *name) {
+struct apair* aliases_pairGet(Aliases *aliases, const char *name) {
 
   if (!aliases) {
     return NULL;
   }
 
-  struct type *ret;
-  if (!map_get(aliases, name, (void**) &ret)) {
-    return NULL;
+  size_t len = aliases_len(aliases);
+  struct apair *apair;
+
+  for (size_t i = 0; i < len; ++i) {
+    apair = *list_get(aliases, i);
+
+    if (!strcmp(apair->name, name)) {
+      return apair;
+    } 
   }
 
-  return ret;
+  return NULL;
+}
+
+void* aliases_alias(Aliases* aliases, const char* id, struct type* type) {
+  struct apair *old = aliases_pairGet(aliases, id);
+
+  if (old == NULL) {
+    struct apair *apair = calloc(1, sizeof(struct apair));
+    *apair = (struct apair) { str_clone(id), type };
+    list_append(aliases, apair);
+    return NULL;
+  } else {
+    struct type *oType = old->type;
+    old->type = type;
+    return oType;
+  }
+}
+
+void apair_free(struct apair *apair) {
+  if (apair) {
+    free(apair->name);
+    type_free(apair->type);
+    free(apair);
+  }
+}
+
+void aliases_free(Aliases* aliases) {
+  list_freeAll(aliases, (void (*)(void*)) apair_free);
+}
+
+struct type* aliases_get(Aliases *aliases, const char *name) {
+  struct apair *apair = aliases_pairGet(aliases, name);
+
+  return apair ? apair->type : NULL;
 }
 
 struct type* type_makeAlias(Pool *pool, const char *name) {
@@ -374,7 +406,7 @@ void aliases_defineFuncId(Aliases *aliases, Pool *pool, const char *name, struct
 
   struct type *type = type_makeFuncType(pool, ret, args);
 
-  map_put(aliases, str_clone(name), type, FREE_KEY);
+  aliases_alias(aliases, name, type);
 
 }
 
@@ -386,7 +418,9 @@ enum type_kind aliases_isFuncDefined(Aliases *aliases, const char *name, const c
 extern void printdepth(int8_t depth);
 
 void aliases_dump(Aliases *aliases, const char *title, int8_t depth) {
-  if (!aliases->size) {
+  size_t len = aliases_len(aliases);
+
+  if (!len) {
     return;
   }
 
@@ -401,23 +435,15 @@ void aliases_dump(Aliases *aliases, const char *title, int8_t depth) {
     return;
   }
 
-  MapIter *iter = mapiter_start(aliases);
-  Pair *pair;
-  const char *name;
-  struct type *type;
+  struct apair *pair;
   char buf[2048];
 
-  while((pair = mapiter_next(iter))) {
+  for (size_t i = 0; i < len; ++i) {
+    pair = *list_get(aliases, i);
     printdepth(depth);
-    name = (const char*) pair->key;
-    type = (struct type*) pair->value;
 
-    printf("%s: %s\n", name, type_str(type, buf, 2048));
-
-    pair_free(pair);
+    printf("%s: %s\n", pair->name, type_str(pair->type, buf, 2048));
   }
-
-  mapiter_free(iter);
 }
 
 char* type_str(struct type *type, char *buffer, size_t bufLen) {

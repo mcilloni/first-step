@@ -631,6 +631,10 @@ struct pnode* expr_handleStructNode(struct parser *prs, struct pnode *root, stru
     ltype = ((struct ptype*) ltype)->val;
   }
 
+  if (type_isAlias(ltype)) {
+    ltype = pnode_getType(root, ltype->name);
+  }
+
   if (!type_isStruct(ltype)) {
     char buf[4096];
     type_str(ltype, buf, 4096);
