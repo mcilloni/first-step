@@ -277,9 +277,21 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // >=
+  if (!strcmp(">=", data)) {
+    res->type = LEX_MAJEQ;
+    return res;
+  }
+
   // >
   if (!strcmp(">", data)) {
     res->type = LEX_MAJOR;
+    return res;
+  }
+
+  // <=
+  if (!strcmp("<=", data)) {
+    res->type = LEX_MINEQ;
     return res;
   }
 
@@ -544,8 +556,12 @@ const char* tokentype_str(enum token_type type) {
     return "if";
   case LEX_INC:
     return "++";
+  case LEX_MAJEQ:
+    return ">=";
   case LEX_MAJOR:
     return ">";
+  case LEX_MINEQ:
+    return "<=";
   case LEX_MINOR:
     return "<";
   case LEX_MINUS:
@@ -617,7 +633,9 @@ int8_t token_getPriority(struct token *tok) {
   case LEX_EQUAL:
     return 4;
 
+  case LEX_MAJEQ:
   case LEX_MAJOR:
+  case LEX_MINEQ:
   case LEX_MINOR:
     return 5;
 
@@ -668,7 +686,9 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_DIFFERENT:
   case LEX_DIV:
   case LEX_EQUAL:
+  case LEX_MAJEQ:
   case LEX_MAJOR:
+  case LEX_MINEQ:
   case LEX_MINOR:
   case LEX_OR:
   case LEX_PLUS:
@@ -686,7 +706,9 @@ bool token_isBooleanOp(enum token_type type) {
   case LEX_AND:
   case LEX_DIFFERENT:
   case LEX_EQUAL:
+  case LEX_MAJEQ:
   case LEX_MAJOR:
+  case LEX_MINEQ:
   case LEX_MINOR:
   case LEX_NOT:
   case LEX_OR:

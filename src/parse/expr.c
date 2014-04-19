@@ -135,22 +135,28 @@ struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnod
     ret = pnode_newval(PR_NUMBER, lval / rval);
     break;
   case LEX_EQUAL:
-    ret = pnode_newval(PR_NUMBER, lval == rval);
+    ret = pnode_newval(PR_ID, (uintmax_t) (lval == rval ? "true" : "false"));
     break;
   case LEX_DIFFERENT:
-    ret = pnode_newval(PR_NUMBER, lval != rval);
+    ret = pnode_newval(PR_ID, (uintmax_t) (lval != rval ? "true" : "false"));
+    break;
+  case LEX_MAJEQ:
+    ret = pnode_newval(PR_ID, (uintmax_t) (lval >= rval ? "true" : "false"));
     break;
   case LEX_MAJOR:
-    ret = pnode_newval(PR_NUMBER, lval > rval);
+    ret = pnode_newval(PR_ID, (uintmax_t) (lval > rval ? "true" : "false"));
+    break;
+  case LEX_MINEQ:
+    ret = pnode_newval(PR_ID, (uintmax_t) (lval <= rval ? "true" : "false"));
     break;
   case LEX_MINOR:
-    ret = pnode_newval(PR_NUMBER, lval < rval);
+    ret = pnode_newval(PR_ID, (uintmax_t) (lval < rval ? "true" : "false"));
     break;
   case LEX_AND:
-    ret = pnode_newval(PR_NUMBER, lval && rval);
+    ret = pnode_newval(PR_ID, (uintmax_t) (lval && rval ? "true" : "false"));
     break;
   case LEX_OR:
-    ret = pnode_newval(PR_NUMBER, lval || rval);
+    ret = pnode_newval(PR_ID, (uintmax_t) (lval || rval ? "true" : "false"));
     break;
   default:
     env.fail("A wrong token finished into constant evaluation: %s", token_str(tok));
@@ -441,8 +447,12 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
   
   struct type *tleft = pnode_evalType(prs->types, left, root);
   struct type *tright = pnode_evalType(prs->types, right, root);
+  bool lbool = type_isBool(tleft);
+  bool rbool = type_isBool(tright);
   bool lnull = type_isNull(tleft);
   bool rnull = type_isNull(tright);
+  bool lnum = type_isNumeric(tleft);
+  bool rnum = type_isNumeric(tright);
   bool lptr = type_isPtr(tleft);
   bool rptr = type_isPtr(tright);
 
@@ -451,19 +461,22 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
   case LEX_PLUS:
   case LEX_POW:
   case LEX_TIMES: 
+  case LEX_MAJEQ:
+  case LEX_MAJOR:
+  case LEX_MINEQ:
+  case LEX_MINOR: 
     if (lnull || rnull) {
       return false;
     }
+    return (lnum && rnum) || (lptr && rptr);
+
   case LEX_AND:
   case LEX_OR: 
-    if (type_isBool(tleft) && type_isBool(tright)) {
-      return true;
-    }
+    return lbool && rbool;
+
   case LEX_DIFFERENT:
-  case LEX_EQUAL:
-  case LEX_MAJOR:
-  case LEX_MINOR: {
-    return (type_isNumeric(tleft) && type_isNumeric(tright)) || (lptr && rptr) || (lptr && rnull) || (lnull && rptr);
+  case LEX_EQUAL: {
+    return (lnum && lnum) || (lptr && rptr) || (lptr && rnull) || (lnull && rptr) || (lbool && rbool);
   }
 
   default:

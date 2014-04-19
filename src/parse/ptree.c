@@ -617,6 +617,13 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
     char *id = (char*) pnode_getval(val), buf[4096];
     struct symbol *sym = pnode_matchSymbolForDeclaration(val, id);
     printf(": %s %s %s", (sym->decl) ? "decl" : "var", id, type_str(sym->type, buf, 4096));
+    if (sym->optData) {
+      putchar('\n');
+      pnode_dump(pool, (struct pnode*) sym->optData, depth + 1);
+      for(uint64_t i = 0; i < depth + 1; ++i) {
+        fputs("| ", stdout);
+      }
+    }
     break;
   }
   case PR_NUMBER:
