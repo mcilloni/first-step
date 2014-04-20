@@ -64,7 +64,7 @@ uintmax_t uintpow(uintmax_t base, uintmax_t exp) {
 
 }
 
-void expr_callCheckAliases(struct parser *prs, struct pnode *call) {
+void expr_callCheckParameters(struct parser *prs, struct pnode *call) {
   Leaves *lv = call->leaves;
 
   size_t len = array_len(lv);
@@ -103,8 +103,8 @@ void expr_callCheckAliases(struct parser *prs, struct pnode *call) {
 
   for (size_t i = 0; i < pLen; ++i) {
     
-    typeA = (struct type*) *array_get(ftype->params, i);
-    typeB = pnode_evalType(prs->types, (struct pnode*) *leaves_get(lv, i + 1), NULL);
+    typeA = pnode_fixAlias(prs->types, call, (struct type*) *array_get(ftype->params, i));
+    typeB = pnode_fixAlias(prs->types, call, pnode_evalType(prs->types, (struct pnode*) *leaves_get(lv, i + 1), NULL));
 
     if (!type_areCompatible(typeA, typeB)) {
       char buf[2048], cuf[2048];
@@ -620,7 +620,7 @@ struct pnode* expr_handleCall(struct parser *prs, struct pnode *root, List *expr
     
     }
 
-    expr_callCheckAliases(prs, ret);
+    expr_callCheckParameters(prs, ret);
 
     return ret;
   }

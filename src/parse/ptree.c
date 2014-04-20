@@ -163,6 +163,10 @@ struct type* pnode_fixAlias(Pool *pool, struct pnode *root, struct type *type) {
   if (type_isPtr(type)) {
     struct ptype *ptype = (struct ptype*) type;
 
+    if (type_isPtr(ptype->val)) {
+      return type_makePtr(pool, pnode_fixAlias(pool, root, ptype->val));
+    }
+
     if (type_isAlias(ptype->val)) {
       return type_makePtr(pool, pnode_getType(root, ptype->val->name));
     }
