@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
 
   gettimeofday(&t, &tzp);
 
+  printf("Parsed file %s\n\n", argv[1]);
   ptree_dump(ret);
 
   printf("\nParsing took %" PRIuMAX " µs\n", (t.tv_sec*1000000LU + t.tv_usec) - t1);
@@ -84,3 +85,4 @@ int main(int argc, char *argv[]) {
 
   return EXIT_SUCCESS;
 }
+

@@ -31,6 +31,12 @@
   #include <memstream/memstream.h>
 #endif
 
+const char *filename = NULL;
+
+void ccode_lineTag(size_t lineno, FILE *out) {
+  fprintf(out, "#line %zu \"%s\"\n", lineno, filename);
+}
+
 char* ccode_csym(struct type *type, const char *name);
 
 void file_indent(FILE *out, uint8_t indent) {
@@ -182,11 +188,21 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
 }
 
 void ccode_genExpr(struct pnode *expr, FILE *out, uint8_t indent) {
+  if (expr->startLine) {
+    file_indent(out, indent);
+    ccode_lineTag(expr->startLine, out);
+  }
+
   file_indent(out, indent);
   ccode_genRecExpr(expr, out);
 }
 
 void ccode_genReturn(struct pnode *ret, FILE *out, uint8_t indent) {
+  if (ret->startLine) {
+    file_indent(out, indent);
+    ccode_lineTag(ret->startLine, out);
+  }
+
   file_indent(out, indent);
   fputs("return ", out);
   ccode_genExpr(*leaves_get(ret->leaves, 0), out, 0);
@@ -207,11 +223,22 @@ void ccode_genIfElse(struct pnode *ifNode, FILE *out, uint8_t indent) {
 }
 
 void ccode_genSimpleBlock(struct pnode *node, const char *stmt, FILE *out, uint8_t indent) {
+  if (node->startLine) {
+    file_indent(out, indent);
+    ccode_lineTag(node->startLine, out);
+  }
+
   file_indent(out, indent);
   fprintf(out, "%s ( ", stmt);
   ccode_genExpr(*leaves_get(node->leaves, 0), out, 0);
   fputs(" ) {\n\n", out);
   ccode_genBody(*leaves_get(node->leaves, 1), out, indent + 2);
+  
+  if (node->endLine) {
+    file_indent(out, indent);
+    ccode_lineTag(node->endLine, out);
+  }
+
   file_indent(out, indent);
   fputs("}\n", out);
 }
@@ -225,6 +252,11 @@ void ccode_genWhile(struct pnode *whileNode, FILE *out, uint8_t indent) {
 }
 
 void ccode_genDecl(struct pnode *decl, FILE *out, uint8_t indent) {
+  if (decl->startLine) {
+    file_indent(out, indent);
+    ccode_lineTag(decl->startLine, out);
+  }
+
   char *id = (char*) pnode_getval(decl);
   struct symbol *sym = pnode_matchSymbolForDeclaration(decl, id);
 
@@ -247,6 +279,7 @@ void ccode_genDecl(struct pnode *decl, FILE *out, uint8_t indent) {
 }
 
 void ccode_genStmt(struct pnode *stmt, FILE *out, uint8_t indent) {
+ 
   switch (stmt->id) {
   case PR_DECLARATION:
     ccode_genDecl(stmt, out, indent);
@@ -462,9 +495,17 @@ void ccode_genFuncHead(struct pfunc *node, FILE *out) {
 
 void ccode_genFunc(struct pnode *node, FILE *out) {
 
+  if (node->startLine) {
+    ccode_lineTag(node->startLine, out);
+  }
+
   ccode_genFuncHead((struct pfunc*) node, out);
 
   ccode_genBody(*leaves_get(node->leaves, 0), out, 2);
+
+  if (node->endLine) {
+    ccode_lineTag(node->endLine, out);
+  }
 
   fputs("}\n\n", out);
 
@@ -509,7 +550,9 @@ void ccode_printDefaultHeaders(FILE *out) {
         "typedef void* data;\n\n", out);
 }
 
-void cgen(struct pnode *tree, FILE *out) {
+void cgen(const char *fName, struct pnode *tree, FILE *out) {
+
+  filename = fName;
 
   ccode_printDefaultHeaders(out);
 

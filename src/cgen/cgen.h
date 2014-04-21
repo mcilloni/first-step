@@ -5,6 +5,6 @@
 
 #include <stdio.h>
 
-void cgen(struct pnode *tree, FILE *out);
+void cgen(const char *filename, struct pnode *tree, FILE *out);
 
 #endif

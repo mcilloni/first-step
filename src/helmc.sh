@@ -130,7 +130,7 @@ function link {
 
   fi
 
-  $CC -o "$outName" "$HELMRT" ${OBJS[@]}
+  $CC -g -o "$outName" "$HELMRT" ${OBJS[@]}
 
 }
 

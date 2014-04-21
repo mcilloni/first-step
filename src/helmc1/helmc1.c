@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 
   struct pnode *parsed = parser_parse(parser, file);
   if (parsed) {
-    cgen(parsed, stdout);
+    cgen(filename, parsed, stdout);
   }
 
   parser_close(parser);
