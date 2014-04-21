@@ -210,6 +210,11 @@ void ccode_genReturn(struct pnode *ret, FILE *out, uint8_t indent) {
 }
 
 void ccode_genIfElse(struct pnode *ifNode, FILE *out, uint8_t indent) {
+  if (ifNode->startLine) {
+    file_indent(out, indent);
+    ccode_lineTag(ifNode->startLine, out);
+  }
+
   file_indent(out, indent);
   fputs("if ( ", out);
   ccode_genExpr(*leaves_get(ifNode->leaves, 0), out, 0);
@@ -218,6 +223,12 @@ void ccode_genIfElse(struct pnode *ifNode, FILE *out, uint8_t indent) {
   file_indent(out, indent);
   fputs("} else {\n", out);
   ccode_genBody(*leaves_get(ifNode->leaves, 2), out, indent + 2);
+  
+  if (ifNode->endLine) {
+    file_indent(out, indent);
+    ccode_lineTag(ifNode->endLine, out);
+  }
+
   file_indent(out, indent);
   fputs("}\n", out);
 }
@@ -281,6 +292,24 @@ void ccode_genDecl(struct pnode *decl, FILE *out, uint8_t indent) {
 void ccode_genStmt(struct pnode *stmt, FILE *out, uint8_t indent) {
  
   switch (stmt->id) {
+  case PR_BREAK:
+    if (stmt->startLine) {
+      file_indent(out, indent);
+      ccode_lineTag(stmt->startLine, out);
+    }
+
+    file_indent(out, indent);
+    fputs("break;\n", out);
+    break;
+  case PR_CONTINUE:
+    if (stmt->startLine) {
+      file_indent(out, indent);
+      ccode_lineTag(stmt->startLine, out);
+    }
+
+    file_indent(out, indent);
+    fputs("continue;\n", out);
+    break;
   case PR_DECLARATION:
     ccode_genDecl(stmt, out, indent);
     break;

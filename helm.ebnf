@@ -12,13 +12,13 @@ argTypeList = {id, ','}, id, type
 
 body = {stmt}
 
-stmt = (if | while | declaration | expr | return), stmtEnd
+stmt = (if | while | declaration | expr | return | 'break' | 'continue'), stmtEnd
 
 return = 'return', expr
 
 if = 'if', expr, stmtEnd, body, [elseBlock], '/if'
 
-while = 'while', expr, stmtEnd, body, '/while'
+while = 'while', expr, stmtEnd, breakBody, '/while'
 
 elseBlock = 'else', body
 

@@ -517,6 +517,9 @@ bool whileBe(struct token *tok) {
 }
 
 struct pnode* whileStmt(struct parser *prs, struct pnode *root) {
+  bool wasInBreakableBody = prs->inBreakableBody;
+  prs->inBreakableBody = true;
+
   struct pnode *ret = condStmt(prs, root, PR_WHILE, whileBe);
 
   struct token *tok = parser_getTok(prs);
@@ -528,6 +531,8 @@ struct pnode* whileStmt(struct parser *prs, struct pnode *root) {
   if (tok->type != LEX_ENDWHILE) {
     env.fail("Unexpected token, got %s, expected '/while'", token_str(tok));
   }
+
+  prs->inBreakableBody = wasInBreakableBody;
 
   return ret;
 }
@@ -616,6 +621,24 @@ struct pnode* stmt(struct parser *prs, struct pnode *root) {
   struct token savedNext = *prs->nextTok;
 
   switch (prs->nextTok->type) {
+  case LEX_BREAK: 
+    parser_getTok(prs); //discard
+    if (!prs->inBreakableBody) {
+      env.fail("break outside of a breakable body");
+    }
+
+    ret = pnode_new(PR_BREAK);
+    break;
+
+  case LEX_CONTINUE:
+    parser_getTok(prs); //discard
+    if (!prs->inBreakableBody) {
+      env.fail("continue outside of a breakable body");
+    }
+
+    ret = pnode_new(PR_CONTINUE);
+    break;
+
   case LEX_DECL: {
     parser_getTok(prs); //discard
     ret = decl(prs, root);
@@ -628,11 +651,9 @@ struct pnode* stmt(struct parser *prs, struct pnode *root) {
     break;
   }
 
-  case LEX_WHILE: {
-    parser_getTok(prs); //discard 
-    ret = whileStmt(prs, root);
-    break;
-  }
+  case LEX_RETURN: 
+    ret = returnStmt(prs, root);
+    break;  
 
   case LEX_VAR: {
     parser_getTok(prs); //discard
@@ -640,9 +661,11 @@ struct pnode* stmt(struct parser *prs, struct pnode *root) {
     break;
   }
 
-  case LEX_RETURN: 
-    ret = returnStmt(prs, root);
-    break;  
+  case LEX_WHILE: {
+    parser_getTok(prs); //discard 
+    ret = whileStmt(prs, root);
+    break;
+  }
 
   default: {
     if (!(ret = expr(prs, root, NULL))) {

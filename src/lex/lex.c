@@ -405,6 +405,18 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // break
+  if (!strcmp("break", data)) {
+    res->type = LEX_BREAK;
+    return res;
+  }
+
+  // continue
+  if (!strcmp("continue", data)) {
+    res->type = LEX_CONTINUE;
+    return res;
+  }
+
   // size
   if (!strcmp("size", data)) {
     res->type = LEX_SIZE;
@@ -522,12 +534,16 @@ const char* tokentype_str(enum token_type type) {
     return "'";
   case LEX_ASSIGN:
     return "=";
+  case LEX_BREAK:
+    return "break";
   case LEX_CAST:
     return "cast";
-  case LEX_COMMA:
-    return ",";
   case LEX_CBRAC:
     return "]";
+  case LEX_COMMA:
+    return ",";
+  case LEX_CONTINUE:
+    return "continue";
   case LEX_CPAR:
     return ")";
   case LEX_DEC:
@@ -598,6 +614,8 @@ const char* tokentype_str(enum token_type type) {
     return "val";
   case LEX_VAR:
     return "var";
+  case LEX_WHILE:
+    return "while";
   default:
     return "unknown";
   }

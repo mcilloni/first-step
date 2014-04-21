@@ -37,8 +37,9 @@ syn case match
 
 "syn keyword     helmDirective         module import
 syn keyword     helmDeclaration       var decl alias
-syn keyword     helmDeclType          struct func 
-syn match       helmDeclType          "\/func"
+syn keyword     helmDeclType          struct func entry
+syn match       helmDeclType          "\/func" 
+syn match       helmDeclType          "\/entry" 
 
 "hi def link     helmDirective         Statement
 hi def link     helmDeclaration       Keyword

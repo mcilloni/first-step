@@ -32,6 +32,8 @@ enum nonterminals {
   PR_CAST,
   PR_SIZE,
   PR_RETURN,
+  PR_BREAK,
+  PR_CONTINUE,
   PR_NUMBER,
   PR_BINOP,
   PR_UNOP,

@@ -73,6 +73,10 @@ const char* nt_str(enum nonterminals nt) {
     return "Size operator";
   case PR_RETURN:
     return "Return";
+  case PR_BREAK:
+    return "Break";
+  case PR_CONTINUE:
+    return "Continue";
   case PR_NUMBER:
     return "Number";
   case PR_BINOP:

@@ -16,15 +16,20 @@ decl puts func(ptr uint8)
 
 entry
 
-  var i int8
-  
-  i = 0
+  var i uint16 = 0
 
-  while i < 10
+  while true
 
-    puts("LEL")
     i++
 
-  /while 
+    if i != 16
+      puts("Skip")
+      continue
+    else
+      puts("Stop")
+      break
+    /if
+
+  /while
 
 /entry
