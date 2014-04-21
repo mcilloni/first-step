@@ -13,6 +13,8 @@
 struct pnode {
   enum nonterminals id;
   struct pnode *root;
+  size_t startLine;
+  size_t endLine;
   Leaves *leaves;
 };
 

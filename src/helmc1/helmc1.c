@@ -27,14 +27,30 @@
 
 int main(int argc, char *argv[]) {
 
-  struct parser *parser = parser_new();
+  if (argc != 2) {
+    env.fail("Wrong argc: %d", argc);
+  }
 
-  struct pnode *parsed = parser_parse(parser, stdin);
+  FILE *file = NULL;
+  char *filename = NULL;
+
+  if (!strcmp(argv[1], "-")) {
+    file = stdin;
+    filename = "stdin";
+  } else {
+    file = fopen(argv[1]);
+    filename = argv[1];
+  }
+
+  struct parser *parser = parser_new(filename);
+
+  struct pnode *parsed = parser_parse(parser, file);
   if (parsed) {
     cgen(parsed, stdout);
   }
 
   parser_close(parser);
+  fclose(file);
 
   return EXIT_SUCCESS;
 }

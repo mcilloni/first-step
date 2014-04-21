@@ -509,20 +509,20 @@ struct pnode* pnode_new(enum nonterminals id) {
   bool value = nonterminals_isValue(id);
 
   if (nonterminals_isScope(id)) {
-    ret = malloc(sizeof(struct pscope));
+    ret = calloc(1, sizeof(struct pscope));
 
     struct pscope *pscope = (struct pscope*) ret;
     pscope->symbols = symbols_new();
     pscope->aliases = aliases_new();
   } else {
     if (nonterminals_isFunc(id)) {
-      ret = malloc(sizeof(struct pfunc));
+      ret = calloc(1, sizeof(struct pfunc));
     } else {
       if (value) {
         //so the type should be NULL
         ret = calloc(1, sizeof(struct pexpr));
       } else {
-        ret = malloc(sizeof(struct pnode));
+        ret = calloc(1, sizeof(struct pnode));
       }
     }
   }
