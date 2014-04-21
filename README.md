@@ -29,13 +29,14 @@ helmc currently implements:
 - bool type with true and false keywords
 - null identifier, assignable to every pointer type.
 - data type, a special pointer type capable of holding a pointer of any type (like C pointers to void) 
+- add debug info to compiled programs 
 
 helmc will implement someday:
 
-- add debug info to compiled programs
 - vaguely meaningful diagnostic messages
 
 helmc will not implement:
+
 - syntactical sugar, i.e anything not essential to bootstrap the future Helm compiler.
 - modules, because they are a complex feature that is not necessary for the sake of bootstrapping a new compiler.
 - good diagnostics of any sort
@@ -58,15 +59,13 @@ This software works on GNU/Linux and FreeBSD (and any FBSD derivative like Drago
 
 This is C11, and I think MSVC will implement it around the end of the current century, given their pace.
 
-
 > How do I compile this on Windows with MinGW?
 
 You don't. I've used POSIX functionality here and there (like backtraces, fmemopen, ..) that Microsoft is not going to support. Wait for a future helm compiler for Windows support.
 
-
 > How do I compile this on Windows with Cygwin?
 
-This works on cygwin, just don't use clang because the Cygwin-shipped version of it is old as hell.
+This works on cygwin (32 bit Cygwin, not 64, they changed something that breaks everything), just don't use clang because the Cygwin-shipped version of it is old as hell.
 helmc automatically uses gcc instead of clang on Cygwin because of this.
 
 > How do I compile this on OpenBSD?
@@ -78,6 +77,7 @@ Work on OpenBSD is still in its early stage. The main issue here is that clang h
 helmc works only in the same directory of helmrt.o and helmc1. It also needs clang, or gcc, or any c compiler.
 Then, you can compile with helmc <file.helm> , creating a <file> executable. 
 If you don't want it to assemble the executable, you can also use the parameter "-c" to create <file.o>.
+Executing helmc -C file.helm generates a file.c inside the current directory.
    
 How It Works?
 =============
@@ -95,7 +95,8 @@ The compiler is structured in this way:
 /examples: examples and basic tests about the utils, lex and parse libraries. This contains the utility helmtree and can be built using make ex (or gmake on BSD)
 /tests: sample Helm programs.
 
-
+The compiler itself is a simple C executable that takes an input file and outputs C code called helmc1. 
+Helmc1 is wrapped by helmc, that is a bash script that takes care of finding the right C compiler and invoke it, plus it is able to handle c-compiler style switches that helmc1 does not support. 
 
 
 
