@@ -30,7 +30,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct pnode enVd = {PR_EXPR, NULL, NULL};
+struct pnode enVd = {PR_EXPR, NULL, 0, 0, NULL};
 
 struct pnode *expr_empty = &enVd;
 

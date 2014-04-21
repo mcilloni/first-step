@@ -78,6 +78,7 @@ struct lexer {
   bool newline;
 
   bool inString;
+  bool closeFile;
   char *saved;
 
   Pool *tokens;

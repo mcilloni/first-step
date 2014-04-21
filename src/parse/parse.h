@@ -14,15 +14,18 @@ struct parser {
   struct lexer *lex;
 
   bool firstTok;
+  struct token *precTok;
+  struct token *curTok;
   struct token *nextTok;
   uintmax_t lastLineno;
+  char *filename;
 
   Pool *types;
 };
 
 struct token* parser_getTok(struct parser *prs);
 
-struct parser* parser_new(void);
+struct parser* parser_new(const char *filename);
 struct pnode* parser_parse(struct parser *parser, FILE *file);
 void parser_close(struct parser *parser);
 

@@ -35,7 +35,9 @@ struct lexer* lexer_open(const char *path) {
     env.fail("Cannot open file %s: %s", path, strerror(errno));
   }
 
-  return lexer_fromFile(file);
+  struct lexer *ret = lexer_fromFile(file);
+  ret->closeFile = true;
+  return ret;
 }
 
 struct lexer* lexer_fromFile(FILE *file) {
@@ -85,7 +87,7 @@ void token_free(struct token *tok) {
 
 void lexer_close(struct lexer *lex) {
   
-  if (lex->file) {
+  if (lex->file && lex->closeFile) {
     fclose(lex->file);
   }
 

@@ -98,7 +98,7 @@ function compile {
   
   TMPCLEANUP="$CTMP"
 
-  $HELMC1 < "$1" > "$CTMP"
+  $HELMC1 "$1" > "$CTMP"
   
   TMPCLEANUP=""
 

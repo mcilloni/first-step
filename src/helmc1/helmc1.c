@@ -38,8 +38,12 @@ int main(int argc, char *argv[]) {
     file = stdin;
     filename = "stdin";
   } else {
-    file = fopen(argv[1]);
+    file = fopen(argv[1], "r");
     filename = argv[1];
+  }
+
+  if (!file) {
+    env.fail("Error opening %s: %s", filename, strerror(errno));
   }
 
   struct parser *parser = parser_new(filename);

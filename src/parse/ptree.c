@@ -610,6 +610,13 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
   }
 
   fputs(nt_str(val->id), stdout);
+  if (val->startLine && val->endLine) {
+    if (val->startLine == val->endLine) {
+      printf(" (line %zu)", val->startLine);
+    } else {
+      printf(" (line %zu - %zu)", val->startLine, val->endLine);
+    }
+  }
 
   switch(val->id) {
   case PR_CAST: {

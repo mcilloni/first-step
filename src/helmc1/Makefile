@@ -35,9 +35,9 @@ dir:
 
 helmrt.o:  
 ifneq (,$(findstring LLVM,$(shell file $(OBJDIR)/helmc1)))
-		lli $(OBJDIR)/helmc1 < helmrt.helm > $(OUTDIR)/helmrt.c
+		lli $(OBJDIR)/helmc1 helmrt.helm > $(OUTDIR)/helmrt.c
 else
-		$(OBJDIR)/helmc1 < helmrt.helm > $(OUTDIR)/helmrt.c
+		$(OBJDIR)/helmc1 helmrt.helm > $(OUTDIR)/helmrt.c
 endif
 	$(CC) $(INCLUDES) -c $(OUTDIR)/helmrt.c -o $(OUTDIR)/helmrt.o -w
 	rm -f $(OUTDIR)/helmrt.c

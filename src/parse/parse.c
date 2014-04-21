@@ -55,6 +55,14 @@ struct token* parser_getTok(struct parser *prs) {
     }
   }
 
+  if (prs->curTok) {
+    prs->precTok = prs->curTok;
+  } else {
+    prs->precTok = tok;
+  }
+
+  prs->curTok = tok;
+
   return tok;
 }
 
@@ -649,8 +657,8 @@ struct pnode* stmt(struct parser *prs, struct pnode *root) {
     env.fail("Unexpected token, got %s, expected a new line", token_str(tok));
   }
 
-  ret->startLine = savedTok->lineno;
-  ret->endLine = tok->lineno;
+  ret->startLine = savedNext.lineno;
+  ret->endLine = prs->precTok->lineno;
 
   return ret;
 
@@ -805,7 +813,11 @@ struct pnode* definition(struct parser *prs, struct pnode *root) {
     env.fail("Got token %s, expected a newline or EOF", token_str(tok));
   }
 
-  ret->endLine = tok->lineno;
+  if (prs->precTok) {
+    ret->endLine = prs->precTok->lineno;
+  } else {
+    ret->endLine = prs->lastLineno;
+  }
 
   return ret;
 }
