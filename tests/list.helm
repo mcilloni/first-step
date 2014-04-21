@@ -1,3 +1,17 @@
+#  This file is part of First Step.
+#  
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
+#  Foundation, either version 3 of the License, or (at your option) any later version. 
+#
+#  First Step is distributed in the hope that it will be useful, but 
+#  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with First Step.  If not, see <http://www.gnu.org/licenses/>
+#
+#  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
+
 decl calloc func(uint64, uint64) data
 
 alias Lnode struct(
@@ -10,24 +24,24 @@ alias List struct(
   len uint64,
 
   current ptr Lnode,
-  pos uint64  
+  pos uint64
 )
 
 func list_seekAhead(list ptr List, pos uint64)
-  
-  if (list'current == null) or (pos == 0) 
+
+  if (list'current == null) or (pos == 0)
     list'current = list'start
     list'pos = 0
   /if
 
-  while list'pos < pos 
+  while list'pos < pos
     list'current = list'current'succ
     list'pos++
   /while
 
 /func
 
-func list_seekBehind(list ptr List, pos uint64) 
+func list_seekBehind(list ptr List, pos uint64)
 
   if (list'current == null) or ((list'len - 1) == pos)
     list'current = list'end
@@ -36,18 +50,18 @@ func list_seekBehind(list ptr List, pos uint64)
 
   while list'pos > pos
     list'current = list'current'prec
-    list'pos-- 
+    list'pos--
   /while
 
 /func
 
-func list_seek(list ptr List, pos uint64) 
-  if (list'current == null) and (pos == 0) 
+func list_seek(list ptr List, pos uint64)
+  if (list'current == null) and (pos == 0)
     list'current = list'start
     list'pos = 0
   /if
 
-  if pos > list'pos 
+  if pos > list'pos
     list_seekAhead(list, pos)
   else
     if pos < list'pos
@@ -61,13 +75,13 @@ func list_pushint(list ptr List, value uintptr)
 
   new'succ = list'start
   if list'start != null
-    list'start'prec = new  
+    list'start'prec = new
   /if
 
   if list'end == null
     list'end = new
     list'current = new
-  else 
+  else
     list'pos++
   /if
 
@@ -80,31 +94,31 @@ func list_pushint(list ptr List, value uintptr)
 var list_push = cast<ptr func(ptr List, data)> ptr list_pushint
 
 func list_appendint(list ptr List, value uintptr) int64
-  if list'start == null 
+  if list'start == null
     list_pushint(list, value)
     return 1
   /if
-  
+
   var new = cast<ptr Lnode> calloc(1, size(Lnode))
 
   new'value = value
 
   new'prec = list'end
   list'end'succ = new
-  
+
   list'end = new
-  
+
   return cast<int64> list'len++
 /func
 
 var list_append = cast<ptr func(ptr List, data) int64> ptr list_appendint
 
 func list_addint(list ptr List, pos uint64, value uintptr) int64
-  if pos > list'len 
+  if pos > list'len
     return -1
   /if
 
-  if pos == list'len 
+  if pos == list'len
     return list_appendint(list, value)
   /if
 
@@ -113,7 +127,7 @@ func list_addint(list ptr List, pos uint64, value uintptr) int64
   var new = cast<ptr Lnode> calloc(1, size(Lnode))
   var prec = list'current'prec
 
-  if prec != null 
+  if prec != null
     prec'succ = new
   /if
 
@@ -139,7 +153,7 @@ func list_extract(list ptr List, start uint64, len int64) ptr List
 
   var extract = list_new()
 
-  if start < list'len 
+  if start < list'len
     if len > list'len
       len = cast<int64> (list'len - start)
     /if
@@ -153,7 +167,7 @@ func list_extract(list ptr List, start uint64, len int64) ptr List
     var link1 ptr ptr Lnode
     if prec != null
       link1 = ptr prec'succ
-    else 
+    else
       link1 = ptr list'start
     /if
 
@@ -217,7 +231,7 @@ func list_freeAll(list ptr List, freefunc ptr func(data))
   free(list)
 /func
 
-func lnode_freeContents(lnode ptr Lnode, freefunc ptr func(data)) 
+func lnode_freeContents(lnode ptr Lnode, freefunc ptr func(data))
   if lnode != null
     lnode_freeContents(lnode'succ, freefunc)
     freefunc(cast<data> lnode'value)
@@ -247,10 +261,10 @@ var list_get = cast<ptr func(ptr List, uint64) ptr data> list_getint
 func list_insertint(list ptr List, pos uint64, value uintptr) int64
   if pos > list'len
     return -1
-  /if  
+  /if
 
   if pos == list'len
-    return list_appendint(list, value)  
+    return list_appendint(list, value)
   /if
 
   list_seek(list, pos)
@@ -266,7 +280,7 @@ func list_len(list ptr List) uint64
   return list'len
 /func
 
-decl memset func(data, uint64, uint64) 
+decl memset func(data, uint64, uint64)
 
 func list_popint(list ptr List) uintptr
   if list'start == null
@@ -279,7 +293,7 @@ func list_popint(list ptr List) uintptr
   free(list'start)
 
   next'prec = null
-  
+
   if list'start == list'end
     memset(list, 0, size(List))
   else
@@ -300,15 +314,15 @@ func list_shallowCopy(list ptr List) ptr List
   var new = list_new()
   var len = list_len(list)
   var i uint64 = 0
-  
+
   while i < len
     list_appendint(new, val list_getint(list, i))
     i++
   /while
 
   return new
-/func                               
-                                                 
+/func
+
 decl printf func(ptr uint8, data)
 decl fputs func(ptr uint8, data)
 decl puts func(ptr uint8)
@@ -364,8 +378,8 @@ entry
   printlist(extract)
 
   list_free(extract)
- 
-  fputs("list[] == ", stdout) 
+
+  fputs("list[] == ", stdout)
   printlist(list)
 
   puts("list[3] = 23")
