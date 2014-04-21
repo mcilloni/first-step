@@ -26,6 +26,6 @@ decl printf func(ptr uint8, uint64)
 
 entry
 
-  printf("%lu", fact(5))
+  printf("%lu\n", fact(5))
 
 /entry
