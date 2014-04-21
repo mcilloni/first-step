@@ -25,7 +25,7 @@ func trueFoffa(lel ptr foffa) bool
 
     puts(lel'msg)
 
-  /if  
+  /if
 
   return lel'good
 
@@ -40,7 +40,7 @@ entry
   b'msg = "HEY!"
 
   if trueFoffa(ptr b)
-    puts("YAY")
+    puts("YAY\n")
   /if
 
   p = cast<ptr foffa> "ABCD"

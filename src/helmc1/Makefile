@@ -23,8 +23,8 @@ endif
 all: dir helmc1 helmrt.o
 
 helmc1: 
-	$(CC) -o $(OBJDIR)/helmtree helmtree.c $(LIBS) $(LDFLAGS) $(INCLUDES)
-	$(CC) -o $(OBJDIR)/helmc1 helmc1.c $(LIBS) $(LDFLAGS) $(INCLUDES)
+	$(CC) -o $(OBJDIR)/helmtree helmtree.c $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu11
+	$(CC) -o $(OBJDIR)/helmc1 helmc1.c $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu11
 
 clean:
 	rm -rf $(OUTDIR)
