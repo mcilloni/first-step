@@ -37,7 +37,7 @@ void ccode_lineTag(size_t lineno, FILE *out) {
   fprintf(out, "#line %zu \"%s\"\n", lineno, filename);
 }
 
-char* ccode_csym(struct type *type, const char *name);
+char* ccode_csym(struct type *type, const char *name, bool pedantic);
 
 void file_indent(FILE *out, uint8_t indent) {
   for (uint8_t i = 0; i < indent; ++i) {
@@ -99,7 +99,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
 
-    char *tCast = ccode_csym((struct type*) val, "");
+    char *tCast = ccode_csym((struct type*) val, "", false);
     fprintf(out, "((%s) ", tCast);
     free(tCast); 
     ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
@@ -108,7 +108,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
   }
 
   case PR_SIZE: {
-    char *tType = ccode_csym((struct type*) val, "");
+    char *tType = ccode_csym((struct type*) val, "", false);
     fprintf(out, "sizeof(%s) ", tType);
     free(tType); 
     break;
@@ -276,7 +276,7 @@ void ccode_genDecl(struct pnode *decl, FILE *out, uint8_t indent) {
   }
 
   file_indent(out, indent);
-  char *csym = ccode_csym(sym->type, id);
+  char *csym = ccode_csym(sym->type, id, false);
   fprintf(out, "%s%s", (sym->decl ? "extern " : ""), csym);
   if (sym->optData) {
     if (sym->decl) {
@@ -332,8 +332,6 @@ void ccode_genStmt(struct pnode *stmt, FILE *out, uint8_t indent) {
   }
 }
 
-char* ccode_csym(struct type *type, const char *name);
-
 void cgen_cfuncparms(FILE *out, Array *parms) {
   size_t len = array_len(parms);
 
@@ -348,21 +346,28 @@ void cgen_cfuncparms(FILE *out, Array *parms) {
       fputc(',', out);
     }
 
-    par = ccode_csym((struct type*) *array_get(parms, i), "");
+    par = ccode_csym((struct type*) *array_get(parms, i), "", false);
     fputs(par, out);
     free(par);
   }
 }
 
-char* ccode_csym(struct type *type, const char *name) {
+char* ccode_csym(struct type *type, const char *name, bool pedantic) {
   char *str;
   size_t size;
   FILE *strFile = open_memstream(&str, &size);
+
+  if (type->name && !pedantic) {
+    fprintf(strFile, "%s %s", (type == type_none) ? "void" : type->name, name);
+    fclose(strFile);
+    return str;
+  }
+
   switch (type->kind) {
   case TYPE_FUNC: {
     struct ftype *ftype = (struct ftype*) type;
     size_t pms, agz;
-    char *fmt = ccode_csym(ftype->ret, "%s"), *pm, *ags;
+    char *fmt = ccode_csym(ftype->ret, "%s", false), *pm, *ags;
     FILE *pmFile = open_memstream(&pm, &pms); 
     FILE *agsFile = open_memstream(&ags, &agz);
     cgen_cfuncparms(agsFile, ftype->params);
@@ -381,13 +386,13 @@ char* ccode_csym(struct type *type, const char *name) {
     struct atype *atype = (struct atype*) type;
     char buf[4096];
     snprintf(buf, 4095,"%s[%zu]", name, atype->len);
-    return ccode_csym(((struct ptype*) type)->val, buf);
+    return ccode_csym(((struct ptype*) type)->val, buf, false);
   }
                   
   case TYPE_PTR: {
     char buf[4096];
     snprintf(buf, 4095,"(*%s)", name);
-    return ccode_csym(((struct ptype*) type)->val, buf);
+    return ccode_csym(((struct ptype*) type)->val, buf, false);
   }
 
   case TYPE_STRUCT: {
@@ -400,7 +405,7 @@ char* ccode_csym(struct type *type, const char *name) {
 
     for (size_t i = 0; i < len; ++i) {
       pair = *list_get(stype->symbols, i);
-      tmp = ccode_csym(pair->sym->type, pair->id);
+      tmp = ccode_csym(pair->sym->type, pair->id, false);
       fprintf(strFile, "%s; ", tmp);
     }
 
@@ -431,11 +436,11 @@ void ccode_declAliases(Aliases *syms, FILE *out, uint8_t indent) {
     char *csym = NULL;
     
     if (type_isStruct(decl->type)) {
-      csym = ccode_csym(decl->type, "");
+      csym = ccode_csym(decl->type, "", true);
       fprintf(out, "typedef struct %s %s;\n", decl->name, decl->name);
       fprintf(out, "struct %s %s;\n", decl->name, csym + 7);
     } else {
-      csym = ccode_csym(decl->type, decl->name);
+      csym = ccode_csym(decl->type, decl->name, false);
       fprintf(out, "typedef %s;\n", csym);
     }
 
@@ -504,7 +509,7 @@ void ccode_genFuncHead(struct pfunc *node, FILE *out) {
         fputs(", ", tmf);
       }
 
-      param = ccode_csym(pair->sym->type, pair->id);
+      param = ccode_csym(pair->sym->type, pair->id, false);
 
       fputs(param, tmf);
 
@@ -514,7 +519,7 @@ void ccode_genFuncHead(struct pfunc *node, FILE *out) {
  
   fclose(tmf); 
 
-  char *buf = ccode_csym(node->ftype->ret, tmp);
+  char *buf = ccode_csym(node->ftype->ret, tmp, false);
 
   fprintf(out, "%s) {\n", buf);
 

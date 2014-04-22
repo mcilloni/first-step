@@ -148,6 +148,10 @@ struct type* pnode_getType(struct pnode *pnode, const char *name) {
     return pnode_getType(pnode->root, name); 
   }
 
+  if (ret->kind == TYPE_STRUCT || ret->kind == TYPE_FUNC) {
+    ret->name = str_clone(name); //this is an aliased type, so let's give them the aliased name
+  }
+
   return ret;
 }
 

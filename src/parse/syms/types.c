@@ -298,7 +298,7 @@ bool type_isStruct(struct type *type) {
 
 void type_free(struct type *type) {
   if (type && type != type_data && type->kind >= TYPE_FUNC) {
-    if (type->kind == TYPE_ALIAS) {
+    if (type->name) {
       free(type->name);
     }
 
@@ -447,6 +447,12 @@ void aliases_dump(Aliases *aliases, const char *title, int8_t depth) {
 }
 
 char* type_str(struct type *type, char *buffer, size_t bufLen) {
+  
+  if (type->name) {
+    strncpy(buffer, type->name, bufLen);
+    return buffer;  
+  }
+
   switch (type->kind) {
   case TYPE_ALIAS: {
     strncpy(buffer, type->name, bufLen);
@@ -598,7 +604,6 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
   }
 
   default:
-    strncpy(buffer, type->name, bufLen);
-    return buffer;  
+    return buffer;
   }
 }
