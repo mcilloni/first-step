@@ -31,10 +31,6 @@ helmc currently implements:
 - data type, a special pointer type capable of holding a pointer of any type (like C pointers to void) 
 - add debug info to compiled programs 
 
-helmc will implement someday:
-
-- vaguely meaningful diagnostic messages
-
 helmc will not implement:
 
 - syntactical sugar, i.e anything not essential to bootstrap the future Helm compiler.
@@ -52,7 +48,8 @@ I know, I have to clean up this mess someday.
 > How do I compile this?
 
 Use GNU Make on the root of the project, or a GNU Make compatible software like pymake.
-This software works on GNU/Linux and FreeBSD (and any FBSD derivative like DragonFlyBSD and - I hope - Darwin aka OS X).
+This software works on GNU/Linux, FreeBSD, DragonFlyBSD, NetBSD, Darwin (OS X) and Cygwin (32 bit).
+The facultative examples (in /examples, buildable with [g]make ex) are not guarranteed to work except on GNU/Linux, but they are not necessary. 
 
 
 > How do I compile this on Visual Studio?
