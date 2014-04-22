@@ -437,12 +437,25 @@ void aliases_dump(Aliases *aliases, const char *title, int8_t depth) {
 
   struct apair *pair;
   char buf[2048];
+  char *tmp;
+  bool needsHack;
 
   for (size_t i = 0; i < len; ++i) {
     pair = *list_get(aliases, i);
     printdepth(depth);
 
+    //HACK: type_str prefers returning the name than the real type. This is an issue for aliased structures/functions/pointer types.
+    // So, I temporarily hack the type structure to remove the type from it and so force type_str to emit the whole definition.
+    if ((needsHack = type_isStruct(pair->type) || type_isPtr(pair->type) || type_isFunc(pair->type))) {
+      tmp = pair->type->name;
+      pair->type->name = NULL;
+    }
+
     printf("%s: %s\n", pair->name, type_str(pair->type, buf, 2048));
+
+    if (needsHack) {
+      pair->type->name = tmp;
+    }
   }
 }
 
