@@ -14,35 +14,36 @@
 
 decl puts func(ptr uint8)
 
-alias foffa struct (
+alias fuffa struct (
   good bool,
   msg ptr uint8
 )
 
-func trueFoffa(lel ptr foffa) bool
+func trueFuffa(value ptr fuffa) bool
 
-  if lel'good
+  if value'good
 
-    puts(lel'msg)
+    puts(value'msg)
 
   /if
 
-  return lel'good
+  return value'good
 
 /func
 
 entry
 
-  var b foffa
-  var p ptr foffa
+  var b fuffa
+  var p ptr fuffa
 
   b'good = true
   b'msg = "HEY!"
 
-  if trueFoffa(ptr b)
-    puts("YAY\n")
+  if trueFuffa(ptr b)
+    puts("calling puts\n")
   /if
 
-  p = cast<ptr foffa> "ABCD"
+  p = cast<ptr fuffa> "ABCD"
 
 /entry
+

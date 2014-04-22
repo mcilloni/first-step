@@ -1,8 +1,8 @@
-alias lel struct (a int8, b ptr lel)
-alias vul struct (p ptr vul, b ptr lel)
+alias value struct (a int8, b ptr value)
+alias vul struct (p ptr vul, b ptr value)
 entry
 
-  var l lel
+  var l value
   var v vul
 
   l'b = ptr l
