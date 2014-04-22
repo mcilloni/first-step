@@ -84,16 +84,16 @@ How It Works?
 
 The compiler is structured in this way:
 
-/src: main source repository.
-/src/lex: an handwritten lexer. Pretty rought, but works.
-/src/parse: an handwritten LL(1) parser, with some hacks here and there to make it work. Pretty rought too, but it works.
-/src/cgen: code generator for AST created by /parse. It emits C code from the AST (for sake of simplicity) inside a .c file.
-/src/helmc1: the actual compiler executable, which behaves like cc1 of gcc (some sort of). It takes Helm input of some sort and outputs C code.
-/src/utils: miscellaneous utilities of some sort
-/src/helmc.sh: a Bash script which is used to create /build/helmc. This script takes care of invocation of helmc1 and compiling of the generated C code.
-/deps: contains some basic data structures used by the compiler, like array, list and treemap, and a backtrace lib for OpenBSD.
-/examples: examples and basic tests about the utils, lex and parse libraries. This contains the utility helmtree and can be built using make ex (or gmake on BSD)
-/tests: sample Helm programs.
+- /src: main source repository.
+- /src/lex: an handwritten lexer. Pretty rought, but works.
+- /src/parse: an handwritten LL(1) parser, with some hacks here and there to make it work. Pretty rought too, but it works.
+- /src/cgen: code generator for AST created by /parse. It emits C code from the AST (for sake of simplicity) inside a .c file.
+- /src/helmc1: the actual compiler executable, which behaves like cc1 of gcc (some sort of). It takes Helm input of some sort and outputs C code.
+- /src/utils: miscellaneous utilities of some sort
+- /src/helmc.sh: a Bash script which is used to create /build/helmc. This script takes care of invocation of helmc1 and compiling of the generated C code.
+- /deps: contains some basic data structures used by the compiler, like array, list and treemap, and a backtrace lib for OpenBSD.
+- /examples: examples and basic tests about the utils, lex and parse libraries. This contains the utility helmtree and can be built using make ex (or gmake on BSD)
+- /tests: sample Helm programs.
 
 The compiler itself is a simple C executable that takes an input file and outputs C code called helmc1. 
 Helmc1 is wrapped by helmc, that is a bash script that takes care of finding the right C compiler and invoke it, plus it is able to handle c-compiler style switches that helmc1 does not support. 
