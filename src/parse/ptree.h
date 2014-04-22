@@ -38,6 +38,11 @@ struct pscope {
   Aliases *aliases;
 };       
 
+struct proot {
+  struct pscope node;
+  char *module;
+};
+
 extern struct pnode *expr_empty;
 
 void pnode_addLeaf(struct pnode *pnode, struct pnode *leaf);
@@ -55,6 +60,7 @@ struct type* pnode_getType(struct pnode *pnode, const char *name);
 uintmax_t pnode_getval(struct pnode *pnode);
 bool pnode_isConstNum(struct pnode *pnode);
 bool pnode_isFunc(struct pnode *pnode);
+bool pnode_isRoot(struct pnode *pnode);
 bool pnode_isScope(struct pnode *pnode);
 bool pnode_isValue(struct pnode *pnode);
 bool pnode_isInCurrentScope(struct pnode *pnode, const char *id);
@@ -62,6 +68,7 @@ struct symbol* pnode_matchSymbolForDeclaration(struct pnode *pnode, const char *
 struct type* pnode_symbolType(struct pnode *pnode, const char *id);
 struct pnode* pnode_new(enum nonterminals id);
 struct pnode* pnode_newfunc(Pool *pool, enum nonterminals id, const char *name, struct type *ret, Symbols *params);
+struct pnode* pnode_newroot(char *module);
 struct pnode* pnode_newval(enum nonterminals id, uintmax_t val);
 void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode *assign, struct pnode *assigned);
 struct type* pnode_funcReturnType(struct pnode *pnode);

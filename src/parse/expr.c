@@ -535,7 +535,7 @@ enum nonterminals expr_ntFromTokVal(struct token *tok) {
     return PR_UNOP;
   default:
     env.fail("I have no idea of what I am doing");
-    return PR_PROGRAM;
+    return PR_ROOT;
   }
   
 }

@@ -42,6 +42,7 @@ enum token_type {
   LEX_MINEQ,
   LEX_MINOR,
   LEX_MINUS,
+  LEX_MODULE,
   LEX_NEWLINE,
   LEX_NOT,
   LEX_NUMBER,

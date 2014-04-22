@@ -13,7 +13,6 @@ typedef bool (*bodyender)(struct token*);
 struct parser {
   struct lexer *lex;
 
-  bool firstTok;
   bool inBreakableBody;
   struct token *precTok;
   struct token *curTok;

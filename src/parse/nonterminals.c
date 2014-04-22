@@ -19,7 +19,7 @@
 
 const char* nt_str(enum nonterminals nt) {
   switch(nt) {
-  case PR_PROGRAM:
+  case PR_ROOT:
     return "Program Root";
   case PR_DEFINITION:
     return "Definition";

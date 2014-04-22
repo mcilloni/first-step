@@ -323,7 +323,7 @@ bool pnode_getValue(struct pnode *pnode, uintmax_t *val) {
 }
 
 struct type* pnode_isRootAndIdIsFunc(struct pnode *pnode, const char *id) {
-  if (pnode->id == PR_PROGRAM) {
+  if (pnode->id == PR_ROOT) {
     Leaves *leaves = pnode->leaves;
     struct pnode *leaf;
     size_t len = array_len(leaves);
@@ -445,7 +445,7 @@ bool pnode_isFunc(struct pnode *pnode) {
 bool nonterminals_isScope(enum nonterminals id) {
   switch (id) {
   case PR_BODY:
-  case PR_PROGRAM:
+  case PR_ROOT:
     return true;
 
   default:
@@ -481,6 +481,14 @@ bool pnode_isScope(struct pnode *pnode) {
   return nonterminals_isScope(pnode->id);
 }
 
+bool nonterminals_isRoot(enum nonterminals id) {
+  return id == PR_ROOT;
+}
+
+bool pnode_isRoot(struct pnode *pnode) {
+  return nonterminals_isRoot(pnode->id);
+}
+
 bool pnode_isInCurrentScope(struct pnode *pnode, const char *id) {
 
   if (symbol_getBuiltin(id)) {
@@ -513,7 +521,11 @@ struct pnode* pnode_new(enum nonterminals id) {
   bool value = nonterminals_isValue(id);
 
   if (nonterminals_isScope(id)) {
-    ret = calloc(1, sizeof(struct pscope));
+    if (nonterminals_isRoot(id)) {
+      ret = calloc(1, sizeof(struct proot));
+    } else {
+      ret = calloc(1, sizeof(struct pscope));
+    }
 
     struct pscope *pscope = (struct pscope*) ret;
     pscope->symbols = symbols_new();
@@ -566,6 +578,14 @@ struct pnode* pnode_newfunc(Pool *pool, enum nonterminals id, const char *name, 
   return (struct pnode*) retVal;
 }
 
+struct pnode* pnode_newroot(char *module) {
+  struct proot *ret = (struct proot*) pnode_new(PR_ROOT);
+
+  ret->module = str_clone(module);
+
+  return (struct pnode*) ret;
+}
+
 struct pnode* pnode_newval(enum nonterminals id, uintmax_t val) {
   struct pexpr *ret = (struct pexpr*) pnode_new(id);
   
@@ -583,6 +603,11 @@ void pnode_free(struct pnode *pnode) {
   }
 
   if (pnode_isScope(pnode)) {
+    if (pnode_isRoot(pnode)) {
+      struct proot *proot = (struct proot*) pnode;
+      free(proot->module);
+    }
+
     struct pscope *pscope = (struct pscope*) pnode;
     symbols_free(pscope->symbols);
     aliases_free(pscope->aliases);
@@ -677,6 +702,11 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
   }
 
   if (pnode_isScope(val)) {
+    if (pnode_isRoot(val)) {
+      struct proot *proot = (struct proot*) val;
+
+      printf("(module %s)\n", strlen(proot->module) ? proot->module : "<main>");
+    }
     struct pscope *pscope = (struct pscope*) val;
 
     aliases_dump(pscope->aliases, "Aliases:", depth + 1);

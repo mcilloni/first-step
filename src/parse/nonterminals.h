@@ -5,7 +5,7 @@
 #include <lex/lex.h>
 
 enum nonterminals {
-  PR_PROGRAM,
+  PR_ROOT,
   PR_DEFINITION,
   PR_ENTRY,
   PR_BODY,

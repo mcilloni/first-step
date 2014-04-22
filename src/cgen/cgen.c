@@ -590,8 +590,8 @@ void cgen(const char *fName, struct pnode *tree, FILE *out) {
 
   ccode_printDefaultHeaders(out);
 
-  if (tree->id != PR_PROGRAM) {
-    env.fail("Cannot generate anything from a broken tree. Expected %s, found %s", nt_str(PR_PROGRAM), nt_str(tree->id));
+  if (tree->id != PR_ROOT) {
+    env.fail("Cannot generate anything from a broken tree. Expected %s, found %s", nt_str(PR_ROOT), nt_str(tree->id));
   }
  
   ccode_declAliases(pnode_getAliases(tree), out, 0);

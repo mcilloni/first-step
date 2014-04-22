@@ -31,14 +31,22 @@ struct pnode* body(struct parser *prs, struct pnode *this, bodyender be);
 extern struct pnode* expr(struct parser *prs, struct pnode *root, bodyender be);
 struct type* type(struct parser *prs, struct pnode *this);
 
+void parser_loadToken(struct parser *prs) {
+  prs->nextTok = token_get(prs->lex);
+  
+  if (prs->nextTok) {
+    if (lexer_eof(prs->lex)) {
+      prs->nextTok = NULL;
+    }
+    if (lexer_error(prs->lex)) {
+      env.fail("Error reading file: %s", strerror(errno));
+    }
+  }
+}
+
 struct token* parser_getTok(struct parser *prs) {
 
   struct token *tok;
-  if (prs->firstTok) {
-    prs->nextTok = token_get(prs->lex);
-    
-    prs->firstTok = false;
-  }
   tok = prs->nextTok;
   prs->nextTok = token_get(prs->lex);
 
@@ -381,7 +389,7 @@ struct pnode* varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) 
 
     parser_getTok(prs); //discard '='
     bodyender be = NULL;
-    if (this->id == PR_PROGRAM) {
+    if (this->id == PR_ROOT) {
       be = nextIsEndEofAware;
     }
 
@@ -846,27 +854,61 @@ struct pnode* definition(struct parser *prs, struct pnode *root) {
 }
 
 struct pnode* parser_parse(struct parser *prs, FILE *file) {
-
-  struct pnode *program = pnode_new(PR_PROGRAM), *nextDef;  
-
   lineno_setLoc(&prs->lastLineno);
 
   prs->lex = lexer_fromFile(file);
-  prs->firstTok = true;
 
-  while ((nextDef = definition(prs, program))) {
+  parser_loadToken(prs);
+
+  if (!prs->nextTok) {
+    return NULL;
+  }
+
+  char *module;
+
+  if (prs->nextTok->type == LEX_MODULE) {
+    parser_getTok(prs); //discard 'module'
+
+    struct token *tok = parser_getTok(prs);
+
+    if (!tok) {
+      env.fail("Unexpected EOF after 'module'");
+    }
+
+    if (tok->type != LEX_ID) {
+      env.fail("Unexpected %s, expected an identifier", token_str(tok));
+    }
+
+    module = str_clone((char*) tok->value);
+
+    tok = parser_getTok(prs);
+
+    if (!tok) {
+      env.fail("Unexpected EOF after module declaration");
+    }
+
+    if (tok->type != LEX_NEWLINE) {
+      env.fail("Unexpected %s, expected a newline", token_str(tok));
+    }
+  } else {
+    module = str_clone(""); //should be freeable
+  }
+
+  struct pnode *root = pnode_newroot(module), *nextDef;  
+
+  while ((nextDef = definition(prs, root))) {
     if (nextDef != &declaration_fake_node) {
-      pnode_addLeaf(program, nextDef);    
+      pnode_addLeaf(root, nextDef);    
     }
   }
 
-  if (!array_len(program->leaves)) {
-    pnode_free(program);
+  if (!array_len(root->leaves)) {
+    pnode_free(root);
     return NULL;
   }
 
   lexer_close(prs->lex);
 
-  return program;
+  return root;
 }
 

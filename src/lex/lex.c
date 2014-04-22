@@ -423,6 +423,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // module
+  if (!strcmp("module", data)) {
+    res->type = LEX_MODULE;
+    return res;
+  }
+
   // func
   if (!strcmp("func", data)) {
     res->type = LEX_FUNC;
@@ -584,6 +590,8 @@ const char* tokentype_str(enum token_type type) {
     return "<";
   case LEX_MINUS:
     return "-";
+  case LEX_MODULE:
+    return "module";
   case LEX_NEWLINE:
     return "a new line";
   case LEX_NOT:

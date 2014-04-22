@@ -1,4 +1,8 @@
-program = { definition }
+program = [module], {import}, { definition }
+
+module = 'module', id
+
+import = 'import', id
 
 definition = entry | function
 
