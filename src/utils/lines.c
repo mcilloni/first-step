@@ -27,11 +27,38 @@
 
 
 static const size_t initSize = 512;
-size_t lineno = 0;
 
-struct line* line_read(FILE *file, enum errors *err) {
+struct filereader* filereader_open(const char *path) {
+  return filereader_fromFile(fopen(path, "r"));
+}
+
+struct filereader* filereader_fromFile(FILE *file){
+  if (!file) {
+    return NULL;
+  }
+
+  struct filereader *fr = calloc(1, sizeof(struct filereader));
+
+  fr->file = file;
+
+  return fr;
+}
+
+void filereader_close(struct filereader *fr) {
+  if (fr) {
+    fclose(fr->file);
+  }
+}
+
+void filereader_free(struct filereader *fr) {
+  if (fr) {
+    free(fr);
+  }
+}
+
+struct line* line_read(struct filereader *file, enum errors *err) {
   struct line *ret = malloc(sizeof(struct line));
-  *ret = (struct line){0, 0, lineno, calloc(sizeof(char), initSize)};
+  *ret = (struct line) {0, 0, file->lineno, calloc(sizeof(char), initSize)};
 
   char ch;
 
@@ -41,11 +68,11 @@ struct line* line_read(FILE *file, enum errors *err) {
 
   while(loop) {
 
-    ch = fgetc(file);
+    ch = fgetc(file->file);
 
     switch(ch) {
     case EOF: {
-      if (ferror(file)) {
+      if (ferror(file->file)) {
         env.fail("Error while reading file, %s", strerror(errno));
         *err = ERROR;
       } else {
@@ -62,7 +89,7 @@ struct line* line_read(FILE *file, enum errors *err) {
         loop = false;
       } 
 
-      ++lineno;
+      ++file->lineno;
 
       break;  
     }
@@ -96,7 +123,7 @@ struct line* line_read(FILE *file, enum errors *err) {
 
   }
 
-  ret->lineno = lineno;
+  ret->lineno = file->lineno;
   ret->val[ret->len] = 0;
 
   return ret;

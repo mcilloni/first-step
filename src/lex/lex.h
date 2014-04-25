@@ -19,6 +19,7 @@ enum token_type {
   LEX_BREAK,
   LEX_CAST,
   LEX_CBRAC,
+  LEX_COLON,
   LEX_COMMA,
   LEX_CONTINUE,
   LEX_CPAR,
@@ -36,6 +37,7 @@ enum token_type {
   LEX_FUNC,
   LEX_ID,
   LEX_IF,
+  LEX_IMPORT,
   LEX_INC,
   LEX_MAJEQ,
   LEX_MAJOR,
@@ -74,8 +76,10 @@ struct token {
 };
 
 struct lexer {
-  FILE *file;
+  struct filereader *fr;
   enum errors errcode;
+
+  struct line *line;
 
   char peek;
   bool newline;
@@ -103,6 +107,7 @@ struct lexer* lexer_open(const char *path);
 struct lexer* lexer_fromFile(FILE *file);
 
 int8_t token_comparePriority(struct token *tok1, struct token *tok2);
+int8_t tokentype_getPriority(enum token_type type);
 int8_t token_getPriority(struct token *tok);
 enum optype token_getOpType(struct token *tok);
 bool token_isBooleanOp(enum token_type type);

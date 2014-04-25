@@ -127,6 +127,58 @@ void pnode_alias(struct pnode *pnode, const char *name, struct type *type) {
   }
 }
 
+struct type* pnode_isRootAndIdIsFunc(struct pnode *pnode, const char *id) {
+  if (pnode->id == PR_ROOT) {
+    Leaves *leaves = pnode->leaves;
+    struct pnode *leaf;
+    size_t len = array_len(leaves);
+
+    for (size_t i = 0; i < len; ++i) {
+      leaf = *leaves_get(leaves, i);
+      if (pnode_isFunc(leaf)) {
+        struct pfunc *pfunc = (struct pfunc*) leaf;
+
+        if (!strcmp(pfunc->name, id)) {
+          return (struct type*) pfunc->ftype;
+        }
+      }
+    }
+  }
+
+  return NULL;
+}
+
+struct type* pnode_findExportedSym(struct proot *root, const char *name) {
+  struct pscope *pscope = &root->node;
+  struct pnode *pnode = &pscope->node;
+  struct symbol *sym;
+
+  if ((sym = symbols_get(pscope->symbols, name))) {
+    return sym->type;
+  }
+  
+  return pnode_isRootAndIdIsFunc(pnode, name);
+}
+
+struct type* pnode_extractFromModule(struct pnode *pnode, const char *module, const char *name) {
+  if (!pnode) {
+    env.fail("Malformed tree");
+  }
+
+  if (!pnode_isRoot(pnode)) {
+    return pnode_extractFromModule(pnode->root, module, name);
+  }
+
+  struct proot *proot = (struct proot*) pnode;
+  struct pnode *modtree = NULL;
+
+  if (!(modtree = imports_get(proot->imports, module))) {
+    env.fail("No module called %s has been imported", module);
+  }
+
+  return pnode_findExportedSym((struct proot*) modtree, name);
+}
+
 struct type* pnode_getType(struct pnode *pnode, const char *name) {
 
   struct type *ret;
@@ -320,27 +372,6 @@ bool pnode_getValue(struct pnode *pnode, uintmax_t *val) {
 
   return true;
 
-}
-
-struct type* pnode_isRootAndIdIsFunc(struct pnode *pnode, const char *id) {
-  if (pnode->id == PR_ROOT) {
-    Leaves *leaves = pnode->leaves;
-    struct pnode *leaf;
-    size_t len = array_len(leaves);
-
-    for (size_t i = 0; i < len; ++i) {
-      leaf = *leaves_get(leaves, i);
-      if (pnode_isFunc(leaf)) {
-        struct pfunc *pfunc = (struct pfunc*) leaf;
-
-        if (!strcmp(pfunc->name, id)) {
-          return (struct type*) pfunc->ftype;
-        }
-      }
-    }
-  }
-
-  return NULL;
 }
 
 struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
@@ -578,10 +609,11 @@ struct pnode* pnode_newfunc(Pool *pool, enum nonterminals id, const char *name, 
   return (struct pnode*) retVal;
 }
 
-struct pnode* pnode_newroot(char *module) {
+struct pnode* pnode_newroot(const char *module, Imports *imports) {
   struct proot *ret = (struct proot*) pnode_new(PR_ROOT);
 
   ret->module = str_clone(module);
+  ret->imports = imports;
 
   return (struct pnode*) ret;
 }
@@ -638,6 +670,17 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
     fputs("| ", stdout);
   }
 
+  if (val->id == PR_BINOP && ((enum token_type) pnode_getval(val)) == LEX_COLON) {
+    struct type *type = pnode_evalType(pool, val, NULL);
+    struct pnode *module = *leaves_get(val->leaves, 0);
+    struct pnode *id = *leaves_get(val->leaves, 1);
+    char buf[4096];
+
+    printf("Identifier: %s:%s, type %s\n", (char*) pnode_getval(module), (char*) pnode_getval(id), type_str(type, buf, 4096));
+
+    return;
+  } 
+
   fputs(nt_str(val->id), stdout);
   if (val->startLine && val->endLine) {
     if (val->startLine == val->endLine) {
@@ -684,9 +727,10 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
     printf(": \"%s\"", (const char*) pnode_getval(val));
     break;
   case PR_BINOP:
-  case PR_UNOP:
+  case PR_UNOP: {
     printf(": %s", tokentype_str((enum token_type) pnode_getval(val)));
     break;
+  }
   default:
     break;
   }

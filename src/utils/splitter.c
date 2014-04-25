@@ -15,38 +15,50 @@
  *
  */
 
-#include <utils/lines.h>
-#include <utils/env.h>
+#include "splitter.h"
+#include "utils.h"
 
+#include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
 
-int main(int argc, char *argv[]) {
+struct splitter {
+  char *orig;
+  char *tmp;
+  char c;
+};
 
-  if (argc != 2) {
-    env.fail("Wrong args");
+struct splitter* splitter_new(const char *toSplit, char c) {
+  struct splitter *ret = malloc(sizeof(struct splitter));
+  ret->orig = ret->tmp = str_clone(toSplit);
+  ret->c = c;
+  return ret;
+}
+
+char* splitter_next(struct splitter *spl) {
+  if (!spl->tmp) {
+    return NULL;
+  }
+  char *base = spl->tmp;
+  for (;*spl->tmp && *spl->tmp != spl->c; ++spl->tmp);
+
+  ptrdiff_t diff = spl->tmp - base;
+  char *ret = NULL;
+
+  if (diff) {
+    ret = malloc(diff * sizeof(char));
+    strncpy(ret, base, diff);
   }
 
-  enum errors err = NOERR;
-  
-  struct filereader *fr = filereader_open(argv[1]);
-  struct line *line;
-
-  while (!err) {
-    line = line_read(fr, &err);
-    env.info("%s (%zu == %zu)", line->val, line->len, strlen(line->val));
-    line_free(line);
+  if (*spl->tmp == spl->c) {
+    ++spl->tmp;
   }
 
-  filereader_close(fr);  
-  filereader_free(fr);  
-  
-  if (err == ERROR) {
-    perror("Error");
-    return EXIT_FAILURE;
-  }
+  return ret;
+}
 
-  return EXIT_SUCCESS;
-
+void splitter_free(struct splitter *splitter) {
+  free(splitter->orig);
+  free(splitter);
 }
 

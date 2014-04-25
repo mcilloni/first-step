@@ -1,8 +1,10 @@
 #if !defined(_PTREE_H)
 #define _PTREE_H
 
+#include "imports.h"
 #include "nonterminals.h"
 #include "pnleaves.h"
+
 #include <syms/symbols.h>
 #include <syms/types.h>
 
@@ -41,6 +43,7 @@ struct pscope {
 struct proot {
   struct pscope node;
   char *module;
+  Imports *imports;
 };
 
 extern struct pnode *expr_empty;
@@ -52,6 +55,8 @@ bool pnode_declSymbol(struct pnode *pnode, const char *id, struct type *type, en
 struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope);
 void pnode_free(struct pnode *pnode);
 void pnode_alias(struct pnode *pnode, const char *name, struct type *type);
+struct type* pnode_findExportedSym(struct proot *root, const char *name);
+struct type* pnode_extractFromModule(struct pnode *pnode, const char *module, const char *name);
 struct type* pnode_fixAlias(Pool *pool, struct pnode *root, struct type *type);
 Aliases* pnode_getAliases(struct pnode *pnode);
 Symbols* pnode_getSyms(struct pnode *pnode);
@@ -68,7 +73,7 @@ struct symbol* pnode_matchSymbolForDeclaration(struct pnode *pnode, const char *
 struct type* pnode_symbolType(struct pnode *pnode, const char *id);
 struct pnode* pnode_new(enum nonterminals id);
 struct pnode* pnode_newfunc(Pool *pool, enum nonterminals id, const char *name, struct type *ret, Symbols *params);
-struct pnode* pnode_newroot(char *module);
+struct pnode* pnode_newroot(const char *module, Imports *imports);
 struct pnode* pnode_newval(enum nonterminals id, uintmax_t val);
 void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode *assign, struct pnode *assigned);
 struct type* pnode_funcReturnType(struct pnode *pnode);

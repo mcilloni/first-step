@@ -37,5 +37,5 @@ dir:
 	mkdir -p $(OUTDIR)
 
 %.o: %.c 
-	$(CC) $(INCLUDES) -c $< -o $(OUTDIR)/$@ -std=c11 -Wall -pedantic
+	$(CC) $(INCLUDES) -c $< -o $(OUTDIR)/$@ -std=gnu11 -Wall -pedantic 
 

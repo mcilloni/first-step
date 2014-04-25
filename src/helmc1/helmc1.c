@@ -46,7 +46,7 @@ int main(int argc, char *argv[]) {
     env.fail("Error opening %s: %s", filename, strerror(errno));
   }
 
-  struct parser *parser = parser_new(filename);
+  struct parser *parser = parser_new(filename, NULL);
 
   struct pnode *parsed = parser_parse(parser, file);
   if (parsed) {

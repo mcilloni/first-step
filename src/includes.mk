@@ -5,6 +5,7 @@ ifndef BPATH
 endif
 
 UNAME = $(shell uname)
+MACHINE = $(shell uname -m)
 
 INCLUDES := -I$(BPATH)/../ -I$(BPATH)/../parse/ -I$(BPATH)/../../deps/ -g
 OBJDIR := $(BPATH)/../../build
@@ -27,4 +28,7 @@ ifeq ($(UNAME),Darwin)
 	LDFLAGS += -lmemstream
 endif
 
+ifeq ($(MACHINE), x86_64)
+	INCLUDES += -fPIC
+endif
 

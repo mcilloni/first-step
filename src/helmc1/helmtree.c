@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
 
   uintmax_t t1 = t.tv_sec*1000000LU + t.tv_usec;
 
-  struct parser *parser = parser_new(argv[1]);
+  struct parser *parser = parser_new(argv[1], NULL);
 
   struct pnode *ret = parser_parse(parser, fopen(argv[1], "r"));
 

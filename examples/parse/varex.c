@@ -125,7 +125,7 @@ int main(int argc, const char *argv[]) {
     env.fail("Errors during lexing of file");
   }
 
-  struct pnode *root = pnode_new(PR_PROGRAM);
+  struct pnode *root = pnode_new(PR_ROOT);
   pnode_addSymbol(root, "a", type_getBuiltin("int8"), NULL);
   struct pnode *res = expr(root, lex);
   pnode_addLeaf(root, res);

@@ -28,6 +28,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+void lex_setLine(struct lexer *lex, struct line *line) {
+  line_free(lex->line);
+  lex->line = line;
+}
+
 struct lexer* lexer_open(const char *path) {
   FILE *file = fopen(path, "r");
 
@@ -47,16 +52,16 @@ struct lexer* lexer_fromFile(FILE *file) {
     env.fail("NULL file given for lexer");
   }
 
-  lex->file = file;
+  lex->fr = filereader_fromFile(file);
   lex->tokens = pool_new();
-  env_setLine(line_read(lex->file, &lex->errcode));
+  lex_setLine(lex, line_read(lex->fr, &lex->errcode));
   
   if (lexer_error(lex)) {
     env.fail("Error while reading file %s: %s", strerror(errno));
   }
 
-  lex->peek = *(env.line->val);
-  ++env.line->position;
+  lex->peek = *(lex->line->val);
+  ++lex->line->position;
   
   lex->newline = false;
 
@@ -87,23 +92,25 @@ void token_free(struct token *tok) {
 
 void lexer_close(struct lexer *lex) {
   
-  if (lex->file && lex->closeFile) {
-    fclose(lex->file);
+  if (lex->fr && lex->closeFile) {
+    filereader_close(lex->fr);
   }
+
+  filereader_free(lex->fr);
 
   pool_release(lex->tokens, (void (*)(void *)) token_free);
 
-  line_free(env.line);
+  line_free(lex->line);
   free(lex);
   
 }
 
 void lexer_discardLine(struct lexer *lex) {
-      env_setLine(line_read(lex->file, &lex->errcode));
+      lex_setLine(lex, line_read(lex->fr, &lex->errcode));
 
       if (!lexer_error(lex)) {
-        lex->peek = *env.line->val;
-        ++env.line->position;
+        lex->peek = *lex->line->val;
+        ++lex->line->position;
       }
 }
 
@@ -135,12 +142,12 @@ bool stok(struct lexer *lex, char *data, size_t max) {
     for (i = 0; i < max && !lex->newline;) {
       
       ch = lex->peek;
-      ++env.line->position;
+      ++lex->line->position;
 
-      lex->newline = (env.line->len + 1) == env.line->position;     
+      lex->newline = (lex->line->len + 1) == lex->line->position;     
 
       if (!lex->newline) {
-        lex->peek = env.line->val[env.line->position - 1];     
+        lex->peek = lex->line->val[lex->line->position - 1];     
       } else {
         lexer_discardLine(lex);
         if (lexer_error(lex)) {
@@ -215,7 +222,7 @@ struct token* token_get(struct lexer *lex) {
   }
 
   char data[MAX_TOKEN_LENGTH];
-  uintmax_t lineno = env.line->lineno;
+  uintmax_t lineno = lex->line->lineno;
 
   if (lex->saved) {
     strcpy(data, lex->saved);
@@ -375,6 +382,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // :
+  if (!strcmp(":", data)) {
+    res->type = LEX_COLON;
+    return res;
+  }
+
   // entry
   if (!strcmp("entry", data)) {
     res->type = LEX_ENTRY;
@@ -429,7 +442,13 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
-  // func
+ // import
+  if (!strcmp("import", data)) {
+    res->type = LEX_IMPORT;
+    return res;
+  }
+
+ // func
   if (!strcmp("func", data)) {
     res->type = LEX_FUNC;
     return res;
@@ -546,6 +565,8 @@ const char* tokentype_str(enum token_type type) {
     return "cast";
   case LEX_CBRAC:
     return "]";
+  case LEX_COLON:
+    return ":";
   case LEX_COMMA:
     return ",";
   case LEX_CONTINUE:
@@ -578,6 +599,8 @@ const char* tokentype_str(enum token_type type) {
     return "an identifier";
   case LEX_IF:
     return "if";
+  case LEX_IMPORT:
+    return "import";
   case LEX_INC:
     return "++";
   case LEX_MAJEQ:
@@ -647,7 +670,11 @@ int8_t token_comparePriority(struct token *tok1, struct token *tok2) {
 }
 
 int8_t token_getPriority(struct token *tok) {
-  switch(tok->type) {
+  return tokentype_getPriority(tok->type);
+}
+
+int8_t tokentype_getPriority(enum token_type type) {
+  switch(type) {
   case LEX_ASSIGN:
     return 1;
 
@@ -691,6 +718,9 @@ int8_t token_getPriority(struct token *tok) {
   case LEX_DEC:
     return 10;
 
+  case LEX_COLON:
+    return 11;
+
   default:
     return -1;
   }
@@ -711,6 +741,7 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_AND:
   case LEX_APOS:
   case LEX_ASSIGN:
+  case LEX_COLON:
   case LEX_DIFFERENT:
   case LEX_DIV:
   case LEX_EQUAL:

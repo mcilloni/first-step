@@ -15,38 +15,18 @@
  *
  */
 
-#include <utils/lines.h>
-#include <utils/env.h>
+#if !defined(_IMPORTS_H)
+#define _IMPORTS_H
 
-#include <stdlib.h>
-#include <string.h>
+#include <treemap/map.h>
 
-int main(int argc, char *argv[]) {
+typedef StringMap Imports;
 
-  if (argc != 2) {
-    env.fail("Wrong args");
-  }
+struct pnode;
 
-  enum errors err = NOERR;
-  
-  struct filereader *fr = filereader_open(argv[1]);
-  struct line *line;
+extern Imports* (*imports_new)(void);
+bool imports_register(Imports *imps, const char *string, struct pnode *pnode);
+extern bool (*imports_exists)(Imports *imps, const char *key);
+struct pnode* imports_get(Imports *imps, const char *string);
 
-  while (!err) {
-    line = line_read(fr, &err);
-    env.info("%s (%zu == %zu)", line->val, line->len, strlen(line->val));
-    line_free(line);
-  }
-
-  filereader_close(fr);  
-  filereader_free(fr);  
-  
-  if (err == ERROR) {
-    perror("Error");
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-
-}
-
+#endif

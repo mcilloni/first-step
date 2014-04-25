@@ -15,6 +15,7 @@
  *
  */
 
+#include "imports.h"
 #include "parse.h"
 
 #include <lex/lex.h>
@@ -382,7 +383,7 @@ struct pnode* varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) 
 
   struct type *assType;
 
-  if (prs->nextTok->type == LEX_ASSIGN) {
+  if (prs->nextTok && prs->nextTok->type == LEX_ASSIGN) {
     if (decl) {
       env.fail("Cannot assign on declaration to a decl variable");
     }
@@ -733,6 +734,12 @@ void funcCommons(struct parser *prs, struct pnode *this, bodyender be) {
 }
 
 struct pnode* entry(struct parser *prs, struct pnode *root) {
+
+  struct proot *proot = (struct proot*) root;
+  if (strlen(proot->module)) {
+    env.fail("An entry cannot be inside a module");
+  }
+
   struct token *tok = parser_getTok(prs);
 
   if (!tok) {
@@ -853,7 +860,65 @@ struct pnode* definition(struct parser *prs, struct pnode *root) {
   return ret;
 }
 
+bool import(struct parser *prs, Imports *imps) {
+  if (!prs->nextTok) {
+    env.fail("Unexpected EOF, expected an import or a declaration");
+  }
+
+  if (prs->nextTok->type == LEX_IMPORT) {
+    parser_getTok(prs); //discard 'import'
+
+    struct token *tok = parser_getTok(prs);
+
+    if (!tok) {
+      env.fail("Unexpected EOF, expected an identifier after 'import'");
+    }
+
+    if (tok->type != LEX_ID) {
+      env.fail("Unexpected %s, expected an identifier after 'import'", token_str(tok));
+    }
+
+    char *name = (char*) tok->value;
+
+    if (imports_exists(imps, name)) {
+      env.fail("Module %s imported twice", name);
+    }
+
+    struct env oldenv = env;
+    env_reset();
+
+    struct pnode *module = importer_import(prs->importer, name);
+    
+    env_set(oldenv);
+
+    lineno_setLoc(&prs->lastLineno);
+
+    if (!module) {
+      env.fail("Module %s not found", name);
+    }
+
+    imports_register(imps, name, module);
+
+    tok = parser_getTok(prs);
+    if (!tok) {
+      env.fail("Unexpected EOF after import declaration");
+    }
+
+    if (tok->type != LEX_NEWLINE) {
+      env.fail("Unexpected %s, expected a newline", token_str(tok));
+    }
+    return true;
+  }
+
+  return false;
+}
+
 struct pnode* parser_parse(struct parser *prs, FILE *file) {
+
+  if (!file) {
+    file = fopen(prs->filename, "r");
+  }
+
   lineno_setLoc(&prs->lastLineno);
 
   prs->lex = lexer_fromFile(file);
@@ -894,7 +959,11 @@ struct pnode* parser_parse(struct parser *prs, FILE *file) {
     module = str_clone(""); //should be freeable
   }
 
-  struct pnode *root = pnode_newroot(module), *nextDef;  
+  Imports *imports = imports_new();
+  
+  while (import(prs, imports));
+
+  struct pnode *root = pnode_newroot(module, imports), *nextDef;  
 
   while ((nextDef = definition(prs, root))) {
     if (nextDef != &declaration_fake_node) {

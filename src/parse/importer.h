@@ -15,38 +15,17 @@
  *
  */
 
-#include <utils/lines.h>
-#include <utils/env.h>
+#if !defined(_IMPORTER_H)
+#define _IMPORTER_H
 
-#include <stdlib.h>
-#include <string.h>
+#include <list/pool.h>
 
-int main(int argc, char *argv[]) {
+struct pnode;
+struct importer;
 
-  if (argc != 2) {
-    env.fail("Wrong args");
-  }
+struct importer* importer_new(Pool *pool);
+Pool* importer_getPool(struct importer *impr);
+struct pnode* importer_import(struct importer *impr, char *name);
+void importer_free(struct importer *impr);
 
-  enum errors err = NOERR;
-  
-  struct filereader *fr = filereader_open(argv[1]);
-  struct line *line;
-
-  while (!err) {
-    line = line_read(fr, &err);
-    env.info("%s (%zu == %zu)", line->val, line->len, strlen(line->val));
-    line_free(line);
-  }
-
-  filereader_close(fr);  
-  filereader_free(fr);  
-  
-  if (err == ERROR) {
-    perror("Error");
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-
-}
-
+#endif

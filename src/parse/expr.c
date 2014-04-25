@@ -64,7 +64,7 @@ uintmax_t uintpow(uintmax_t base, uintmax_t exp) {
 
 }
 
-void expr_callCheckParameters(struct parser *prs, struct pnode *call) {
+void expr_callCheckParameters(struct parser *prs, struct pnode *call, struct pnode *root) {
   Leaves *lv = call->leaves;
 
   size_t len = array_len(lv);
@@ -74,12 +74,17 @@ void expr_callCheckParameters(struct parser *prs, struct pnode *call) {
   }
 
   struct pnode *id = *leaves_get(lv, 0);
-  char *name = (char*) pnode_getval(id);
+  struct type *type = NULL;
 
-  struct type *type = pnode_symbolType(call, name);
+  if (id->id == PR_ID) {
+    char *name = (char*) pnode_getval(id);
+    type = pnode_symbolType(call, name);
 
-  if (!type) {
-    env.fail("Cannot call undefined id %s", name);
+    if (!type) {
+      env.fail("Cannot call undefined id %s", name);
+    }
+  } else {
+    type = pnode_evalType(prs->types, id, root);
   }
 
   if (type_isPtr(type)) {
@@ -87,7 +92,8 @@ void expr_callCheckParameters(struct parser *prs, struct pnode *call) {
   }
 
   if (!type_isFunc(type)) {
-    env.fail("Cannot call not function type id %s", name);
+    char buf[4096];
+    env.fail("Cannot call non-function type %s", type_str(type, buf, 4096));
   }
 
   struct ftype *ftype = (struct ftype*) type;
@@ -96,7 +102,7 @@ void expr_callCheckParameters(struct parser *prs, struct pnode *call) {
   if ((len - 1) != pLen) {
     char buf[2048];
     type_str(type, buf, 2048);
-    env.fail("Cannot call function %s of type %s: wrong number of arguments (%zu), expected %zu", name, buf, len-1, pLen);
+    env.fail("Cannot call type %s: wrong number of arguments (%zu), expected %zu", buf, len-1, pLen);
   }
 
   struct type *typeA, *typeB;
@@ -110,7 +116,7 @@ void expr_callCheckParameters(struct parser *prs, struct pnode *call) {
       char buf[2048], cuf[2048];
       type_str(typeB, cuf, 2048);
       type_str(typeA, buf, 2048);
-      env.fail("Cannot assign %s to parameter %zu of type %s of function id %s", cuf, i, buf, name);
+      env.fail("Cannot assign %s to parameter %zu of type %s in function call", cuf, i, buf);
     }
 
   }
@@ -333,31 +339,31 @@ void expr_fixMinus(List *expr) {
   } 
 }
 
-bool expr_matchPar(List *expr) {
-
+size_t expr_matchPar(List *expr) {
   size_t len = list_len(expr);
+  size_t cpCount = 0;
   struct token *tok;
-  size_t opars = 0U;
 
-  for (size_t i = 1; i < len - 1; ++i) {
-    tok = *list_get(expr, i);
+  for (int64_t i = len - 1; i >= 0; --i) {
+    tok = (struct token*) *list_get(expr, i);
 
-    switch (tok->type) {
-    case LEX_OPAR:
-      ++opars;
-      break;
-    case LEX_CPAR:
-      if (opars) {
-        --opars;
-      } else {
-        return true;
+    if (tok->type == LEX_CPAR) {
+      ++cpCount;
+    }
+
+    if (tok->type == LEX_OPAR) {
+      if (cpCount) {
+        --cpCount;
+      } 
+      
+      if (!cpCount) {
+        return i;
       }
-    default:
-      break;
     }
   }
 
-  return false;
+  env.fail("Unmatched () pair");
+  return 0;
 }
 
 void expr_fixParentheses(List **expr) {
@@ -585,45 +591,48 @@ struct pnode* expr_handleCall(struct parser *prs, struct pnode *root, List *expr
     return false;
   }
 
-  struct token *first = (struct token*) *list_get(expr, 0);
-  struct token *second = (struct token*) *list_get(expr, 1);
   struct token *last = (struct token*) *list_get(expr, len - 1);
 
-  if (first->type == LEX_ID && second->type == LEX_OPAR && last->type == LEX_CPAR) {
+  if (last->type == LEX_CPAR) {
+    size_t mPar = expr_matchPar(expr);
 
-    //Expressions are really bad implemented this way. Don't care.
+    if (mPar) {
+      struct token *prec = *list_get(expr, mPar - 1);
 
-    struct pnode *ret = pnode_newval(PR_CALL, 0U);
+      //if it is not a real operator, then is not a parentheses but a call
+      if (!token_getOpType(prec) || prec->type == LEX_CBRAC) {
+        struct pnode *toCall = expr_treeize(prs, root, list_extract(expr, 0, mPar));
+        struct pnode *ret = pnode_newval(PR_CALL, 0U);
 
-    ret->root = root;
+        ret->root = root;
+        toCall->root = ret;
 
-    struct pnode *id = expr_handleSingle(ret, list_extract(expr, 0, 1));
+        pnode_addLeaf(ret, toCall);
 
-    id->root = ret;
+        expr_fixParentheses(&expr);
 
-    pnode_addLeaf(ret, id);
+        if (list_len(expr)) {
 
-    expr_fixParentheses(&expr);
+          List *tmp;
+          size_t comma;
+          
+          while((comma = expr_findComma(expr))) {
+            tmp = list_extract(expr, 0, comma);
+            pnode_addLeaf(ret, expr_treeize(prs, ret, tmp));
+            expr = list_extract(expr, 1, -1);
+          }
 
-    if (list_len(expr)) {
+          pnode_addLeaf(ret, expr_treeize(prs, ret, expr));
+        
+        }
 
-      List *tmp;
-      size_t comma;
-      
-      while((comma = expr_findComma(expr))) {
-        tmp = list_extract(expr, 0, comma);
-        pnode_addLeaf(ret, expr_treeize(prs, ret, tmp));
-        expr = list_extract(expr, 1, -1);
+        expr_callCheckParameters(prs, ret, root);
+
+        return ret;
+
       }
-
-      pnode_addLeaf(ret, expr_treeize(prs, ret, expr));
-    
     }
-
-    expr_callCheckParameters(prs, ret);
-
-    return ret;
-  }
+  } 
 
   return NULL;
 }
@@ -735,10 +744,6 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
 
   struct pnode *ret = NULL;
 
-  if ((ret = expr_handleCall(prs, root, expr))) {
-    return ret;
-  }
-
   if (list_len(expr) == 1) {
     ret = expr_handleSingle(root, expr);
   } else {
@@ -748,11 +753,50 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
     //handle binary operator. Split expr in two and get subexpressions.
   
     struct token *tok = *list_get(expr, pos);
+    int8_t pri = token_getPriority(tok);
+
+    if (pri >= tokentype_getPriority(LEX_COLON) || pri < 0) {
+      if ((ret = expr_handleCall(prs, root, expr))) {
+        return ret;
+      }
+    }
+
     switch (token_getOpType(tok)) {
     case OPTYPE_BINARY: {
 
       if (!pos) {
         env.fail("Binary operator %s found at expression start", token_str(tok));
+      }
+ 
+      if (tok->type == LEX_COLON) {
+        struct token *left = *list_get(expr, pos - 1);
+        struct token *right = *list_get(expr, pos + 1);
+        if (right->type != LEX_ID) {
+          env.fail("Non-identifier right module member access");
+        }  
+
+        if (left->type != LEX_ID) {
+          env.fail("Non-identifier module name");
+        }
+
+        //check if this identifier exists in an imported module of this name
+        
+        struct type *type = NULL;
+        const char *module = (char*) left->value;
+        const char *name = (char*) right->value;
+        
+        if (!(type = pnode_extractFromModule(root, module, name))) {
+          env.fail("%s:%s is not defined", module, name);
+        }
+        
+        ret = pnode_newval(PR_BINOP, (uintmax_t) LEX_COLON);
+
+        struct pexpr *pexpr = (struct pexpr*) ret;
+        pexpr->type = type;
+        
+        pnode_addLeaf(ret, pnode_newval(PR_ID, (uintmax_t) str_clone((char*) left->value)));
+        pnode_addLeaf(ret, pnode_newval(PR_ID, (uintmax_t) str_clone((char*) right->value)));
+        break;
       }
 
       struct pnode *left = expr_treeize(prs, root, list_extract(expr, 0, pos));

@@ -15,41 +15,19 @@
  *
  */
 
+#include <parse/importer.h>
 #include <parse/ptree.h>
 
-#include <stdio.h>
 #include <stdlib.h>
 
 int main(void) {
-  struct pnode *st = pnode_new(PR_ROOT);
-  pnode_addLeaf(st, pnode_newval(PR_NUMBER, 33));
-  struct pnode *en = pnode_new(PR_ENTRY);
-  pnode_addLeaf(st, en);
+  Pool *pool = pool_new();
+  struct importer *importer = importer_new(pool);
 
-  struct pnode *plus = pnode_newval(PR_UNOP, LEX_PLUS); 
-  pnode_addLeaf(en, plus);
+  struct pnode* module = importer_import(importer, "lal");
 
-  enum symbols_resp resp;
-  struct type *int8 = type_getBuiltin("int8");
-  struct type *int16 = type_getBuiltin("int16");
-
-  if (pnode_addSymbol(plus, "potato", int8, &resp)) {
-    puts((resp == SYM_ADDED) ? "Added" : "Exists");
-  }
-  
-  if (pnode_addSymbol(st, "motato", int16, &resp)) {
-    puts((resp == SYM_ADDED) ? "Added" : "Exists");
-  }
-
-  if (pnode_addSymbol(plus, "potato", int8, &resp)) {
-    puts((resp == SYM_ADDED) ? "Added" : "Exists");
-  }
-
-  puts(pnode_symbolType(plus, "motato")->name);
-
-  puts(pnode_isInCurrentScope(plus, "motato") ? "Yup" : "Nope");
-
-  pnode_free(st);
-
+  pnode_free(module);
+  pool_release(pool, (void (*)(void*)) type_free);
+  importer_free(importer);
   return EXIT_SUCCESS;
 }

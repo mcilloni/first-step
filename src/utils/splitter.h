@@ -15,38 +15,13 @@
  *
  */
 
-#include <utils/lines.h>
-#include <utils/env.h>
+#if !defined (_SPLITTER_H)
+#define _SPLITTER_H
 
-#include <stdlib.h>
-#include <string.h>
+struct splitter;
 
-int main(int argc, char *argv[]) {
+struct splitter* splitter_new(const char *toSplit, char c);
+char* splitter_next(struct splitter *splitter);
+void splitter_free(struct splitter *splitter);
 
-  if (argc != 2) {
-    env.fail("Wrong args");
-  }
-
-  enum errors err = NOERR;
-  
-  struct filereader *fr = filereader_open(argv[1]);
-  struct line *line;
-
-  while (!err) {
-    line = line_read(fr, &err);
-    env.info("%s (%zu == %zu)", line->val, line->len, strlen(line->val));
-    line_free(line);
-  }
-
-  filereader_close(fr);  
-  filereader_free(fr);  
-  
-  if (err == ERROR) {
-    perror("Error");
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-
-}
-
+#endif

@@ -15,38 +15,24 @@
  *
  */
 
-#include <utils/lines.h>
-#include <utils/env.h>
+#include "imports.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include "ptree.h"
 
-int main(int argc, char *argv[]) {
+Imports* (*imports_new)(void) = (Imports* (*)(void)) strmap_new;
 
-  if (argc != 2) {
-    env.fail("Wrong args");
+bool imports_register(Imports *imps, const char *string, struct pnode *pnode) {
+  return (bool) map_put(imps, string, pnode, FREE_KEY | FREE_VALUE);
+}
+
+bool (*imports_exists)(Imports *imps, const char *key) = (bool (*)(Imports*,const char*)) map_contains;
+
+struct pnode* imports_get(Imports *imps, const char *string) {
+  struct pnode *ret;
+  if (map_get(imps, string, (void**) &ret)) {
+    return ret;
   }
 
-  enum errors err = NOERR;
-  
-  struct filereader *fr = filereader_open(argv[1]);
-  struct line *line;
-
-  while (!err) {
-    line = line_read(fr, &err);
-    env.info("%s (%zu == %zu)", line->val, line->len, strlen(line->val));
-    line_free(line);
-  }
-
-  filereader_close(fr);  
-  filereader_free(fr);  
-  
-  if (err == ERROR) {
-    perror("Error");
-    return EXIT_FAILURE;
-  }
-
-  return EXIT_SUCCESS;
-
+  return NULL;
 }
 
