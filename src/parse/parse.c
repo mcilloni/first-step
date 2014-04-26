@@ -84,6 +84,34 @@ struct type* idType(struct parser *prs, struct pnode *this) {
   
   const char *id = (const char*) type->value;
 
+  if (prs->nextTok && prs->nextTok->type == LEX_COLON) {
+    const char *module = id;
+    parser_getTok(prs); //discard ':'
+    type = parser_getTok(prs);
+
+    if (!type) {
+      env.fail("Unexpected EOF, expected identifier after '%s:'", module);
+    }
+
+    if (type->type != LEX_ID) {
+      env.fail("Unexpected %s, expected identifier after '%s:'", token_str(type), module);
+    }
+  
+    id = (const char*) type->value;
+
+    struct type *ret = pnode_getModuleAlias(this, module, id);
+
+    if (!ret) {
+      env.fail("Undefined type %s:%s", module, id);
+    }
+
+    if (type_isStruct(ret)) {
+      ret->name = str_clone(id);
+    }
+
+    return ret;
+  }
+
   struct type *ret = pnode_getType(this, id);
 
   if (!ret) {
@@ -897,7 +925,7 @@ bool import(struct parser *prs, Imports *imps) {
       env.fail("Module %s not found", name);
     }
 
-    imports_register(imps, name, module);
+    imports_register(imps, str_clone(name), module);
 
     tok = parser_getTok(prs);
     if (!tok) {

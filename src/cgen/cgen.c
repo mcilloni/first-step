@@ -37,7 +37,7 @@ void ccode_lineTag(size_t lineno, FILE *out) {
   fprintf(out, "#line %zu \"%s\"\n", lineno, filename);
 }
 
-char* ccode_csym(struct type *type, const char *name, bool pedantic);
+char* ccode_csym(struct type *type, const char *name, bool pedantic, bool first);
 
 void file_indent(FILE *out, uint8_t indent) {
   for (uint8_t i = 0; i < indent; ++i) {
@@ -99,7 +99,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
 
-    char *tCast = ccode_csym((struct type*) val, "", false);
+    char *tCast = ccode_csym((struct type*) val, "", false, false);
     fprintf(out, "((%s) ", tCast);
     free(tCast); 
     ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
@@ -108,7 +108,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
   }
 
   case PR_SIZE: {
-    char *tType = ccode_csym((struct type*) val, "", false);
+    char *tType = ccode_csym((struct type*) val, "", false, false);
     fprintf(out, "sizeof(%s) ", tType);
     free(tType); 
     break;
@@ -120,9 +120,11 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
     }
     
     fputs("( ", out);    
-    struct pnode *left = *leaves_get(root->leaves, 0);
-    ccode_genRecExpr(left, out);
-    fprintf(out, " %s ", ccode_opConv(&tok, left));
+    if (tok.type != LEX_COLON) {
+      struct pnode *left = *leaves_get(root->leaves, 0);
+      ccode_genRecExpr(left, out);
+      fprintf(out, "%s", ccode_opConv(&tok, left));
+    }
     ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
     fputs(" )", out);
     break;
@@ -276,7 +278,7 @@ void ccode_genDecl(struct pnode *decl, FILE *out, uint8_t indent) {
   }
 
   file_indent(out, indent);
-  char *csym = ccode_csym(sym->type, id, false);
+  char *csym = ccode_csym(sym->type, id, false, true);
   fprintf(out, "%s%s", (sym->decl ? "extern " : ""), csym);
   if (sym->optData) {
     if (sym->decl) {
@@ -346,13 +348,13 @@ void cgen_cfuncparms(FILE *out, Array *parms) {
       fputc(',', out);
     }
 
-    par = ccode_csym((struct type*) *array_get(parms, i), "", false);
+    par = ccode_csym((struct type*) *array_get(parms, i), "", false, false);
     fputs(par, out);
     free(par);
   }
 }
 
-char* ccode_csym(struct type *type, const char *name, bool pedantic) {
+char* ccode_csym(struct type *type, const char *name, bool pedantic, bool toplevel) {
   char *str;
   size_t size;
   FILE *strFile = open_memstream(&str, &size);
@@ -367,7 +369,7 @@ char* ccode_csym(struct type *type, const char *name, bool pedantic) {
   case TYPE_FUNC: {
     struct ftype *ftype = (struct ftype*) type;
     size_t pms, agz;
-    char *fmt = ccode_csym(ftype->ret, "%s", false), *pm, *ags;
+    char *fmt = ccode_csym(ftype->ret, "%s", false, false), *pm, *ags;
     FILE *pmFile = open_memstream(&pm, &pms); 
     FILE *agsFile = open_memstream(&ags, &agz);
     cgen_cfuncparms(agsFile, ftype->params);
@@ -386,13 +388,13 @@ char* ccode_csym(struct type *type, const char *name, bool pedantic) {
     struct atype *atype = (struct atype*) type;
     char buf[4096];
     snprintf(buf, 4095,"%s[%zu]", name, atype->len);
-    return ccode_csym(((struct ptype*) type)->val, buf, false);
+    return ccode_csym(((struct ptype*) type)->val, buf, false, false);
   }
                   
   case TYPE_PTR: {
     char buf[4096];
     snprintf(buf, 4095,"(*%s)", name);
-    return ccode_csym(((struct ptype*) type)->val, buf, false);
+    return ccode_csym(((struct ptype*) type)->val, buf, false, false);
   }
 
   case TYPE_STRUCT: {
@@ -405,7 +407,7 @@ char* ccode_csym(struct type *type, const char *name, bool pedantic) {
 
     for (size_t i = 0; i < len; ++i) {
       pair = *list_get(stype->symbols, i);
-      tmp = ccode_csym(pair->sym->type, pair->id, false);
+      tmp = ccode_csym(pair->sym->type, pair->id, false, false);
       fprintf(strFile, "%s; ", tmp);
     }
 
@@ -436,11 +438,11 @@ void ccode_declAliases(Aliases *syms, FILE *out, uint8_t indent) {
     char *csym = NULL;
     
     if (type_isStruct(decl->type)) {
-      csym = ccode_csym(decl->type, "", true);
+      csym = ccode_csym(decl->type, "", true, false);
       fprintf(out, "typedef struct %s %s;\n", decl->name, decl->name);
       fprintf(out, "struct %s %s;\n", decl->name, csym + 7);
     } else {
-      csym = ccode_csym(decl->type, decl->name, false);
+      csym = ccode_csym(decl->type, decl->name, false, true);
       fprintf(out, "typedef %s;\n", csym);
     }
 
@@ -509,7 +511,7 @@ void ccode_genFuncHead(struct pfunc *node, FILE *out) {
         fputs(", ", tmf);
       }
 
-      param = ccode_csym(pair->sym->type, pair->id, false);
+      param = ccode_csym(pair->sym->type, pair->id, false, false);
 
       fputs(param, tmf);
 
@@ -519,7 +521,7 @@ void ccode_genFuncHead(struct pfunc *node, FILE *out) {
  
   fclose(tmf); 
 
-  char *buf = ccode_csym(node->ftype->ret, tmp, false);
+  char *buf = ccode_csym(node->ftype->ret, tmp, false, false);
 
   fprintf(out, "%s) {\n", buf);
 
@@ -584,16 +586,73 @@ void ccode_printDefaultHeaders(FILE *out) {
         "typedef void* data;\n\n", out);
 }
 
+Array *imported;
+
+bool ccode_imported(char *name) {
+  size_t len = array_len(imported);
+  const char *elem;
+
+  for (size_t i = 0; i < len; ++i) {
+    elem = *array_get(imported, i);
+    if (!strcmp(elem, name)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+void ccode_genImports(Imports *imports, FILE *out) {
+  MapIter *iter = mapiter_start(imports);
+  Pair *pair;
+  char *name;
+  struct proot *module;
+  struct pnode *node;
+
+  while ((pair = mapiter_next(iter))) {
+    name = (char*) pair->key;
+
+    fprintf(out, "// Module %s\n\n", name);
+
+    if (ccode_imported(name)) {
+      return;
+    }
+
+    module = (struct proot*) pair->value;
+    node = (struct pnode*) module;
+
+    ccode_genImports(module->imports, out);
+    ccode_declAliases(pnode_getAliases(node), out, 0);
+
+    size_t len = array_len(node->leaves);
+    for (size_t i = 0; i < len; ++i) {
+      ccode_genDef(*leaves_get(node->leaves, i), out);
+    }
+
+    fprintf(out, "// End of module %s\n\n", name);
+
+    pair_free(pair);
+  }
+
+  mapiter_free(iter);
+}
+
 void cgen(const char *fName, struct pnode *tree, FILE *out) {
 
   filename = fName;
+  imported = array_new(3U);
 
   ccode_printDefaultHeaders(out);
 
-  if (tree->id != PR_ROOT) {
+  if (!pnode_isRoot(tree)) {
     env.fail("Cannot generate anything from a broken tree. Expected %s, found %s", nt_str(PR_ROOT), nt_str(tree->id));
   }
  
+  ccode_genImports(((struct proot*) tree)->imports, out);
+
+  array_freeContents(imported, free);
+  array_free(imported);
+
   ccode_declAliases(pnode_getAliases(tree), out, 0);
 //ccode_declSymbols(pnode_getSymbols(tree), out, 0);
 

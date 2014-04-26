@@ -59,6 +59,7 @@ struct type* pnode_findExportedSym(struct proot *root, const char *name);
 struct type* pnode_extractFromModule(struct pnode *pnode, const char *module, const char *name);
 struct type* pnode_fixAlias(Pool *pool, struct pnode *root, struct type *type);
 Aliases* pnode_getAliases(struct pnode *pnode);
+struct type* pnode_getModuleAlias(struct pnode *pnode, const char *module, const char *name);
 Symbols* pnode_getSyms(struct pnode *pnode);
 Symbols* pnode_getFuncParams(struct pnode *pnode);
 struct type* pnode_getType(struct pnode *pnode, const char *name);

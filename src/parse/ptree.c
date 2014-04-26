@@ -179,6 +179,25 @@ struct type* pnode_extractFromModule(struct pnode *pnode, const char *module, co
   return pnode_findExportedSym((struct proot*) modtree, name);
 }
 
+struct type* pnode_getModuleAlias(struct pnode *pnode, const char *module, const char *name) {
+  if (!pnode) {
+    env.fail("Malformed tree");
+  }
+
+  if (!pnode_isRoot(pnode)) {
+    return pnode_getModuleAlias(pnode->root, module, name);
+  }
+
+  struct proot *proot = (struct proot*) pnode;
+  struct pnode *modtree = NULL;
+
+  if (!(modtree = imports_get(proot->imports, module))) {
+    env.fail("No module called %s has been imported", module);
+  }
+
+  return aliases_get(((struct pscope*) modtree)->aliases, name);
+}
+
 struct type* pnode_getType(struct pnode *pnode, const char *name) {
 
   struct type *ret;
