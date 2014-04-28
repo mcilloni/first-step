@@ -29,12 +29,16 @@ all:
 	cp -f header.txt ../build/helml
 	cat helml.py >> ../build/helml
 	chmod +x ../build/helml
+	$(MAKE) -C libhelm
 
 
 clean:
-	$(MAKE) -C utils clean DEPTH=.
-	$(MAKE) -C lex clean DEPTH=.
-	$(MAKE) -C parse clean DEPTH=.
-	$(MAKE) -C cgen clean DEPTH=.
-	$(MAKE) -C helmc1 clean DEPTH=.
+	$(MAKE) -C libhelm clean
+	$(MAKE) -C utils clean 
+	$(MAKE) -C lex clean
+	$(MAKE) -C parse clean 
+	$(MAKE) -C cgen clean 
+	$(MAKE) -C helmc1 clean 
 	rm -f ../build/helmc
+	rm -f ../build/helml
+

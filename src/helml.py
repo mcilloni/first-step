@@ -12,7 +12,7 @@ def ld(ccCommand, ofiles, ofile=None):
         else:
             ofile = 'a.out'
 
-    retval = subprocess.call([ccCommand] + ofiles + [helmrtpath, '-w', '-o', ofile])
+    retval = subprocess.call([ccCommand] + ofiles + [helmrtpath, '-L' + buildpath, '-lhelm', '-w', '-o', ofile])
     if (retval != 0):
         sys.exit(retval)
 

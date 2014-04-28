@@ -20,7 +20,13 @@ def helmc1(helmfile):
     cname = helmfile.replace('.helm', '.c', 1)
     outfile = open(cname, 'w')
 
-    retval = subprocess.call([ helmc1path, helmfile ], stdout=outfile)
+    newenv = os.environ.copy()
+    newenv['HELM_MODULES'] = buildpath + '/libhelm/hemd/' 
+
+    if 'HELM_MODULES' in os.environ:
+        newenv['HELM_MODULES'] = newenv['HELM_MODULES'] + ':' + os.environ['HELM_MODULES']
+
+    retval = subprocess.Popen([ helmc1path, helmfile ], env=newenv, stdout=outfile).wait()
     if (retval != 0):
         sys.exit(retval)
 
@@ -66,3 +72,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
