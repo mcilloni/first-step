@@ -12,7 +12,7 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-decl calloc func(uint64, uint64) data
+import libc
 
 alias Lnode struct(
   prec, succ ptr Lnode,
@@ -71,7 +71,7 @@ func list_seek(list ptr List, pos uint64)
 /func
 
 func list_pushint(list ptr List, value uintptr)
-  var new = cast<ptr Lnode> calloc(1, size(Lnode))
+  var new = cast<ptr Lnode> libc:calloc(1, size(Lnode))
 
   new'succ = list'start
   if list'start != null
@@ -99,7 +99,7 @@ func list_appendint(list ptr List, value uintptr) int64
     return 1
   /if
 
-  var new = cast<ptr Lnode> calloc(1, size(Lnode))
+  var new = cast<ptr Lnode> libc:calloc(1, size(Lnode))
 
   new'value = value
 
@@ -124,7 +124,7 @@ func list_addint(list ptr List, pos uint64, value uintptr) int64
 
   list_seek(list, pos)
 
-  var new = cast<ptr Lnode> calloc(1, size(Lnode))
+  var new = cast<ptr Lnode> libc:calloc(1, size(Lnode))
   var prec = list'current'prec
 
   if prec != null
@@ -146,7 +146,7 @@ func list_addint(list ptr List, pos uint64, value uintptr) int64
 var list_add = cast<ptr func(ptr List, uint64, data) int64> ptr list_addint
 
 func list_new() ptr List
-  return cast<ptr List> calloc(1, size(List))
+  return cast<ptr List> libc:calloc(1, size(List))
 /func
 
 func list_extract(list ptr List, start uint64, len int64) ptr List
@@ -323,33 +323,28 @@ func list_shallowCopy(list ptr List) ptr List
   return new
 /func
 
-decl printf func(ptr uint8, data)
-decl fputs func(ptr uint8, data)
-decl puts func(ptr uint8)
-
-decl stdout data
-
 func printlist(list ptr List)
+  var stdout libc:FILE = libc:stdout_file()
   var inside = false
-  fputs("[ ", stdout)
+  libc:fputs("[ ", stdout)
   var len = list_len(list)
   var i uint8 = 0
 
   while i < len
     if inside
-      fputs(", ",stdout)
+      libc:fputs(", ",stdout)
     else
       inside = true
     /if
 
-    printf("%lu", cast<data> (val list_getint(list, i)))
+    libc:printint(val list_getint(list, i))
     i++
   /while
-  puts(" ]")
+  libc:puts(" ]")
 /func
 
 entry
-
+  var stdout libc:FILE = libc:stdout_file()
   var list = list_new()
 
   var i uint8 = 0
@@ -358,36 +353,37 @@ entry
     i++
   /while
 
-  fputs("list[] == ", stdout)
+  libc:fputs("list[] == ", stdout)
 
   printlist(list)
 
   var extract = list_extract(list, 3, 11)
 
-  fputs("list[3:14] == ", stdout)
+  libc:fputs("list[3:14] == ", stdout)
   printlist(extract)
 
-  fputs("list[] == ", stdout)
+  libc:fputs("list[] == ", stdout)
   printlist(list)
 
   list_free(extract)
 
   extract = list_extract(list, 12, -1)
 
-  fputs("list[12:] == ", stdout)
+  libc:fputs("list[12:] == ", stdout)
   printlist(extract)
 
   list_free(extract)
 
-  fputs("list[] == ", stdout)
+  libc:fputs("list[] == ", stdout)
   printlist(list)
 
-  puts("list[3] = 23")
+  libc:puts("list[3] = 23")
 
   list_addint(list, 3, 23)
 
-  fputs("list[] == ", stdout)
+  libc:fputs("list[] == ", stdout)
   printlist(list)
 
   list_free(list)
 /entry
+

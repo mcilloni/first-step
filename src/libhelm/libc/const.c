@@ -15,6 +15,7 @@
  *
  */
 
+#include <inttypes.h>
 #include <stdio.h>
 
 FILE* stderr_file(void) {
@@ -29,3 +30,6 @@ FILE* stdout_file(void) {
   return stdout;
 }
 
+void printint(uint64_t n) {
+  printf("%" PRIu64, n);
+}

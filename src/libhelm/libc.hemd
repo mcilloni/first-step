@@ -20,6 +20,8 @@ decl stderr_file func() FILE
 decl stdin_file func() FILE
 decl stdout_file func() FILE
 
+decl calloc func(uint64, uint64) data
 decl puts func(ptr uint8)
 decl fputs func(ptr uint8, FILE)
+decl printint func(uint64)
 
