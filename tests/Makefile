@@ -3,17 +3,23 @@ ifndef CC
 endif
 
 HELMC = ../build/helmc
+HELML = ../build/helml
 
 .PHONY: all,clean
 
 SRCS = $(wildcard *.helm)
+OBJS = $(patsubst %.helm,%.o,$(SRCS))
 BINS = $(patsubst %.helm,%,$(SRCS))
 all: $(BINS)
 
 clean:
-	rm -f $(BINS)
+	rm -f $(BINS) $(OBJS)
 
-%: %.helm 
+%: %.o
+	@echo [HELML] $<
+	@$(HELML) $<
+
+%.o: %.helm 
 	@echo [HELMC] $<
 	@$(HELMC) $<  
 
