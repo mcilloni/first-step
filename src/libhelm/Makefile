@@ -27,6 +27,6 @@ all:
 
 clean:
 	$(MAKE) -C libc clean 
-	rm ../../build/libhelm.a
+	rm -f ../../build/libhelm.a
 	rm -rf ../../build/libhelm/
 

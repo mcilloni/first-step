@@ -377,7 +377,7 @@ entry
   libc:fputs("list[] == ", stdout)
   printlist(list)
 
-  libc:puts("list[3] = 23")
+  libc:puts("list[3] <- 23")
 
   list_addint(list, 3, 23)
 
