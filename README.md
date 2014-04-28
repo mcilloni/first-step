@@ -30,11 +30,11 @@ helmc currently implements:
 - null identifier, assignable to every pointer type.
 - data type, a special pointer type capable of holding a pointer of any type (like C pointers to void) 
 - add debug info to compiled programs 
+- modules (very, very basic support).
 
 helmc will not implement:
 
 - syntactical sugar, i.e anything not essential to bootstrap the future Helm compiler.
-- modules, because they are a complex feature that is not necessary for the sake of bootstrapping a new compiler.
 - good diagnostics of any sort
 
 FAQ
@@ -58,7 +58,7 @@ This is C11, and I think MSVC will implement it around the end of the current ce
 
 > How do I compile this on Windows with MinGW?
 
-You don't. I've used POSIX functionality here and there (like backtraces, fmemopen, ..) that Microsoft is not going to support. Wait for a future helm compiler for Windows support.
+You don't. I've used GNU/POSIX goodies here and there (like backtraces, fmemopen, ..) that Microsoft is not going to support. Wait for a future helm compiler for Windows support.
 
 > How do I compile this on Windows with Cygwin?
 
@@ -72,8 +72,7 @@ Work on OpenBSD is still in its early stage. The main issue here is that clang h
 > How do I use helmc? 
 
 helmc works only in the same directory of helmrt.o and helmc1. It also needs clang, or gcc, or any c compiler.
-Then, you can compile with helmc <file.helm> , creating a <file> executable. 
-If you don't want it to assemble the executable, you can also use the parameter "-c" to create <file.o>.
+Then, you can compile with helmc <file.helm> , creating a <file.o> binary, that you can link with helml <file.o>
 Executing helmc -C file.helm generates a file.c inside the current directory.
    
 How It Works?
