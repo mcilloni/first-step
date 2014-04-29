@@ -17,12 +17,11 @@ endif
 .PHONY: all clean
 
 all: 
-	mkdir -p ../../build/libhelm/
+	mkdir -p ../../build/libhelm/hemd/
+	cp *.hemd ../../build/libhelm/hemd/
 	$(MAKE) -C spring
 	$(AR) rc ../../build/libhelm.a ../../build/libhelm/*.o
 	$(RANLIB) ../../build/libhelm.a
-	mkdir -p ../../build/libhelm/hemd/
-	cp *.hemd ../../build/libhelm/hemd/
 
 
 clean:
