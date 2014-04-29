@@ -243,7 +243,7 @@ struct type* pnode_fixAlias(Pool *pool, struct pnode *root, struct type *type) {
     }
 
     if (type_isAlias(ptype->val)) {
-      return type_makePtr(pool, pnode_getType(root, ptype->val->name));
+      return type_makePtr(pool, aliases_get(ptype->val->discover, ptype->val->name));
     }
   }
 
@@ -628,11 +628,12 @@ struct pnode* pnode_newfunc(Pool *pool, enum nonterminals id, const char *name, 
   return (struct pnode*) retVal;
 }
 
-struct pnode* pnode_newroot(const char *module, Imports *imports) {
+struct pnode* pnode_newroot(const char *filename, const char *module, Imports *imports) {
   struct proot *ret = (struct proot*) pnode_new(PR_ROOT);
 
-  ret->module = str_clone(module);
+  ret->filename = str_clone(filename);
   ret->imports = imports;
+  ret->module = str_clone(module);
 
   return (struct pnode*) ret;
 }
@@ -656,6 +657,7 @@ void pnode_free(struct pnode *pnode) {
   if (pnode_isScope(pnode)) {
     if (pnode_isRoot(pnode)) {
       struct proot *proot = (struct proot*) pnode;
+      free(proot->filename);
       free(proot->module);
     }
 

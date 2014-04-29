@@ -654,7 +654,7 @@ struct pnode* expr_handleStructNode(struct parser *prs, struct pnode *root, stru
   }
 
   if (type_isAlias(ltype)) {
-    ltype = pnode_getType(root, ltype->name);
+    ltype = aliases_get(ltype->discover, ltype->name);
   }
 
   if (!type_isStruct(ltype)) {

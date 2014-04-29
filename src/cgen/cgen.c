@@ -620,6 +620,7 @@ void ccode_genImports(Imports *imports, FILE *out) {
     }
 
     module = (struct proot*) pair->value;
+    filename = module->filename;
     node = (struct pnode*) module;
 
     ccode_genImports(module->imports, out);
@@ -640,7 +641,6 @@ void ccode_genImports(Imports *imports, FILE *out) {
 
 void cgen(const char *fName, struct pnode *tree, FILE *out) {
 
-  filename = fName;
   imported = array_new(3U);
 
   ccode_printDefaultHeaders(out);
@@ -653,6 +653,8 @@ void cgen(const char *fName, struct pnode *tree, FILE *out) {
 
   array_freeContents(imported, free);
   array_free(imported);
+
+  filename = fName;
 
   ccode_declAliases(pnode_getAliases(tree), out, 0);
 //ccode_declSymbols(pnode_getSymbols(tree), out, 0);

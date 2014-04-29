@@ -367,10 +367,10 @@ struct type* aliases_get(Aliases *aliases, const char *name) {
   return apair ? apair->type : NULL;
 }
 
-struct type* type_makeAlias(Pool *pool, const char *name) {
+struct type* type_makeAlias(Pool *pool, const char *name, Aliases *discover) {
   struct type *alias = pool_zalloc(pool, sizeof(struct type));
 
-  *alias = (struct type) {TYPE_ALIAS, str_clone(name), 0};
+  *alias = (struct type) {.kind = TYPE_ALIAS, .name = str_clone(name), .size = 0, .discover = discover};
 
   return alias;
 }

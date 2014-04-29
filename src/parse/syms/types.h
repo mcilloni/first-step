@@ -10,6 +10,8 @@
 #include <array/array.h>
 #include <list/pool.h>
 
+typedef List Aliases;
+
 enum type_kind {
   //don't free
   TYPE_NONE = 0,
@@ -37,6 +39,7 @@ struct type {
   char *name;
   size_t size;
   bool uns;
+  Aliases *discover;
 };
 
 struct ftype {
@@ -73,8 +76,6 @@ extern struct type *type_data;
 extern struct type *type_none;
 extern struct type *type_null;
 
-typedef List Aliases;
-
 enum type_compatible type_areCompatible(struct type *assign, struct type *assigned);
 struct type* type_evalLarger(struct type *first, struct type *second);
 struct type* type_evalNumberType(int64_t number);
@@ -91,7 +92,7 @@ bool type_isPtr(struct type *type);
 bool type_isStruct(struct type *type);
 struct type* type_makeFuncType(Pool *pool, struct type *ret, Array *args);
 struct type* type_makePtr(Pool *pool, struct type *val);
-struct type* type_makeAlias(Pool *pool, const char *name);
+struct type* type_makeAlias(Pool *pool, const char *name, Aliases *discover);
 struct type* type_makeArray(Pool *pool, struct type *val, size_t len);
 struct type* type_makeStructType(Pool *pool, Symbols *args);
 char* type_str(struct type *type, char *buffer, size_t bufLen);

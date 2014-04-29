@@ -497,7 +497,7 @@ void alias(struct parser *prs, struct pnode *this) {
 
   const char *id = (const char*) tok->value;
   
-  pnode_alias(this, id, type_makeAlias(prs->types, id));
+  pnode_alias(this, id, type_makeAlias(prs->types, id, pnode_getAliases(this)));
 
   struct type *tp = type(prs, this);
 
@@ -991,7 +991,7 @@ struct pnode* parser_parse(struct parser *prs, FILE *file) {
   
   while (import(prs, imports));
 
-  struct pnode *root = pnode_newroot(module, imports), *nextDef;  
+  struct pnode *root = pnode_newroot(prs->filename, module, imports), *nextDef;  
 
   while ((nextDef = definition(prs, root))) {
     if (nextDef != &declaration_fake_node) {

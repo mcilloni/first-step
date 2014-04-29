@@ -44,6 +44,7 @@ struct proot {
   struct pscope node;
   char *module;
   Imports *imports;
+  char *filename;
 };
 
 extern struct pnode *expr_empty;
@@ -74,7 +75,7 @@ struct symbol* pnode_matchSymbolForDeclaration(struct pnode *pnode, const char *
 struct type* pnode_symbolType(struct pnode *pnode, const char *id);
 struct pnode* pnode_new(enum nonterminals id);
 struct pnode* pnode_newfunc(Pool *pool, enum nonterminals id, const char *name, struct type *ret, Symbols *params);
-struct pnode* pnode_newroot(const char *module, Imports *imports);
+struct pnode* pnode_newroot(const char *filename, const char *module, Imports *imports);
 struct pnode* pnode_newval(enum nonterminals id, uintmax_t val);
 void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode *assign, struct pnode *assigned);
 struct type* pnode_funcReturnType(struct pnode *pnode);
