@@ -29,6 +29,8 @@ ifeq ($(UNAME),Darwin)
 endif
 
 ifeq ($(MACHINE), x86_64)
+ifeq (,$(findstring CYGWIN,$(UNAME)))
 	INCLUDES += -fPIC
+endif
 endif
 
