@@ -12,7 +12,7 @@ def ld(ccCommand, ofiles, ofile=None):
         else:
             ofile = 'a.out'
 
-    retval = subprocess.call([ccCommand] + ofiles + [helmrtpath, '-L' + buildpath, '-lhelm', '-w', '-o', ofile])
+    retval = subprocess.call(ccCommand.split() + ofiles + [helmrtpath, '-g', '-L' + buildpath, '-lhelm', '-w', '-o', ofile])
     if (retval != 0):
         sys.exit(retval)
 
@@ -23,6 +23,10 @@ def main():
     parser.add_argument('-o', '--objname', type=str, help='indicates the alternative name for the executable. Defaults to <file> if only one file is given, a.out otherwise.')
     args = parser.parse_args()
     
+    if args.cc == 'cc':
+        if 'CC' in os.environ:
+            args.cc = os.environ['CC']
+
     ld(args.cc, args.files, args.objname)
 
 if __name__ == '__main__':

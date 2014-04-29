@@ -277,7 +277,7 @@ void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode
 struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope) {
 
   if (pnode->id == PR_SIZE) {
-    return type_getBuiltin("uint64");
+    return type_getBuiltin("uintptr");
   }
 
   if (!scope) {

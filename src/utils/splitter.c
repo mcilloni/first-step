@@ -46,7 +46,7 @@ char* splitter_next(struct splitter *spl) {
   char *ret = NULL;
 
   if (diff) {
-    ret = malloc(diff * sizeof(char));
+    ret = calloc(diff + 1, sizeof(char));
     strncpy(ret, base, diff);
   }
 

@@ -12,16 +12,13 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-module libc
+func alloc(len uintptr) data
+  decl malloc func(uintptr) data
+  return malloc(len)
+/func
 
-alias FILE data
-
-decl stderr_file func() FILE
-decl stdin_file func() FILE
-decl stdout_file func() FILE
-
-decl calloc func(uint64, uint64) data
-decl puts func(ptr uint8)
-decl fputs func(ptr uint8, FILE)
-decl printint func(uint64)
+func zalloc(len uintptr) data
+  decl calloc func(uintptr, uintptr) data
+  return calloc(1, len)
+/func
 

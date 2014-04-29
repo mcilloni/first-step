@@ -18,7 +18,6 @@ def helmc1(helmfile):
         sys.exit((__file__ + ': error: file {} does not end with .helm').format(helmfile))
 
     cname = helmfile.replace('.helm', '.c', 1)
-    outfile = open(cname, 'w')
 
     newenv = os.environ.copy()
     newenv['HELM_MODULES'] = buildpath + '/libhelm/hemd/' 
@@ -26,10 +25,15 @@ def helmc1(helmfile):
     if 'HELM_MODULES' in os.environ:
         newenv['HELM_MODULES'] = newenv['HELM_MODULES'] + ':' + os.environ['HELM_MODULES']
 
-    retval = subprocess.Popen([ helmc1path, helmfile ], env=newenv, stdout=outfile).wait()
-    if (retval != 0):
-        sys.exit(retval)
+    proc = subprocess.Popen([ helmc1path, helmfile ], env=newenv, stdout=subprocess.PIPE)
+    out,err = proc.communicate()
 
+    if (proc.returncode != 0):
+        sys.exit(proc.returncode)
+
+
+    outfile = open(cname, 'wb')
+    outfile.write(out)
     outfile.close()
 
     return cname
@@ -42,7 +46,7 @@ def cc(ccCommand, cfile, ofile=None):
     if ofile == None:
         ofile = cfile.replace('.c', '.o', 1)
 
-    retval = subprocess.call([ ccCommand, cfile, '-w', '-c', '-o', ofile])
+    retval = subprocess.call( ccCommand.split() + [cfile, '-w', '-g', '-c', '-o', ofile])
     if (retval != 0):
         sys.exit(retval)
 
@@ -56,6 +60,10 @@ def main():
     
     if len(args.files) > 1 and args.objname:
         sys.exit(__file__ + ': error: cannot specify -o when generating multiple output files')
+
+    if args.cc == 'cc':
+        if 'CC' in os.environ:
+            args.cc = os.environ['CC']
 
     if args.objname:
         cfile = helmc1(args.files[0])

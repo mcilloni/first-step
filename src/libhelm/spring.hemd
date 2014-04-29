@@ -12,8 +12,19 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-import libc
+module spring
 
-entry
-  libc:puts("LEL")
-/entry
+alias FILE data
+
+decl stderr_file func() FILE
+decl stdin_file func() FILE
+decl stdout_file func() FILE
+
+decl alloc func(uintptr) data
+decl zalloc func(uintptr) data
+decl puts func(ptr uint8)
+decl free func(data)
+decl fputs func(ptr uint8, FILE)
+decl printint func(uint64)
+decl memset func(data, uintptr, uintptr)
+

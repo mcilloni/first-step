@@ -37,6 +37,7 @@ struct type type_int8 = { TYPE_NUMERIC, "int8", 1, false };
 struct type type_int16 = { TYPE_NUMERIC, "int16", 2, false };
 struct type type_int32 = { TYPE_NUMERIC, "int32", 4, false };
 struct type type_int64 = { TYPE_NUMERIC, "int64", 8, false };
+struct type type_intptr = { TYPE_NUMERIC, "intptr", ptrSize, false };
 struct type type_uint8 = { TYPE_NUMERIC, "uint8", 1, true };
 struct type type_uint16 = { TYPE_NUMERIC, "uint16", 2, true };
 struct type type_uint32 = { TYPE_NUMERIC, "uint32", 4, true };
@@ -68,19 +69,23 @@ struct type* type_getBuiltin(const char *name) {
     return &type_int64;
   }
    
+  if (!strcmp(name, "intptr")) {
+    return &type_intptr;
+  }
+
   if (!strcmp(name, "uint8")) { 
-    return &type_uint8;                                                                                                           
-  }                                                                                                                                    
+    return &type_uint8;
+  }
 
   if (!strcmp(name, "uint16")) {                                                                        
-    return &type_uint16;                                                                                     
-  }                                                                                                                                              
-                                                                                                                                               
-  if (!strcmp(name, "uint32")) {                                                                                     
-    return &type_uint32;                                                                                                     
-  }                                                                                                                      
-                                                                                                                         
-  if (!strcmp(name, "uint64")) {                                                                                              
+    return &type_uint16;
+  }
+
+  if (!strcmp(name, "uint32")) {
+    return &type_uint32;
+  }
+
+  if (!strcmp(name, "uint64")) {
     return &type_uint64;                                                                                  
   }                
 

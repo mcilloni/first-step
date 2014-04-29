@@ -60,7 +60,7 @@ hi def link     helmRepeat            Repeat
 
 " Predefined types
 syn keyword     helmType              bool
-syn keyword     helmSignedInts        int8 int16 int32 int64
+syn keyword     helmSignedInts        int8 int16 int32 int64 intptr
 syn keyword     helmUnsignedInts      uint8 uint16 uint32 uint64 uintptr
 syn keyword     helmData              data
 

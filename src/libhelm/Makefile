@@ -18,7 +18,7 @@ endif
 
 all: 
 	mkdir -p ../../build/libhelm/
-	$(MAKE) -C libc
+	$(MAKE) -C spring
 	$(AR) rc ../../build/libhelm.a ../../build/libhelm/*.o
 	$(RANLIB) ../../build/libhelm.a
 	mkdir -p ../../build/libhelm/hemd/
@@ -26,7 +26,7 @@ all:
 
 
 clean:
-	$(MAKE) -C libc clean 
+	$(MAKE) -C spring clean 
 	rm -f ../../build/libhelm.a
 	rm -rf ../../build/libhelm/
 
