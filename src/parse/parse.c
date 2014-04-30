@@ -403,10 +403,6 @@ struct pnode* varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) 
 
   if (prs->nextTok->type != LEX_ASSIGN) {
     tp = type(prs, this); //side effect will change nextTok, so I should stop changing the line below with an else breaking everything
-    if (!tp) {
-      char buf[2048];
-      env.fail("Cannot declare symbol %s of not defined type %s", id, type_str(tp, buf, 2048));
-    }
   }
 
   struct type *assType;

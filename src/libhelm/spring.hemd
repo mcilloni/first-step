@@ -51,3 +51,28 @@ decl strlen func(ptr uint8) uintptr
 decl strequals func(ptr uint8, ptr uint8) bool
 decl strncpy func(ptr uint8, ptr uint8, uintptr) ptr uint8
 decl strclone func(ptr uint8) ptr uint8
+
+# lists functions
+
+decl listAdd ptr func(ptr List, uintptr, data) intptr
+decl listAddint func(ptr List, uintptr, uintptr) intptr
+decl listAppend ptr func(ptr List, data) intptr
+decl listAppendint func(ptr List, uintptr) intptr
+decl listExtract func(ptr List, uintptr, intptr) ptr List
+decl listFree func(ptr List)
+decl listFreeAll func(ptr List, ptr func(data))
+decl listFreeContents func(ptr List, ptr func(data))
+decl listGet ptr func(ptr List, uintptr) ptr data
+decl listGetint func(ptr List, uintptr) ptr uintptr
+decl listInsert ptr func(ptr List, uintptr, data) intptr
+decl listInsertint func(ptr List, uintptr, uintptr) intptr
+decl listLen func(ptr List) uintptr
+decl listNew func() ptr List
+decl listPop ptr func(data) data
+decl listPopint func(ptr List) uintptr
+decl listPrint func(ptr List)
+decl listPrune func(ptr List)
+decl listPush ptr func(ptr List, data)
+decl listPushint func(ptr List, uintptr)
+decl listShallowCopy func(ptr List) ptr List
+

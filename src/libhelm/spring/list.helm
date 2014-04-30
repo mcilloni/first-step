@@ -58,7 +58,7 @@ func listSeek(list ptr spring:List, pos uintptr)
 /func
 
 func listPushint(list ptr spring:List, value uintptr)
-  var new = cast<ptr spring:Lnode> spring:zalloc(size(spring:Lnode))
+  var new = cast<ptr spring:Lnode>(spring:zalloc(size(spring:Lnode)))
 
   new'succ = list'start
   if list'start != null
@@ -78,15 +78,15 @@ func listPushint(list ptr spring:List, value uintptr)
   list'len++
 /func
 
-var listPush = cast<ptr func(ptr spring:List, data)> ptr listPushint
+var listPush = cast<ptr func(ptr spring:List, data)>(ptr listPushint)
 
-func lstAppendint(list ptr spring:List, value uintptr) intptr
+func listAppendint(list ptr spring:List, value uintptr) intptr
   if list'start == null
     listPushint(list, value)
     return 1
   /if
 
-  var new = cast<ptr spring:Lnode> spring:zalloc(size(spring:Lnode))
+  var new = cast<ptr spring:Lnode>(spring:zalloc(size(spring:Lnode)))
 
   new'value = value
 
@@ -95,23 +95,23 @@ func lstAppendint(list ptr spring:List, value uintptr) intptr
 
   list'end = new
 
-  return cast<intptr> list'len++
+  return cast<intptr>(list'len++)
 /func
 
-var lstAppend = cast<ptr func(ptr spring:List, data) intptr> ptr lstAppendint
+var listAppend = cast<ptr func(ptr spring:List, data) intptr>(ptr listAppendint)
 
-func lstAddint(list ptr spring:List, pos uintptr, value uintptr) intptr
+func listAddint(list ptr spring:List, pos uintptr, value uintptr) intptr
   if pos > list'len
     return -1
   /if
 
   if pos == list'len
-    return lstAppendint(list, value)
+    return listAppendint(list, value)
   /if
 
   listSeek(list, pos)
 
-  var new = cast<ptr spring:Lnode> spring:zalloc(size(spring:Lnode))
+  var new = cast<ptr spring:Lnode>(spring:zalloc(size(spring:Lnode)))
   var prec = list'current'prec
 
   if prec != null
@@ -127,13 +127,13 @@ func lstAddint(list ptr spring:List, pos uintptr, value uintptr) intptr
 
   list'len++
 
-  return cast<intptr> pos
+  return cast<intptr>(pos)
 /func
 
-var lstAdd = cast<ptr func(ptr spring:List, uintptr, data) intptr> ptr lstAddint
+var listAdd = cast<ptr func(ptr spring:List, uintptr, data) intptr>(ptr listAddint)
 
 func listNew() ptr spring:List
-  return cast<ptr spring:List> spring:zalloc(size(spring:List))
+  return cast<ptr spring:List>(spring:zalloc(size(spring:List)))
 /func
 
 func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:List
@@ -142,11 +142,11 @@ func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:Lis
 
   if start < list'len
     if len > list'len
-      len = cast<intptr> (list'len - start)
+      len = cast<intptr>(list'len - start)
     /if
 
     if len < 0
-      len = cast<intptr> (list'len - start)
+      len = cast<intptr>(list'len - start)
     /if
     listSeek(list, start)
 
@@ -205,7 +205,7 @@ func listFree(list ptr spring:List)
 func lnode_freeAll(lnode ptr spring:Lnode, freefunc ptr func(data))
   if lnode != null
     lnode_freeAll(lnode'succ, freefunc)
-    freefunc(cast<data> lnode'value)
+    freefunc(cast<data>(lnode'value))
     spring:free(lnode)
   /if
 /func
@@ -219,7 +219,7 @@ func listFreeAll(list ptr spring:List, freefunc ptr func(data))
 func lnode_freeContents(lnode ptr spring:Lnode, freefunc ptr func(data))
   if lnode != null
     lnode_freeContents(lnode'succ, freefunc)
-    freefunc(cast<data> lnode'value)
+    freefunc(cast<data>(lnode'value))
   /if
 /func
 
@@ -241,7 +241,7 @@ func listGetint(list ptr spring:List, pos uintptr) ptr uintptr
  return null
 /func
 
-var listGet = cast<ptr func(ptr spring:List, uintptr) ptr data> listGetint
+var listGet = cast<ptr func(ptr spring:List, uintptr) ptr data>(ptr listGetint)
 
 func listInsertint(list ptr spring:List, pos uintptr, value uintptr) intptr
   if pos > list'len
@@ -249,17 +249,17 @@ func listInsertint(list ptr spring:List, pos uintptr, value uintptr) intptr
   /if
 
   if pos == list'len
-    return lstAppendint(list, value)
+    return listAppendint(list, value)
   /if
 
   listSeek(list, pos)
 
   list'current'value = value
 
-  return cast<intptr> list'pos
+  return cast<intptr>(list'pos)
 /func
 
-var listInsert = cast<ptr func(ptr spring:List, uintptr, data) intptr> listInsertint
+var listInsert = cast<ptr func(ptr spring:List, uintptr, data) intptr>(ptr listInsertint)
 
 func listLen(list ptr spring:List) uintptr
   return list'len
@@ -286,7 +286,7 @@ func listPopint(list ptr spring:List) uintptr
   return ret
 /func
 
-var listPop = cast<ptr func(data) data> listPopint
+var listPop = cast<ptr func(data) data>(ptr listPopint)
 
 func listPrune(list ptr spring:List)
   lnode_free(list'start)
@@ -299,7 +299,7 @@ func listShallowCopy(list ptr spring:List) ptr spring:List
   var i uintptr = 0
 
   while i < len
-    lstAppendint(new, val listGetint(list, i))
+    listAppendint(new, val listGetint(list, i))
     i++
   /while
 
@@ -325,48 +325,4 @@ func listPrint(list ptr spring:List)
   /while
   spring:puts(" ]")
 /func
-
-entry
-  var stdout spring:FILE = spring:stdout_file()
-  var list = listNew()
-
-  var i uint8 = 0
-  while i < 31
-    lstAppendint(list, i)
-    i++
-  /while
-
-  spring:fputs("list[] == ", stdout)
-
-  listPrint(list)
-
-  var extract = listExtract(list, 3, 11)
-
-  spring:fputs("list[3:14] == ", stdout)
-  listPrint(extract)
-
-  spring:fputs("list[] == ", stdout)
-  listPrint(list)
-
-  listFree(extract)
-
-  extract = listExtract(list, 12, -1)
-
-  spring:fputs("list[12:] == ", stdout)
-  listPrint(extract)
-
-  listFree(extract)
-
-  spring:fputs("list[] == ", stdout)
-  listPrint(list)
-
-  spring:puts("list[3] <- 23")
-
-  lstAddint(list, 3, 23)
-
-  spring:fputs("list[] == ", stdout)
-  listPrint(list)
-
-  listFree(list)
-/entry
 

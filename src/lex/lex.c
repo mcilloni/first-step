@@ -704,7 +704,6 @@ int8_t tokentype_getPriority(enum token_type type) {
   case LEX_POW:
     return 8;
 
-  case LEX_CAST:
   case LEX_MINUS:
   case LEX_NOT:
   case LEX_PTR:
@@ -712,6 +711,7 @@ int8_t tokentype_getPriority(enum token_type type) {
   case LEX_VAL:
     return 9;
 
+  case LEX_CAST:
   case LEX_APOS:
   case LEX_CBRAC: //HACK: use ] as operator for precedence purposes
   case LEX_INC:

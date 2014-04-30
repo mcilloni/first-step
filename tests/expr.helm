@@ -12,9 +12,7 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-entry 
-
-  var c = 3 >= 2
-  var b = 3 + 6 == 9
-
+entry
+  var p int32 = 2
+  cast<ptr int8> ptr p
 /entry
