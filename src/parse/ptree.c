@@ -331,7 +331,19 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
       if (token_isBooleanOp(pexpr->value)) {
         ret = type_getBuiltin("bool");
       } else {
-        ret = type_evalLarger(firstType, pnode_evalType(pool, second, scope));
+        if (type_isPtr(firstType)) {
+          ret = firstType;
+          break;
+        }
+
+        struct type *secondType = pnode_evalType(pool, second, scope);
+
+        if (type_isPtr(secondType)) {
+          ret = secondType;
+          break;
+        }
+
+        ret = type_evalLarger(firstType, secondType);
       }
     }
 
@@ -684,6 +696,10 @@ void pnode_free(struct pnode *pnode) {
 
 void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
   if (!val) {
+    return;
+  }
+
+  if (val == expr_empty) {
     return;
   }
 

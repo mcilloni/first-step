@@ -625,9 +625,12 @@ struct pnode* returnStmt(struct parser *prs, struct pnode *root) {
   struct type *type = pnode_evalType(prs->types, exprNode, root);
 
   switch(type_areCompatible(rType, type)) {
-  case TYPECOMP_NO:
-    env.fail("Type of return expression is incompatible with declaration type");
+  case TYPECOMP_NO: {
+    char buf[4096];
+    char cuf[4096];
+    env.fail("Type of return expression '%s' is incompatible with declaration type '%s'", type_str(type, buf, 4096), type_str(rType, cuf, 4096));
     break;
+  }
   case TYPECOMP_SMALLER:
     env.warning("Returning an expression larger than return type");
     break;

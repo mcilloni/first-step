@@ -15,6 +15,8 @@
 module spring
 
 alias FILE data
+
+# list structures
 alias Lnode struct(
   prec, succ ptr Lnode,
   value uintptr
@@ -26,6 +28,14 @@ alias List struct(
 
   current ptr Lnode,
   pos uintptr
+)
+
+# vector structures
+
+alias Vector struct (
+  arr ptr uintptr,
+  cap,len uintptr,
+  isSlice bool
 )
 
 # Memory functions
@@ -76,3 +86,22 @@ decl listPush ptr func(ptr List, data)
 decl listPushint func(ptr List, uintptr)
 decl listShallowCopy func(ptr List) ptr List
 
+# vector functions
+
+decl vectAppend ptr func(ptr Vector, data) bool
+decl vectAppendint func(ptr Vector, uintptr) bool
+decl vectCap func(ptr Vector) uintptr
+decl vectExtract func(ptr Vector, uintptr, intptr) ptr Vector
+decl vectFree func(ptr Vector)
+decl vectFreeAll func(ptr Vector, ptr func(data))
+decl vectFreeContents func(ptr Vector, ptr func(data))
+decl vectGet ptr func(ptr Vector, uintptr) ptr data
+decl vectGetint func(ptr Vector, uintptr) ptr uintptr
+decl vectLen func(ptr Vector) uintptr
+decl vectNew func(uintptr) ptr Vector
+decl vectNewcap func(ptr Vector, uintptr)
+decl vectPrint func(ptr Vector)
+decl vectPrune func(ptr Vector)
+decl vectPut ptr func(ptr Vector, uintptr, data) bool
+decl vectPutint func(ptr Vector, uintptr, uintptr) bool
+decl vectSlice func(ptr Vector, uintptr, intptr) ptr Vector

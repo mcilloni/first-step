@@ -474,7 +474,7 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
     if (lnull || rnull) {
       return false;
     }
-    return (lnum && rnum) || (lptr && rptr);
+    return (lnum && rnum) || (lptr && rnum) || (lnum && rptr);
 
   case LEX_AND:
   case LEX_OR: 

@@ -182,6 +182,11 @@ bool type_equal(struct type *a, struct type *b) {
 }
 
 enum type_compatible type_areCompatible(struct type *assign, struct type *assigned) {
+
+  if (assign == assigned && assign == type_none) {
+    return TYPECOMP_YES;
+  }
+
   enum type_kind first = type_isArray(assign) ? TYPE_PTR : assign->kind;
   enum type_kind second = type_isArray(assigned) ? TYPE_PTR : assigned->kind;
 
