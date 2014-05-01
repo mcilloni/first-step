@@ -13,6 +13,7 @@
 enum token_type {
   LEX_NONE = 0,
   LEX_ALIAS,
+  LEX_AMPER,
   LEX_AND,
   LEX_APOS,
   LEX_ASSIGN,
@@ -51,6 +52,7 @@ enum token_type {
   LEX_OBRAC,
   LEX_OPAR,
   LEX_OR,
+  LEX_PIPE,
   LEX_PLUS,
   LEX_POW,
   LEX_PTR,

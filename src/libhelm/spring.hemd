@@ -15,6 +15,34 @@
 module spring
 
 alias FILE data
+alias comparer ptr func(data, data) int8
+
+# pair structure
+alias Pair struct (
+  key, value data
+)
+
+# map structures
+
+alias Mnode struct (
+  left, right ptr Mnode,
+  key, value data,
+  color bool,
+  freewhat uint8,
+  cmp comparer
+)
+
+alias Map struct (
+  root ptr Mnode,
+  len uintptr,
+  cmp comparer
+)
+
+alias MapIter struct (
+  map Map,
+  lastKey data,
+  begin bool
+)
 
 # list structures
 alias Lnode struct(
@@ -31,7 +59,6 @@ alias List struct(
 )
 
 # vector structures
-
 alias Vector struct (
   arr ptr uintptr,
   cap,len uintptr,
@@ -61,6 +88,10 @@ decl strlen func(ptr uint8) uintptr
 decl strequals func(ptr uint8, ptr uint8) bool
 decl strncpy func(ptr uint8, ptr uint8, uintptr) ptr uint8
 decl strclone func(ptr uint8) ptr uint8
+
+# pair functions 
+
+decl pairFree func(ptr Pair)
 
 # lists functions
 
@@ -105,3 +136,19 @@ decl vectPrune func(ptr Vector)
 decl vectPut ptr func(ptr Vector, uintptr, data) bool
 decl vectPutint func(ptr Vector, uintptr, uintptr) bool
 decl vectSlice func(ptr Vector, uintptr, intptr) ptr Vector
+
+# map functions
+
+decl mapNew func(comparer) ptr Map
+decl mapGet func(ptr Map, data, ptr data) bool
+decl mapPut func(ptr Map, data, data, uint8) data
+decl mapContains func(ptr Map, data) bool
+decl mapRemove func(ptr Map, data) bool
+decl mapFreeSpec func(ptr Map, ptr func(data), ptr func(data))
+decl mapFree func(ptr Map)
+decl strmapNew func() ptr Map
+
+# map values
+decl FREE_KEY uint8
+decl FREE_VALUE uint8
+

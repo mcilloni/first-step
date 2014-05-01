@@ -334,6 +334,18 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // &
+  if (!strcmp("&", data)) {
+    res->type = LEX_AMPER;
+    return res;
+  }
+
+  // |
+  if (!strcmp("|", data)) {
+    res->type = LEX_PIPE;
+    return res;
+  }
+
   // ++
   if (!strcmp("++", data)) {
     res->type = LEX_INC;
@@ -553,6 +565,8 @@ const char* tokentype_str(enum token_type type) {
     return "NONE";
   case LEX_ALIAS:
     return "alias";
+  case LEX_AMPER:
+    return "&";
   case LEX_AND:
     return "and";
   case LEX_APOS:
@@ -627,10 +641,12 @@ const char* tokentype_str(enum token_type type) {
     return "(";
   case LEX_OR:
     return "or";
-  case LEX_PTR:
-    return "ptr";
+  case LEX_PIPE:
+    return "|";
   case LEX_PLUS:
     return "+";
+  case LEX_PTR:
+    return "ptr";
   case LEX_RETURN:
     return "return";
   case LEX_SIZE:
@@ -684,42 +700,48 @@ int8_t tokentype_getPriority(enum token_type type) {
   case LEX_AND:
     return 3;
 
+  case LEX_PIPE:
+    return 4;
+
+  case LEX_AMPER:
+    return 5;
+
   case LEX_DIFFERENT:
   case LEX_EQUAL:
-    return 4;
+    return 6;
 
   case LEX_MAJEQ:
   case LEX_MAJOR:
   case LEX_MINEQ:
   case LEX_MINOR:
-    return 5;
+    return 7;
 
   case LEX_PLUS:
-    return 6;
+    return 8;
 
   case LEX_DIV:
   case LEX_TIMES:
-    return 7;
+    return 9;
 
   case LEX_POW:
-    return 8;
+    return 10;
 
   case LEX_MINUS:
   case LEX_NOT:
   case LEX_PTR:
   case LEX_SIZE:
   case LEX_VAL:
-    return 9;
+    return 11;
 
   case LEX_CAST:
   case LEX_APOS:
   case LEX_CBRAC: //HACK: use ] as operator for precedence purposes
   case LEX_INC:
   case LEX_DEC:
-    return 10;
+    return 12;
 
   case LEX_COLON:
-    return 11;
+    return 13;
 
   default:
     return -1;
@@ -738,6 +760,7 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_VAL:
     return OPTYPE_UNARY;
 
+  case LEX_AMPER:
   case LEX_AND:
   case LEX_APOS:
   case LEX_ASSIGN:
@@ -750,6 +773,7 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_MINEQ:
   case LEX_MINOR:
   case LEX_OR:
+  case LEX_PIPE:
   case LEX_PLUS:
   case LEX_POW:
   case LEX_TIMES:

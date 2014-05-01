@@ -209,6 +209,10 @@ Pair* argTypeList(struct parser *prs, struct pnode *this) {
 
   struct type *tp = type(prs, this);
 
+  if (!tp) {
+    env.fail("Unexpected '%s' in type definition", token_str(prs->nextTok));
+  }
+
   if (tp->kind == TYPE_ALIAS) {
     env.fail("Cannot instantiate non-specified type %s", tp->name);
   }
@@ -422,7 +426,7 @@ struct pnode* varDeclGeneric(struct parser *prs, struct pnode *this, bool decl) 
     assType = pnode_evalType(prs->types, extra, this);
 
     if (!tp) {
-      tp = assType;
+      tp = pnode_fixAlias(prs->types, this, assType);
     } else {
       switch (type_areCompatible(tp, assType)) {
       case TYPECOMP_NO: {

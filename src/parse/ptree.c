@@ -306,7 +306,14 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
   }
 
   case PR_CALL: {
-    ret = ((struct ftype*) pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope))->ret;
+    struct type *toCall = pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope);
+    struct ftype *ftype = (struct ftype*) toCall;
+    
+    if (type_isPtr(toCall)) {
+      ftype = (struct ftype*) ((struct ptype*) toCall)->val;
+    }
+
+    ret = ftype->ret;
     break;
   }
 

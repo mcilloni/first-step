@@ -442,7 +442,11 @@ void ccode_declAliases(Aliases *syms, FILE *out, uint8_t indent) {
       fprintf(out, "typedef struct %s %s;\n", decl->name, decl->name);
       fprintf(out, "struct %s %s;\n", decl->name, csym + 7);
     } else {
-      csym = ccode_csym(decl->type, decl->name, false, true);
+      if (type_isFunc(decl->type)) {
+        csym = ccode_csym(decl->type, decl->name, true, false);
+      } else {
+        csym = ccode_csym(decl->type, decl->name, false, true);
+      }
       fprintf(out, "typedef %s;\n", csym);
     }
 

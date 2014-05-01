@@ -128,6 +128,12 @@ struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnod
   intmax_t rval = pnode_getval(right);
 
   switch (tok->type) {
+  case LEX_AMPER:
+    ret = pnode_newval(PR_NUMBER, lval & rval);
+    break;
+  case LEX_PIPE:
+    ret = pnode_newval(PR_NUMBER, lval | rval);
+    break;
   case LEX_PLUS: 
     ret = pnode_newval(PR_NUMBER, lval + rval);
     break;
@@ -463,6 +469,8 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
   bool rptr = type_isPtr(tright);
 
   switch (tok->type) {
+  case LEX_AMPER:
+  case LEX_PIPE:
   case LEX_DIV:
   case LEX_PLUS:
   case LEX_POW:
@@ -755,7 +763,7 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
     struct token *tok = *list_get(expr, pos);
     int8_t pri = token_getPriority(tok);
 
-    if (pri >= tokentype_getPriority(LEX_COLON) || pri < 0) {
+    if (pri >= tokentype_getPriority(LEX_APOS) || pri < 0) {
       if ((ret = expr_handleCall(prs, root, expr))) {
         return ret;
       }

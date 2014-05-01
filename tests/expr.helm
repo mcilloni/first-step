@@ -14,5 +14,7 @@
 
 entry
   var p int32 = 2
+  var l struct(p ptr func())
   cast<ptr int8> ptr p
+  l'p()
 /entry
