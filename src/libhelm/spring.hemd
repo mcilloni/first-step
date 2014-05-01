@@ -39,7 +39,7 @@ alias Map struct (
 )
 
 alias MapIter struct (
-  map Map,
+  map ptr Map,
   lastKey data,
   begin bool
 )
@@ -141,6 +141,7 @@ decl vectSlice func(ptr Vector, uintptr, intptr) ptr Vector
 
 decl mapNew func(comparer) ptr Map
 decl mapGet func(ptr Map, data, ptr data) bool
+decl mapLen func(ptr Map) uintptr
 decl mapPut func(ptr Map, data, data, uint8) data
 decl mapContains func(ptr Map, data) bool
 decl mapRemove func(ptr Map, data) bool
@@ -148,7 +149,14 @@ decl mapFreeSpec func(ptr Map, ptr func(data), ptr func(data))
 decl mapFree func(ptr Map)
 decl strmapNew func() ptr Map
 
+# mapiter functions 
+
+decl mapiterStart func(ptr Map) ptr MapIter
+decl mapiterNext func(ptr MapIter) ptr Pair
+decl mapiterFree func(ptr MapIter)
+
 # map values
+decl FREE_NONE uint8
 decl FREE_KEY uint8
 decl FREE_VALUE uint8
 

@@ -16,6 +16,7 @@ import spring
 
 var BLACK = false
 var RED = true
+var FREE_NONE uint8 = 0
 var FREE_KEY uint8 = 1
 var FREE_VALUE uint8 = 10
 
@@ -264,7 +265,7 @@ func mapPut(map ptr spring:Map, key data, value data, freewhat uint8) data
   map'root = node_add(map'root, key, value, map'cmp, freewhat, ptr oldvalue)
   map'root'color = BLACK
 
-  if oldvalue != null
+  if oldvalue == null
     map'len++
   /if
 
@@ -307,6 +308,10 @@ func mapFreeSpec(map ptr spring:Map, freeKey ptr func(data), freeVal ptr func(da
 
 func mapFree(map ptr spring:Map)
   mapFreeSpec(map, null, null)
+/func
+
+func mapLen(map ptr spring:Map) uintptr
+  return map'len
 /func
 
 func strcomparer(s1 data, s2 data) int8
