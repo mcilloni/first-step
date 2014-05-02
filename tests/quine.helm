@@ -1,0 +1,52 @@
+import spring
+entry
+  var v [27] ptr uint8
+  v[0] = "  v["
+  v[1] = "] = "
+  v[2] = "import spring"
+  v[3] = "entry"
+  v[4] = "  var v [27] ptr uint8"
+  v[5] = "  var i uint8 = 2"
+  v[6] = "  while i < 5"
+  v[7] = "    spring:outln(v[i])"
+  v[8] = "    i++"
+  v[9] = "  /while"
+  v[10] = "  i = 0"
+  v[11] = "  while i < 27"
+  v[12] = "    spring:out(v[0])"
+  v[13] = "    spring:outint(i)"
+  v[14] = "    spring:out(v[1])"
+  v[15] = "    spring:outch(34)"
+  v[16] = "    spring:out(v[i])"
+  v[17] = "    spring:outch(34)"
+  v[18] = "    spring:outch(10)"
+  v[19] = "    i++"
+  v[20] = "  /while"
+  v[21] = "  i = 5"
+  v[22] = "  while i < 27"
+  v[23] = "    spring:outln(v[i])"
+  v[24] = "    i++"
+  v[25] = "  /while"
+  v[26] = "/entry"
+  var i uint8 = 2
+  while i < 5
+    spring:outln(v[i])
+    i++
+  /while
+  i = 0
+  while i < 27
+    spring:out(v[0])
+    spring:outint(i)
+    spring:out(v[1])
+    spring:outch(34)
+    spring:out(v[i])
+    spring:outch(34)
+    spring:outch(10)
+    i++
+  /while
+  i = 5
+  while i < 27
+    spring:outln(v[i])
+    i++
+  /while
+/entry

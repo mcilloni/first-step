@@ -24,35 +24,35 @@ entry
     i++
   /while
 
-  spring:fputs("list[] == ", stdout)
+  spring:out("list[] == ")
 
   spring:listPrint(list)
 
   var extract = spring:listExtract(list, 3, 11)
 
-  spring:fputs("list[3:14] == ", stdout)
+  spring:out("list[3:14] == ")
   spring:listPrint(extract)
 
-  spring:fputs("list[] == ", stdout)
+  spring:out("list[] == ")
   spring:listPrint(list)
 
   spring:listFree(extract)
 
   extract = spring:listExtract(list, 12, -1)
 
-  spring:fputs("list[12:] == ", stdout)
+  spring:out("list[12:] == ")
   spring:listPrint(extract)
 
   spring:listFree(extract)
 
-  spring:fputs("list[] == ", stdout)
+  spring:out("list[] == ")
   spring:listPrint(list)
 
-  spring:puts("list[3] <- 23")
+  spring:outln("list[3] <- 23")
 
   spring:listAddint(list, 3, 23)
 
-  spring:fputs("list[] == ", stdout)
+  spring:out("list[] == ")
   spring:listPrint(list)
 
   spring:listFree(list)

@@ -26,7 +26,7 @@ entry
   var value data
 
   if spring:mapGet(map, "flare", ptr value)
-    spring:puts(cast<ptr uint8>(value))
+    spring:outln(cast<ptr uint8>(value))
   /if
 
   var iter = spring:mapiterStart(map)
@@ -34,28 +34,28 @@ entry
 
   var inside = false
 
-  spring:fputs("Size: ", stdout)
-  spring:printint(spring:mapLen(map))
-  spring:puts(" ")
+  spring:out("Size: ")
+  spring:outint(spring:mapLen(map))
+  spring:outln(" ")
 
-  spring:fputs("{ ", stdout)
+  spring:out("{ ")
 
   while (pair = spring:mapiterNext(iter)) != null
 
     if inside
-      spring:fputs(", ", stdout)
+      spring:out(", ")
     else
       inside = true
     /if
 
-    spring:fputs(cast<ptr uint8>(pair'key), stdout)
-    spring:fputs(" : ", stdout)
-    spring:fputs(cast<ptr uint8>(pair'value), stdout)
+    spring:out(cast<ptr uint8>(pair'key))
+    spring:out(" : ")
+    spring:out(cast<ptr uint8>(pair'value))
 
     spring:pairFree(pair)
   /while
 
-  spring:puts(" }")
+  spring:outln(" }")
 
   spring:mapiterFree(iter)
   spring:mapFree(map)

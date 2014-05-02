@@ -307,22 +307,21 @@ func listShallowCopy(list ptr spring:List) ptr spring:List
 /func
 
 func listPrint(list ptr spring:List)
-  var stdout spring:FILE = spring:stdout_file()
   var inside = false
-  spring:fputs("[ ", stdout)
+  spring:out("[ ")
   var len = listLen(list)
   var i uint8 = 0
 
   while i < len
     if inside
-      spring:fputs(", ",stdout)
+      spring:out(", ")
     else
       inside = true
     /if
 
-    spring:printint(val listGetint(list, i))
+    spring:outint(val listGetint(list, i))
     i++
   /while
-  spring:puts(" ]")
+  spring:outln(" ]")
 /func
 

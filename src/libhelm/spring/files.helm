@@ -12,3 +12,20 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
+import spring
+
+func out(str ptr uint8)
+  decl fputs func(ptr uint8, spring:FILE)
+  var stdout = spring:stdout_file()
+  fputs(str, stdout)
+/func
+
+func outch(ch uint8)
+  decl putchar func(uint8)
+  putchar(ch)
+/func
+
+func outln(str ptr uint8)
+  decl puts func(ptr uint8)
+  puts(str)
+/func

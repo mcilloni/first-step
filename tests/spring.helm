@@ -15,5 +15,5 @@
 import spring
 
 entry
-  spring:puts("LEL")
+  spring:outln("LEL")
 /entry

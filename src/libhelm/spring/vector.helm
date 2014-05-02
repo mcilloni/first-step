@@ -155,24 +155,23 @@ func vectSlice(vect ptr spring:Vector, start uintptr, len intptr) ptr spring:Vec
 
 func vectPrint(vect ptr spring:Vector)
   var inside = false
-  var stdout = spring:stdout_file()
 
-  spring:fputs("[ ", stdout)
+  spring:out("[ ")
   var len = vectLen(vect)
   var i uint8 = 0
 
   while i < len
     if inside
-      spring:fputs(", ",stdout)
+      spring:out(", ")
     else
       inside = true
     /if
 
-    spring:printint(val vectGetint(vect, i))
+    spring:outint(val vectGetint(vect, i))
     i++
   /while
 
-  spring:puts(" ]")
+  spring:outln(" ]")
 /func
 
 var vectAppend = cast<ptr func(ptr spring:Vector,data) bool>(vectAppendint)

@@ -130,6 +130,7 @@ bool stok(struct lexer *lex, char *data, size_t max) {
 
   char ch;
   size_t i;
+  bool escape = false;
 
   do {
     if (lex->newline) {
@@ -155,7 +156,7 @@ bool stok(struct lexer *lex, char *data, size_t max) {
         }
       }
 
-      if (ch == '"') {
+      if (ch == '"' && !escape) {
         if (lex->inString) {
           break;
         }
@@ -167,8 +168,14 @@ bool stok(struct lexer *lex, char *data, size_t max) {
           continue;
         }
         
+      } else {
+        escape = false;
       }
       
+      if (ch == '\\') {
+        escape = true;
+      }
+
       if(!lex->inString) {
 
         if (isblank((int) ch)) {
