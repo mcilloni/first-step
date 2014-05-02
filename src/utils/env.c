@@ -34,7 +34,7 @@ static const uintmax_t MAX_ERRORS = 20;
 
 int std_printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va) {
 
-  int ret = fprintf(out, "(%s%s" ANSI_COLOR_RESET, color, level);
+  int ret = fprintf(out, ANSI_COLOR_BOLD "(%s%s" ANSI_COLOR_RESET ANSI_COLOR_BOLD, color, level);
   if (env.lastLineno) {
     ret += fprintf(out, ", line %ju): ", *env.lastLineno);
   } else {
@@ -43,7 +43,7 @@ int std_printout(FILE *out, const char *level, const char *color, const char *fm
 
   ret += vfprintf(out, fmt, va);
 
-  fputc('\n', out);
+  fputs(ANSI_COLOR_RESET "\n", out);
 
   return ret + 1;
 }
