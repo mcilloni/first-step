@@ -56,6 +56,9 @@ const char* ccode_opConv(struct token *tok, struct pnode *leftSupportNode) {
     ret = (pnode_evalType(pool, leftSupportNode, NULL)->kind == TYPE_PTR) ? "->" : ".";
     break;
   }
+  case LEX_MOD:
+    ret = "%";
+    break;
   case LEX_OR:
     ret = "||";
     break;

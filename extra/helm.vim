@@ -46,7 +46,7 @@ hi def link     helmDeclaration       Keyword
 hi def link     helmDeclType          Keyword
 
 " Keywords within functions
-syn keyword     helmStatement         return 
+syn keyword     helmStatement         return break continue 
 syn keyword     helmConditional       if else 
 syn match       helmConditional       "\/if"
 "syn keyword     helmLabel             case default
@@ -73,11 +73,11 @@ hi def link     helmData              Type
 "syn keyword     helmBuiltins          append cap close complex copy delete imag len
 "syn keyword     helmBuiltins          make new panic print println real recover
 syn keyword     helmConstants         true false null
-syn keyword     helmKey               ptr val or and size cast
+syn keyword     helmKey               ptr val or and mod size cast
 
 "hi def link     helmBuiltins          Keyword
 hi def link     helmConstants         Keyword
-hi def link     helmKey               Keyword
+hi def link     helmKey               Operator 
 
 " Comments; their contents
 syn keyword     helmTodo              contained TODO FIXME XXX BUG

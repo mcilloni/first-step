@@ -21,6 +21,7 @@ all:
 	cp *.hemd ../../build/libhelm/hemd/
 	$(MAKE) -C spring
 	$(AR) rc ../../build/libhelm.a ../../build/libhelm/*.o
+	$(CC) -shared -o ../../build/libhelm/libhelm.so ../../build/libhelm/*.o
 	$(RANLIB) ../../build/libhelm.a
 
 

@@ -1,5 +1,5 @@
 
-import argparse, atexit, os, subprocess, sys
+import argparse, atexit, os, platform, subprocess, sys
 
 todelete = []
 
@@ -46,7 +46,11 @@ def cc(ccCommand, cfile, ofile=None):
     if ofile == None:
         ofile = cfile.replace('.c', '.o', 1)
 
-    retval = subprocess.call( ccCommand.split() + [cfile, '-w', '-g', '-c', '-o', ofile])
+    fpic = []
+    if platform.machine() == 'x86_64':
+        fpic = ['-fPIC']
+
+    retval = subprocess.call( ccCommand.split() + [cfile, '-w', '-g', '-c', '-o', ofile] + fpic)
     if (retval != 0):
         sys.exit(retval)
 

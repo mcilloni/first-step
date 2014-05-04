@@ -146,6 +146,9 @@ struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnod
   case LEX_DIV:
     ret = pnode_newval(PR_NUMBER, lval / rval);
     break;
+  case LEX_MOD:
+    ret = pnode_newval(PR_NUMBER, lval % rval);
+    break;
   case LEX_EQUAL:
     ret = pnode_newval(PR_ID, (uintmax_t) (lval == rval ? "true" : "false"));
     break;
@@ -470,15 +473,16 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
 
   switch (tok->type) {
   case LEX_AMPER:
-  case LEX_PIPE:
   case LEX_DIV:
-  case LEX_PLUS:
-  case LEX_POW:
-  case LEX_TIMES: 
   case LEX_MAJEQ:
   case LEX_MAJOR:
   case LEX_MINEQ:
   case LEX_MINOR: 
+  case LEX_MOD:
+  case LEX_PIPE:
+  case LEX_PLUS:
+  case LEX_POW:
+  case LEX_TIMES: 
     if (lnull || rnull) {
       return false;
     }
@@ -494,7 +498,7 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
   }
 
   default:
-    env.fail("Token %s mistakenly entered in a wrong path", token_str(tok));
+    env.fail("Token '%s' was definitely unexpected", token_str(tok));
     return false;
   }
 

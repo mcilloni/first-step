@@ -518,6 +518,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // mod
+  if (!strcmp("mod", data)) {
+    res->type = LEX_MOD;
+    return res;
+  }
+
   // return
   if (!strcmp("return", data)) {
     res->type = LEX_RETURN;
@@ -634,6 +640,8 @@ const char* tokentype_str(enum token_type type) {
     return "<";
   case LEX_MINUS:
     return "-";
+  case LEX_MOD:
+    return "mod";
   case LEX_MODULE:
     return "module";
   case LEX_NEWLINE:
@@ -727,6 +735,7 @@ int8_t tokentype_getPriority(enum token_type type) {
     return 8;
 
   case LEX_DIV:
+  case LEX_MOD:
   case LEX_TIMES:
     return 9;
 
@@ -779,6 +788,7 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_MAJOR:
   case LEX_MINEQ:
   case LEX_MINOR:
+  case LEX_MOD:
   case LEX_OR:
   case LEX_PIPE:
   case LEX_PLUS:

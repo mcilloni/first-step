@@ -17,6 +17,37 @@ module spring
 alias FILE data
 alias comparer ptr func(data, data) int8
 
+# error structure
+
+alias Error struct (
+  msg ptr uint8
+)
+
+# cookie structure
+
+alias closefunc func(data, ptr ptr Error) bool
+alias readfunc func(data, ptr uint8, intptr, ptr ptr Error, ptr bool) uintptr
+alias writefunc func(data, ptr uint8, intptr, ptr ptr Error) uintptr
+
+alias Cookie struct (
+  priv8 data,
+  cfn ptr closefunc,
+  rfn ptr readfunc,
+  wfn ptr writefunc
+)
+
+# stream structure
+
+decl STREAM_IN uint8
+decl STREAM_OUT uint8
+
+alias Stream struct (
+  cookie Cookie,
+  eof bool,
+  error ptr Error,
+  inout uint8
+)
+
 # pair structure
 alias Pair struct (
   key, value data
@@ -73,22 +104,48 @@ decl memmove func(data, data, uintptr) data
 decl memset func(data, uintptr, uintptr) data
 decl zalloc func(uintptr) data
 
-# IO functions
-decl fputs func(ptr uint8, FILE)
+# System functions
+decl exit func(int16)
+
+# Error functions
+
+decl errorFree func(ptr Error)
+decl errorMsg func(ptr Error) ptr uint8
+decl errorNew func(ptr uint8) ptr Error
+
+# Stream functions 
+decl streamClose func(ptr Stream) bool
+decl streamEnded func(ptr Stream) bool
+decl streamError func(ptr Stream) ptr Error
+decl streamNew func(data, ptr readfunc, ptr writefunc, ptr closefunc) ptr Stream
+decl streamRead func(ptr Stream, ptr uint8, intptr) uintptr
+decl streamWrite func(ptr Stream, ptr uint8) uintptr
+
+# File stream functions
+decl fileOpen func(ptr uint8, ptr ptr Error) ptr Stream
+decl fileCreate func(ptr uint8, ptr ptr Error) ptr Stream
+
+# Console output functions
+decl err func(ptr uint8)
+decl errch func(uint8)
+decl errln func(ptr uint8)
+decl fail func(ptr uint8)
+decl failln func(ptr uint8)
 decl out func(ptr uint8)
 decl outch func(uint8)
 decl outint func(uint64)
 decl outln func(ptr uint8)
+
 # libc std streams wrapper functions
 decl stderr_file func() FILE
 decl stdin_file func() FILE
 decl stdout_file func() FILE
 
 # string functions
-decl strlen func(ptr uint8) uintptr
-decl strequals func(ptr uint8, ptr uint8) bool
-decl strncpy func(ptr uint8, ptr uint8, uintptr) ptr uint8
 decl strclone func(ptr uint8) ptr uint8
+decl strequals func(ptr uint8, ptr uint8) bool
+decl strlen func(ptr uint8) uintptr
+decl strncpy func(ptr uint8, ptr uint8, uintptr) ptr uint8
 
 # pair functions 
 
