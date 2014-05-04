@@ -47,7 +47,7 @@ def cc(ccCommand, cfile, ofile=None):
         ofile = cfile.replace('.c', '.o', 1)
 
     fpic = []
-    if platform.machine() == 'x86_64':
+    if platform.machine() in ['x86_64', 'amd64'] :
         fpic = ['-fPIC']
 
     retval = subprocess.call( ccCommand.split() + [cfile, '-w', '-g', '-c', '-o', ofile] + fpic)
