@@ -16,7 +16,17 @@ ifndef RANLIB
 	RANLIB=ranlib
 endif
 
-ifeq ($(shell uname -m), x86_64)
+MACHINE = $(shell uname -m)
+
+ifeq ($(MACHINE), x86_64)
+	AMD64 = yes
+endif
+
+ifeq ($(MACHINE), amd64)
+	AMD64 = yes
+endif
+
+ifdef AMD64
 ifeq (,$(findstring CYGWIN,$(UNAME)))
 	FPIC = -fPIC
 endif

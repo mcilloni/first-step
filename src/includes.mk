@@ -29,6 +29,15 @@ ifeq ($(UNAME),Darwin)
 endif
 
 ifeq ($(MACHINE), x86_64)
+	AMD64 = yes
+endif
+
+
+ifeq ($(MACHINE), amd64)
+	AMD64 = yes
+endif
+
+ifdef AMD64
 ifeq (,$(findstring CYGWIN,$(UNAME)))
 	INCLUDES += -fPIC
 endif
