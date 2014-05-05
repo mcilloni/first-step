@@ -620,10 +620,10 @@ void ccode_genImports(Imports *imports, FILE *out) {
   while ((pair = mapiter_next(iter))) {
     name = (char*) pair->key;
 
-    fprintf(out, "// Module %s\n\n", name);
-
     if (ccode_imported(name)) {
       return;
+    } else {
+      array_append(imported, name);
     }
 
     module = (struct proot*) pair->value;
@@ -631,6 +631,9 @@ void ccode_genImports(Imports *imports, FILE *out) {
     node = (struct pnode*) module;
 
     ccode_genImports(module->imports, out);
+
+    fprintf(out, "// Module %s\n\n", name);
+
     ccode_declAliases(pnode_getAliases(node), out, 0);
 
     size_t len = array_len(node->leaves);
