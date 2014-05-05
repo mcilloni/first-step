@@ -15,7 +15,7 @@ struct env {
   printfmt info;
   printfmt warning;
   uintmax_t *lastLineno;
-  const char *curFile;
+  const char *filename;
 };
 
 extern struct env env;
@@ -25,6 +25,7 @@ struct lineno env_getLineno(void);
 void env_reset(void);
 void env_set(struct env set);
 void env_setDebug(bool on);
+void env_setFilename(char *name);
 void env_setLine(struct line *line);
 
 #endif

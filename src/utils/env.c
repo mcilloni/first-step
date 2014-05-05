@@ -17,6 +17,7 @@
 
 #include "colors.h"
 #include "env.h"
+#include "utils.h"
 
 #if !defined(EMSCRIPTEN) && !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(__DragonFly__) && !defined(__CYGWIN__)
   #include <execinfo.h>
@@ -28,6 +29,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <libgen.h>
+
 static bool debug_on = false;
 static uintmax_t errors = 0;
 static const uintmax_t MAX_ERRORS = 20;
@@ -35,8 +38,10 @@ static const uintmax_t MAX_ERRORS = 20;
 int std_printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va) {
 
   int ret = fprintf(out, ANSI_COLOR_BOLD "(%s%s" ANSI_COLOR_RESET ANSI_COLOR_BOLD, color, level);
-  if (env.lastLineno) {
-    ret += fprintf(out, ", line %ju): ", *env.lastLineno);
+  if (env.lastLineno && env.filename) {
+    char *tmp = str_clone(env.filename);
+    ret += fprintf(out, ": in file %s, line %ju): ", basename(tmp), *env.lastLineno);
+    free(tmp);
   } else {
     ret += fputs("): ", out);
   }
@@ -156,4 +161,8 @@ void env_setDebug(bool on) {
 
 void lineno_setLoc(uintmax_t *loc) {
   env.lastLineno = loc;
+}
+
+void env_setFilename(char *name) {
+  env.filename = name;
 }

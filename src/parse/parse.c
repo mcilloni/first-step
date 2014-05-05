@@ -915,6 +915,8 @@ bool import(struct parser *prs, Imports *imps) {
       env.fail("Module %s imported twice", name);
     }
 
+    env_setFilename(name);
+
     struct env oldenv = env;
     env_reset();
 
@@ -951,6 +953,8 @@ struct pnode* parser_parse(struct parser *prs, FILE *file) {
   }
 
   lineno_setLoc(&prs->lastLineno);
+  
+  env_setFilename(prs->filename);
 
   prs->lex = lexer_fromFile(file);
 
@@ -993,6 +997,8 @@ struct pnode* parser_parse(struct parser *prs, FILE *file) {
   Imports *imports = imports_new();
   
   while (import(prs, imports));
+
+  env_setFilename(prs->filename);
 
   struct pnode *root = pnode_newroot(prs->filename, module, imports), *nextDef;  
 
