@@ -89,11 +89,17 @@ alias List struct(
   pos uintptr
 )
 
-# vector structures
+# vector structure
 alias Vector struct (
   arr ptr uintptr,
   cap,len uintptr,
   isSlice bool
+)
+
+# charstash structure
+alias Charstash struct (
+  base, work ptr uint8,
+  len, cap uintptr
 )
 
 # Memory functions
@@ -217,4 +223,10 @@ decl mapiterFree func(ptr MapIter)
 decl FREE_NONE uint8
 decl FREE_KEY uint8
 decl FREE_VALUE uint8
+
+# charstash functions
+decl csAppend func(ptr Charstash, uint8)
+decl csFree func(ptr Charstash)
+decl csNew func(uintptr) ptr Charstash
+decl csUnleash func(ptr Charstash) ptr uint8
 
