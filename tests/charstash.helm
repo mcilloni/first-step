@@ -18,17 +18,16 @@ entry
   var cs = spring:csNew(10)
   var i uint16 = 0
 
-  while i < 14
+  while i < 10000
     spring:csAppend(cs, 90)
     i++
   /while
 
-  var l = cs'len
   var str = spring:csUnleash(cs)
 
   spring:outln(str)
   spring:out("len == ")
-  spring:outint(l)
+  spring:outint(spring:strlen(str))
   spring:outch(10)
 
   spring:free(str)
