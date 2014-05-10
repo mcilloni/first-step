@@ -23,11 +23,15 @@ entry
     i++
   /while
 
+  var len = spring:csLen(cs)
   var str = spring:csUnleash(cs)
 
   spring:outln(str)
-  spring:out("len == ")
+  spring:out("strlen == ")
   spring:outint(spring:strlen(str))
+  spring:outch(10)
+  spring:out("cslen == ")
+  spring:outint(len)
   spring:outch(10)
 
   spring:free(str)

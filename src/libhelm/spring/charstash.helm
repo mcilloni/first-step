@@ -52,3 +52,7 @@ func csUnleash(cs ptr spring:Charstash) ptr uint8
   return ret
 /func
 
+func csLen(cs ptr spring:Charstash) uintptr
+  return cs'len
+/func
+
