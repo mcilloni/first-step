@@ -220,6 +220,7 @@ size_t expr_findReverseLPOp(List *expr) {
   int8_t posPri = INT8_MAX, tmp;  
 
   int16_t par = 0;
+  int16_t brac = 0;
 
   struct token *tok;
 
@@ -227,6 +228,9 @@ size_t expr_findReverseLPOp(List *expr) {
     tok = (struct token*) *list_get(expr, i);
 
     switch (tok->type) {
+    case LEX_OBRAC:
+      ++brac;
+      break;
     case LEX_OPAR:
       ++par;
       break;
@@ -236,8 +240,9 @@ size_t expr_findReverseLPOp(List *expr) {
       }
       --par;
       break;
+
     default:
-      if (!par) {
+      if (!par && !brac) {
         tmp = token_getPriority(tok);
         if (tmp > 0) {
           if (tmp < posPri) {
@@ -245,6 +250,12 @@ size_t expr_findReverseLPOp(List *expr) {
             posPri = tmp;
           }
         }
+      }
+      if (tok->type == LEX_CBRAC) {
+        if (!brac) {
+          env.fail("Unmatched brackets");
+        }
+        --brac;
       }
       break;
     }
@@ -265,6 +276,7 @@ size_t expr_findLowPriorityOp(List *expr) {
   int8_t posPri = INT8_MAX, tmp;  
 
   int16_t par = 0;
+  int16_t brac = 0;
 
   struct token *tok, *posTok = NULL;
 
@@ -275,6 +287,12 @@ size_t expr_findLowPriorityOp(List *expr) {
     case LEX_CPAR:
       ++par;
       break;
+    case LEX_OBRAC:
+      if (!brac) {
+        env.fail("Unmatched bracket");
+      }
+      --brac;
+      break;
     case LEX_OPAR:
       if (!par) {
         env.fail("Unmatched parentheses");
@@ -283,7 +301,7 @@ size_t expr_findLowPriorityOp(List *expr) {
       break;
 
     default:
-      if (!par) {
+      if (!par && !brac) {
         tmp = token_getPriority(tok);
         if (tmp > 0) {
           if (tmp < posPri) {
@@ -293,12 +311,19 @@ size_t expr_findLowPriorityOp(List *expr) {
           }
         }
       }
+      if (tok->type == LEX_CBRAC) {
+        ++brac;
+      }
       break;
     }
   }
 
   if (par) {
     env.fail("Unmatched parentheses in expression");
+  }
+
+  if (brac) {
+    env.fail("Unmatched brackets in expression");
   }
 
   //Inefficient, but simple and I just don't care about it right now

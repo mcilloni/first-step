@@ -148,10 +148,12 @@ decl stdin_file func() FILE
 decl stdout_file func() FILE
 
 # string functions
+decl numtostr func(uintptr, ptr uint8, uintptr) ptr uint8
 decl strclone func(ptr uint8) ptr uint8
 decl strequals func(ptr uint8, ptr uint8) bool
 decl strlen func(ptr uint8) uintptr
 decl strncpy func(ptr uint8, ptr uint8, uintptr) ptr uint8
+decl strreverse func(ptr uint8, uintptr)
 decl strtonum func(ptr uint8) uintptr
 
 # pair functions 

@@ -13,9 +13,9 @@
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
 entry
-  var p int32 = 2
+  var p int32
+  var b uint8
   var l struct(p ptr func())
-  cast<ptr int8> ptr p
-  l'p()
-  2 xor 3
+  var x ptr uint8
+  x[p] = x[p - 2 - b]
 /entry
