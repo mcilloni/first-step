@@ -73,7 +73,7 @@ hi def link     helmData              Type
 "syn keyword     helmBuiltins          append cap close complex copy delete imag len
 "syn keyword     helmBuiltins          make new panic print println real recover
 syn keyword     helmConstants         true false null
-syn keyword     helmKey               ptr val or and mod size cast
+syn keyword     helmKey               ptr val or and mod size cast xor
 
 "hi def link     helmBuiltins          Keyword
 hi def link     helmConstants         Keyword
