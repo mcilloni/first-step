@@ -17,4 +17,5 @@ entry
   var l struct(p ptr func())
   cast<ptr int8> ptr p
   l'p()
+  2 xor 3
 /entry

@@ -149,6 +149,9 @@ struct pnode* expr_evalBinary(struct token *tok, struct pnode *left, struct pnod
   case LEX_MOD:
     ret = pnode_newval(PR_NUMBER, lval % rval);
     break;
+  case LEX_XOR:
+    ret = pnode_newval(PR_NUMBER, lval ^ rval);
+    break;
   case LEX_EQUAL:
     ret = pnode_newval(PR_ID, (uintmax_t) (lval == rval ? "true" : "false"));
     break;
@@ -483,6 +486,7 @@ bool expr_isBinOpCompatible(struct parser *prs, struct pnode *root, struct token
   case LEX_PLUS:
   case LEX_POW:
   case LEX_TIMES: 
+  case LEX_XOR:
     if (lnull || rnull) {
       return false;
     }

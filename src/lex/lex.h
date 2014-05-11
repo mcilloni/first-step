@@ -64,7 +64,8 @@ enum token_type {
   LEX_TIMES,
   LEX_VAL,
   LEX_VAR,
-  LEX_WHILE
+  LEX_WHILE,
+  LEX_XOR
 };
 
 static const char *const lex_errors[] = {

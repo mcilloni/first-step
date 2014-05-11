@@ -152,6 +152,7 @@ decl strclone func(ptr uint8) ptr uint8
 decl strequals func(ptr uint8, ptr uint8) bool
 decl strlen func(ptr uint8) uintptr
 decl strncpy func(ptr uint8, ptr uint8, uintptr) ptr uint8
+decl strtonum func(ptr uint8) uintptr
 
 # pair functions 
 

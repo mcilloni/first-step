@@ -62,6 +62,9 @@ const char* ccode_opConv(struct token *tok, struct pnode *leftSupportNode) {
   case LEX_OR:
     ret = "||";
     break;
+  case LEX_XOR:
+    ret = "^";
+    break;
   default: 
     ret = token_str(tok);
     break;

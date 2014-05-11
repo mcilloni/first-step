@@ -524,6 +524,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // xor
+  if (!strcmp("xor", data)) {
+    res->type = LEX_XOR;
+    return res;
+  }
+
   // return
   if (!strcmp("return", data)) {
     res->type = LEX_RETURN;
@@ -678,6 +684,8 @@ const char* tokentype_str(enum token_type type) {
     return "var";
   case LEX_WHILE:
     return "while";
+  case LEX_XOR:
+    return "xor";
   default:
     return "unknown";
   }
@@ -718,46 +726,49 @@ int8_t tokentype_getPriority(enum token_type type) {
   case LEX_PIPE:
     return 4;
 
-  case LEX_AMPER:
+  case LEX_XOR:
     return 5;
+
+  case LEX_AMPER:
+    return 6;
 
   case LEX_DIFFERENT:
   case LEX_EQUAL:
-    return 6;
+    return 7;
 
   case LEX_MAJEQ:
   case LEX_MAJOR:
   case LEX_MINEQ:
   case LEX_MINOR:
-    return 7;
+    return 8;
 
   case LEX_PLUS:
-    return 8;
+    return 9;
 
   case LEX_DIV:
   case LEX_MOD:
   case LEX_TIMES:
-    return 9;
+    return 10;
 
   case LEX_POW:
-    return 10;
+    return 11;
 
   case LEX_MINUS:
   case LEX_NOT:
   case LEX_PTR:
   case LEX_SIZE:
   case LEX_VAL:
-    return 11;
+    return 12;
 
   case LEX_CAST:
   case LEX_APOS:
   case LEX_CBRAC: //HACK: use ] as operator for precedence purposes
   case LEX_INC:
   case LEX_DEC:
-    return 12;
+    return 13;
 
   case LEX_COLON:
-    return 13;
+    return 14;
 
   default:
     return -1;
@@ -794,6 +805,7 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_PLUS:
   case LEX_POW:
   case LEX_TIMES:
+  case LEX_XOR:
     return OPTYPE_BINARY;
 
   default:
