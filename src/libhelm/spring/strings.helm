@@ -67,3 +67,13 @@ func numtostr(num uintptr, buf ptr uint8, len uintptr) ptr uint8
 
   return buf
 /func
+
+func strglue(strs ptr ptr uint8) ptr uint8
+  var cs = spring:csNew(10)
+  while val strs != null
+    spring:csAppendStr(cs, val strs)
+    strs++
+  /while
+
+  return spring:csUnleash(cs)
+/func

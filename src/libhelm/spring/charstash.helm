@@ -29,6 +29,13 @@ func csAppend(cs ptr spring:Charstash, ch uint8)
   cs'work++
 /func
 
+func csAppendStr(cs ptr spring:Charstash, str ptr uint8)
+  while val str != 0
+    csAppend(cs, val str)
+    str++
+  /while
+/func
+
 func csFree(cs ptr spring:Charstash)
   spring:free(cs'base)
   spring:free(cs)
