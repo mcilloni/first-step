@@ -116,6 +116,7 @@ decl exit func(int16)
 # Error functions
 
 decl errorFree func(ptr Error)
+decl errorGlue func(ptr ptr uint8) ptr Error
 decl errorMsg func(ptr Error) ptr uint8
 decl errorNew func(ptr uint8) ptr Error
 decl errorNewStrs func(ptr ptr uint8) ptr Error

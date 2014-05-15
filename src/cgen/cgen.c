@@ -624,7 +624,7 @@ void ccode_genImports(Imports *imports, FILE *out) {
     name = (char*) pair->key;
 
     if (ccode_imported(name)) {
-      return;
+      continue;
     } else {
       array_append(imported, name);
     }

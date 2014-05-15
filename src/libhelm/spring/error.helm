@@ -35,3 +35,9 @@ func errorNew(str ptr uint8) ptr spring:Error
   return err
 /func
 
+func errorGlue(strs ptr ptr uint8) ptr spring:Error
+  var err = cast<ptr spring:Error>(spring:alloc(size(spring:Error)))
+  err'msg = spring:strglue(strs)
+  return err
+/func
+
