@@ -151,6 +151,7 @@ decl stdout_file func() FILE
 
 # string functions
 decl numtostr func(uintptr, ptr uint8, uintptr) ptr uint8
+decl strappend func(ptr uint8, ptr uint8) ptr uint8
 decl strclone func(ptr uint8) ptr uint8
 decl strequals func(ptr uint8, ptr uint8) bool
 decl strglue func(ptr ptr uint8) ptr uint8
