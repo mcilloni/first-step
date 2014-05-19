@@ -1,7 +1,13 @@
 
-import argparse, atexit, os, platform, subprocess, sys
+import argparse
+import atexit
+import os
+import platform
+import subprocess
+import sys
 
 todelete = []
+
 
 def clean():
     for f in todelete:
@@ -12,25 +18,28 @@ atexit.register(clean)
 buildpath = os.path.dirname(os.path.abspath(__file__))
 helmc1path = os.path.join(buildpath, 'helmc1')
 
+
 def helmc1(helmfile):
 
     if not helmfile.endswith('.helm'):
-        sys.exit((__file__ + ': error: file {} does not end with .helm').format(helmfile))
+        sys.exit((__file__ +
+                 ': error: file {} does not end with .helm').format(helmfile))
 
     cname = helmfile.replace('.helm', '.c', 1)
 
     newenv = os.environ.copy()
-    newenv['HELM_MODULES'] = buildpath + '/libhelm/hemd/' 
+    newenv['HELM_MODULES'] = buildpath + '/libhelm/hemd/'
 
     if 'HELM_MODULES' in os.environ:
-        newenv['HELM_MODULES'] = newenv['HELM_MODULES'] + ':' + os.environ['HELM_MODULES']
+        newenv['HELM_MODULES'] = newenv['HELM_MODULES'] \
+            + ':' + os.environ['HELM_MODULES']
 
-    proc = subprocess.Popen([ helmc1path, helmfile ], env=newenv, stdout=subprocess.PIPE)
-    out,err = proc.communicate()
+    proc = subprocess.Popen([helmc1path, helmfile],
+                            env=newenv, stdout=subprocess.PIPE)
+    out, err = proc.communicate()
 
     if (proc.returncode != 0):
         sys.exit(proc.returncode)
-
 
     outfile = open(cname, 'wb')
     outfile.write(out)
@@ -38,32 +47,58 @@ def helmc1(helmfile):
 
     return cname
 
+
 def cc(ccCommand, cfile, ofile=None):
 
     if not cfile.endswith('.c'):
-        sys.exit((__file__ + ': error: file {} does not end with .c').format(cfile))
+        sys.exit((__file__
+                 + ': error: file {} does not end with .c').format(cfile))
 
-    if ofile == None:
+    if ofile is None:
         ofile = cfile.replace('.c', '.o', 1)
 
     fpic = []
-    if platform.machine() in ['x86_64', 'amd64'] :
+    if platform.machine() in ['x86_64', 'amd64']:
         fpic = ['-fPIC']
 
-    retval = subprocess.call( ccCommand.split() + [cfile, '-w', '-g', '-c', '-o', ofile] + fpic)
+    retval = subprocess.call(ccCommand.split()
+                             + [cfile, '-w', '-g', '-c', '-o', ofile] + fpic)
     if (retval != 0):
         sys.exit(retval)
 
+
 def main():
-    parser = argparse.ArgumentParser(description="helmc compiles .helm files to objects. Use helml to link them. Set HELM_MODULES to specify where to find more modules.\n")
-    parser.add_argument('files', metavar='FILE', type=str, nargs='+', help='.helm file to compile')
-    parser.add_argument('-C', '--emit-c', action='store_true', help='emits C code into .c files instead of compiling')
-    parser.add_argument('-X', '--cc', default='cc', type=str, help='specifies the C compiler to use. Defaults to "cc"')
-    parser.add_argument('-o', '--objname', type=str, help='indicates the alternative name for the object file. Defaults to <helmfile>.o')
+    parser = argparse.ArgumentParser(
+        description="helmc compiles .helm files to objects."
+        " Use helml to link them."
+        " Set HELM_MODULES to specify where to find more modules.\n")
+    parser.add_argument('files',
+                        metavar='FILE',
+                        type=str,
+                        nargs='+',
+                        help='.helm file to compile')
+    parser.add_argument('-C',
+                        '--emit-c',
+                        action='store_true',
+                        help='emits C code into .c files instead of compiling')
+    parser.add_argument('-X',
+                        '--cc',
+                        default='cc',
+                        type=str,
+                        help='specifies the C compiler to use. '
+                             'Defaults to "cc"')
+    parser.add_argument('-o',
+                        '--objname',
+                        type=str,
+                        help='indicates the alternative name '
+                             'for the object file. '
+                             'Defaults to <helmfile>.o')
     args = parser.parse_args()
-    
+
     if len(args.files) > 1 and args.objname:
-        sys.exit(__file__ + ': error: cannot specify -o when generating multiple output files')
+        sys.exit(__file__ +
+                 ': error: cannot specify -o'
+                 ' when generating multiple output files')
 
     if args.cc == 'cc':
         if 'CC' in os.environ:
@@ -74,7 +109,7 @@ def main():
         if not args.emit_c:
             todelete.append(cfile)
             cc(args.cc, cfile, args.objname)
-            
+
     else:
         for f in args.files:
             cfile = helmc1(f)
@@ -84,4 +119,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
