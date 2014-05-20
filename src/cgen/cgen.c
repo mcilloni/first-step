@@ -125,6 +125,15 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));
     }
     
+    if (tok.type == LEX_POW) {
+      fputs("__helmpow(", out);
+      ccode_genRecExpr(*leaves_get(root->leaves, 0), out);
+      fputs(", ", out);
+      ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
+      fputs(" )", out);
+      break;
+    }
+
     fputs("( ", out);    
     if (tok.type != LEX_COLON) {
       struct pnode *left = *leaves_get(root->leaves, 0);
@@ -132,6 +141,7 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
       fprintf(out, "%s", ccode_opConv(&tok, left));
     }
     ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
+    
     fputs(" )", out);
     break;
 
@@ -594,7 +604,8 @@ void ccode_printDefaultHeaders(FILE *out) {
         "typedef uint32_t uint32;\n"
         "typedef uint64_t uint64;\n"
         "typedef uintptr_t uintptr;\n"
-        "typedef void* data;\n\n", out);
+        "typedef void* data;\n\n"
+        "extern uintptr __helmpow(uintptr, uintptr);\n\n", out);
 }
 
 Array *imported;

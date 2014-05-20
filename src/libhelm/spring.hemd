@@ -158,7 +158,7 @@ decl strglue func(ptr ptr uint8) ptr uint8
 decl strlen func(ptr uint8) uintptr
 decl strncpy func(ptr uint8, ptr uint8, uintptr) ptr uint8
 decl strreverse func(ptr uint8, uintptr)
-decl strtonum func(ptr uint8) uintptr
+decl strtonum func(ptr uint8) intptr
 
 # pair functions 
 

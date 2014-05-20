@@ -12,35 +12,10 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-decl __helm_entry func()
+import spring
 
-func __helmpow(base,exp uintptr) uintptr
-
-  if exp == 0
-    return 1
-  /if
-
-  if base == 1
-    return 1
-  /if
-
-  if base == 0
-    return 0
-  /if
-
-  var ret uintptr = 1
-  var i uintptr = 1
-
-  while i <= exp
-    ret = ret * base
-    i++
-  /while
-
-  return ret
-
-/func
-
-func main() int8
-  __helm_entry()
-  return 0
-/func
+entry
+  var a = 2
+  spring:outint(a ^ 16)
+  spring:outch(10)
+/entry
