@@ -91,15 +91,26 @@ func strappend(str1 ptr uint8, str2 ptr uint8) ptr uint8
 /func
 
 func strtonum(str ptr uint8) intptr
-  var ret intptr = 0
+  var ret uintptr = 0
   var sign int8 = 1
   var len = spring:strlen(str)
 
-  if val str == 45
+  if len == 0
+    return 0
+  /if
+
+  len--
+
+  if val str == 45 and len > 1
     sign = -1
     str++
   /if
 
   while val str != 0
+    ret = ret + (val str - 48) * 10 ^ len
+    str++
+    len--
   /while
+
+  return cast<intptr>(ret * sign)
 /func
