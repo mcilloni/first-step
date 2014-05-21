@@ -9,7 +9,8 @@ Because of this, certain parts could be poorly written, or could be inefficient.
 What has been done
 ==================
 
-helmc is capable to build simple programs, with integers and records, and also functions.
+Helmc is capable of compiling quite complex programs, like the linked list and treemap implementations in /src/libhelm/spring.
+It also ships a basic, *temporary* library with an expanding set of utilities that will be used for developing second-step, a compiler written in Helm for Helm with, *I hope*, a better parser and a better library.
 It supports pointers and a wide array of c-like operators, with the same behaviour as C.
 The codebase is still in its early phase, and bugs are frequent.
 
@@ -17,7 +18,7 @@ helmc currently implements:
 
 - integers (int8, int16, int32, int64, uint8, uint16, uint32, uint64, uintptr)
 - assignments
-- arithmetical expressions
+- arithmetical expressions (support for unsigned powers with the ^ operator is quite buggy, still)
 - functions
 - comments (using the # character) 
 - string literals (using "")
@@ -67,14 +68,23 @@ helmc automatically uses gcc instead of clang on Cygwin because of this.
 
 > How do I compile this on OpenBSD?
 
-Work on OpenBSD is still in its early stage. The main issue here is that clang has some issues with code compiled with -g because of old binutils, and default gcc 4.2 is too old.
+Work on OpenBSD is still in its early stage. The main issue here is that clang has some issues with code compiled with -g because of old binutils, and default gcc 4.2 is too old. Installing a newer gcc and its binutils with it will fix the clang issues.
 
 > How do I use helmc? 
 
 helmc works only in the same directory of helmrt.o and helmc1. It also needs clang, or gcc, or any c compiler.
 Then, you can compile with helmc <file.helm> , creating a <file.o> binary, that you can link with helml <file.o>
 Executing helmc -C file.helm generates a file.c inside the current directory.
-   
+
+> How modules work?
+
+Helm modules are .hemd files with decl's of external symbols and aliases of types.
+They are, at least now, handwritten. 
+helmc1 searches for modules (with *.hemd* extension) in the current directory and in the paths specified into the *HELM_MODULES* variable, separated by ':'. 
+All .hemd files have a *module _name_* declaration identical to their file name; per example, spring module has a spring.hemd module with *module spring* at its beginning.
+Symbols are not exported with their module name because of limitations of their implementation, so name collision can arise at linking time.
+This will be fixed for sure in second-step.
+
 How It Works?
 =============
 
