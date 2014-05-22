@@ -18,7 +18,7 @@ func csAppend(cs ptr spring:Charstash, ch uint8)
   if cs'len == cs'cap
     cs'cap = cs'cap + 10
     var new = cast<ptr uint8>(spring:alloc(cs'cap))
-    spring:memcpy(new, cs'base, cs'len)
+    spring:memmove(new, cs'base, cs'len)
     spring:free(cs'base)
     cs'base = new
     cs'work = cs'base + cs'len
