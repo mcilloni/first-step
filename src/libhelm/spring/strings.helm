@@ -16,7 +16,7 @@ import spring
 
 func strclone(orig ptr uint8) ptr uint8
   var len = spring:strlen(orig)
-  var new = cast<ptr uint8>(spring:zalloc(size(ptr uint8)))
+  var new = cast<ptr uint8>(spring:zalloc(len))
   spring:strncpy(new, orig, len)
   return new
 /func
