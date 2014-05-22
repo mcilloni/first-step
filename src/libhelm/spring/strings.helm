@@ -58,7 +58,7 @@ func numtostr(num uintptr, buf ptr uint8, len uintptr) ptr uint8
   while i < (len - 1) and num != 0
     digit = num mod 10
     num = num / 10
-    buf[i] = cast<uint8>(num + 48) #position of 0 in ascii
+    buf[i] = cast<uint8>(digit + 48) #position of 0 in ascii
     i++
   /while
 
