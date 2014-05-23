@@ -622,6 +622,8 @@ const char* tokentype_str(enum token_type type) {
     return "/func";
   case LEX_ENDIF:
     return "/if";
+  case LEX_ENDWHILE:
+    return "/while";
   case LEX_ENTRY:
     return "entry";
   case LEX_EQUAL:
@@ -651,7 +653,7 @@ const char* tokentype_str(enum token_type type) {
   case LEX_MODULE:
     return "module";
   case LEX_NEWLINE:
-    return "a new line";
+    return "a newline";
   case LEX_NOT:
     return "!";
   case LEX_NUMBER:
