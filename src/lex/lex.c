@@ -675,7 +675,7 @@ const char* tokentype_str(enum token_type type) {
   case LEX_SIZE:
     return "size";
   case LEX_STRING:
-    return "string";
+    return "a string";
   case LEX_STRUCT:
     return "struct";
   case LEX_TIMES:
