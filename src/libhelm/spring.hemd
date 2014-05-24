@@ -102,6 +102,13 @@ alias Charstash struct (
   len, cap uintptr
 )
 
+# args structure
+alias Args struct (
+  len uintptr,
+  progname ptr uint8,
+  args ptr ptr uint8
+)
+
 # Memory functions
 decl alloc func(uintptr) data
 decl free func(data)
@@ -238,4 +245,7 @@ decl csFree func(ptr Charstash)
 decl csLen func(ptr Charstash) uintptr
 decl csNew func(uintptr) ptr Charstash
 decl csUnleash func(ptr Charstash) ptr uint8
+
+# args functions
+decl args func() ptr Args
 

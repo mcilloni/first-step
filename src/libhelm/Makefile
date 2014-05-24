@@ -23,6 +23,7 @@ all:
 	$(AR) rc ../../build/libhelm.a ../../build/libhelm/*.o
 	$(CC) -shared -o ../../build/libhelm/libhelm.so ../../build/libhelm/*.o
 	$(RANLIB) ../../build/libhelm.a
+	$(HELMC) -o ../../build/helmrt.o helmrt.helm
 
 
 clean:

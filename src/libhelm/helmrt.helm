@@ -14,7 +14,40 @@
 
 import spring
 
-func args() ptr spring:Args
-  decl __helmprogArgs spring:Args
-  return ptr __helmprogArgs
+decl __helm_entry func()
+
+func __helmpow(base,exp uintptr) uintptr
+
+  if exp == 0
+    return 1
+  /if
+
+  if base == 1
+    return 1
+  /if
+
+  if base == 0
+    return 0
+  /if
+
+  var ret uintptr = 1
+  var i uintptr = 1
+
+  while i <= exp
+    ret = ret * base
+    i++
+  /while
+
+  return ret
+
+/func
+
+var __helmprogArgs spring:Args
+
+func main(argc intptr, argv ptr ptr uint8) int8
+  __helmprogArgs'len = cast<uintptr>(argc - 1)
+  __helmprogArgs'progname = val argv
+  __helmprogArgs'args = argv + 1
+  __helm_entry()
+  return 0
 /func

@@ -507,6 +507,11 @@ void ccode_genBody(struct pnode *body, FILE *out, uint8_t indent) {
 }
 
 void ccode_genFuncHead(struct pfunc *node, FILE *out) {
+  if (!strcmp(node->name, "main")) { // clang will whine a lot if main does not use precise c types. 
+    fputs("int main(int argc, char *argv[]) {\n", out);
+    return;
+  }
+
   char *tmp; 
   size_t size;
 

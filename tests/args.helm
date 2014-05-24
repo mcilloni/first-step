@@ -12,35 +12,24 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-decl __helm_entry func()
+import spring
 
-func __helmpow(base,exp uintptr) uintptr
+entry
+  var argv = spring:args()
 
-  if exp == 0
-    return 1
-  /if
+  spring:out(argv'progname)
+  spring:out(", ")
+  spring:outint(argv'len)
+  spring:outln(" arguments\n")
 
-  if base == 1
-    return 1
-  /if
+  var i uintptr = 0
 
-  if base == 0
-    return 0
-  /if
-
-  var ret uintptr = 1
-  var i uintptr = 1
-
-  while i <= exp
-    ret = ret * base
+  while i < argv'len
+    spring:out("Argument ")
+    spring:outint(i)
+    spring:out(": ")
+    spring:outln(argv'args[i])
     i++
   /while
+/entry
 
-  return ret
-
-/func
-
-func main() int8
-  __helm_entry()
-  return 0
-/func

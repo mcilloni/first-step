@@ -20,7 +20,7 @@ endif
 
 .PHONY: all,clean
 
-all: dir helmc1 helmrt.o
+all: dir helmc1 
 
 helmc1: 
 	$(CC) -o $(OBJDIR)/helmtree helmtree.c $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu11
@@ -33,11 +33,3 @@ clean:
 dir:
 	mkdir -p $(OUTDIR)
 
-helmrt.o:  
-ifneq (,$(findstring LLVM,$(shell file $(OBJDIR)/helmc1)))
-		lli $(OBJDIR)/helmc1 helmrt.helm > $(OUTDIR)/helmrt.c
-else
-		$(OBJDIR)/helmc1 helmrt.helm > $(OUTDIR)/helmrt.c
-endif
-	$(CC) $(INCLUDES) -c $(OUTDIR)/helmrt.c -o $(OUTDIR)/helmrt.o -w
-	rm -f $(OUTDIR)/helmrt.c
