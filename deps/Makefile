@@ -13,11 +13,10 @@ endif
 UNAME = $(shell uname) 
 
 
-.PHONY: all clean btrace
+.PHONY: all clean
 
 all: 
 	install -d ../build/
-	$(MAKE) -C backtrace
 	$(MAKE) -C memstream
 	$(MAKE) -C array
 	$(MAKE) -C list
@@ -26,12 +25,10 @@ all:
 
 clean:
 	$(MAKE) -C array clean
-	$(MAKE) -C backtrace clean
 	$(MAKE) -C memstream clean
 	$(MAKE) -C list clean
 	$(MAKE) -C treemap clean
 	rm -f ../build/array.a
-	rm -f ../build/backtrace.a
 	rm -f ../build/list.a
 	rm -f ../build/treemap.a
 

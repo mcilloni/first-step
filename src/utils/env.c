@@ -19,12 +19,6 @@
 #include "env.h"
 #include "utils.h"
 
-#if !defined(EMSCRIPTEN) && !defined(__NetBSD__) && !defined(__OpenBSD__) && !defined(__DragonFly__) && !defined(__CYGWIN__)
-  #include <execinfo.h>
-#elif defined(__OpenBSD__)
-  #include <backtrace/backtrace.h>
-#endif
-
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -95,19 +89,6 @@ int default_print_fail(const char *fmt, ...) {
   std_printout(stderr, "FAIL", ANSI_COLOR_MAGENTA, fmt, va);
 
   va_end(va);
-
-#if !defined(EMSCRIPTEN) && !defined(__NetBSD__) && !defined(__DragonFly__) && !defined(__CYGWIN__)
-  void *array[100];
-  size_t size = backtrace(array, 100);
-  char** strings = backtrace_symbols(array, size);
-
-  for (size_t i = 0; i < size; ++i) {
-    fputs(strings[i], stderr);
-    fputc('\n', stderr);
-  }
-  
-  free(strings);
-#endif
 
   exit(EXIT_FAILURE);
 

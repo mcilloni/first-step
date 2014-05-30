@@ -317,8 +317,8 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
-  // ^
-  if (!strcmp("^", data)) {
+  // **
+  if (!strcmp("**", data)) {
     res->type = LEX_POW;
     return res;
   }
@@ -524,8 +524,8 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
-  // xor
-  if (!strcmp("xor", data)) {
+  // ^
+  if (!strcmp("^", data)) {
     res->type = LEX_XOR;
     return res;
   }
@@ -668,6 +668,8 @@ const char* tokentype_str(enum token_type type) {
     return "|";
   case LEX_PLUS:
     return "+";
+  case LEX_POW:
+    return "**";
   case LEX_PTR:
     return "ptr";
   case LEX_RETURN:
@@ -687,7 +689,7 @@ const char* tokentype_str(enum token_type type) {
   case LEX_WHILE:
     return "while";
   case LEX_XOR:
-    return "xor";
+    return "^";
   default:
     return "unknown";
   }

@@ -22,7 +22,6 @@ all:
 	$(MAKE) -C parse 
 	$(MAKE) -C cgen 
 	$(MAKE) -C helmc1 
-	cp -f ../build/helmc1-build/helmrt.o ../build
 	cp -f header.txt ../build/helmc
 	cat helmc.py >> ../build/helmc
 	chmod +x ../build/helmc
