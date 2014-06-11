@@ -1,5 +1,5 @@
-ifndef CC
-	CC=clang
+ifndef CXX
+	CXX=clang++
 endif
 
 ifndef AR

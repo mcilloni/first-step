@@ -4,8 +4,8 @@ OUTDIR = $(OBJDIR)/$(notdir $(shell pwd))
 
 LDFLAGS += -lutils
 
-ifndef CC
-	CC=clang 
+ifndef CXX
+	CXX=clang++ 
 endif
 
 .PHONY: all,clean
@@ -24,5 +24,5 @@ dir:
 	mkdir -p $(OUTDIR)
 
 %: %.c 
-	$(CC) $(INCLUDES) $< -o $(OUTDIR)/$@ -std=gnu11 -Wall -pedantic $(LIBS) $(LDFLAGS)
+	$(CXX) $(INCLUDES) $< -o $(OUTDIR)/$@ -std=gnu++11 -Wall -pedantic $(LIBS) $(LDFLAGS)
 

@@ -2,8 +2,8 @@ ifndef HELMC
 	HELMC=helmc
 endif
 
-ifndef CC
-	CC=clang
+ifndef CXX
+	CXX=clang++
 endif
 
 ifndef AR
@@ -21,7 +21,7 @@ all:
 	cp *.hemd ../../build/libhelm/hemd/
 	$(MAKE) -C spring
 	$(AR) rc ../../build/libhelm.a ../../build/libhelm/*.o
-	$(CC) -shared -o ../../build/libhelm/libhelm.so ../../build/libhelm/*.o
+	$(CXX) -shared -o ../../build/libhelm/libhelm.so ../../build/libhelm/*.o
 	$(RANLIB) ../../build/libhelm.a
 	$(HELMC) -o ../../build/helmrt.o helmrt.helm
 

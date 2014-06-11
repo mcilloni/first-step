@@ -6,8 +6,8 @@ include ../includes.mk
 
 OUTDIR = $(OBJDIR)/parse
 
-ifndef CC
-	CC=clang 
+ifndef CXX
+	CXX=clang++ 
 endif
 
 ifndef AR
@@ -37,5 +37,5 @@ dir:
 	mkdir -p $(OUTDIR)
 
 %.o: %.c 
-	$(CC) $(INCLUDES) -c $< -o $(OUTDIR)/$@ -std=gnu11 -Wall -pedantic 
+	$(CXX) $(INCLUDES) -c $< -o $(OUTDIR)/$@ -std=gnu++11 -Wall -pedantic 
 

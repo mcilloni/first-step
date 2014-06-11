@@ -14,7 +14,7 @@ endif
 
 all:
 ifdef NEEDED
-	$(CC) -c memstream.c -Wall -pedantic
+	$(CXX) -c memstream.c -Wall -pedantic
 	$(AR) rc ../../build/libmemstream.a memstream.o
 	$(RANLIB) ../../build/libmemstream.a
 endif
