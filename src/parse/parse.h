@@ -7,7 +7,7 @@
 #include <lex/lex.h>
 #include <list/pool.h>
 
-#include <stdint.h>
+#include <cstdint>
 
 typedef bool (*bodyender)(struct token*);
 

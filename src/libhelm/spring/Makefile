@@ -35,16 +35,16 @@ endif
 .PHONY: all clean
 
 HSRCS = $(wildcard *.helm)
-CSRCS = $(wildcard *.c)
+CSRCS = $(wildcard *.cc)
 HOBJS = $(patsubst %.helm,%.helm.o,$(HSRCS))
-COBJS = $(patsubst %.c,%.c.o,$(CSRCS))
+COBJS = $(patsubst %.cc,%.cc.o,$(CSRCS))
 OPATHS = $(foreach obj, $(HOBJS), $(OUTDIR)/$(obj))
 OPATHS += $(foreach obj, $(COBJS), $(OUTDIR)/$(obj))
 
 all: $(COBJS) $(HOBJS)
 	mkdir -p $(OUTDIR)
 
-%.c.o: %.c
+%.cc.o: %.cc
 	@echo [CXX] $<
 	@$(CXX) -c -o $(OUTDIR)/$@ $< $(FPIC) -std=c++11 -D_POSIX_C_SOURCE=200112L
 

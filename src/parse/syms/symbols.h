@@ -4,7 +4,7 @@
 #include <list/list.h>
 #include <list/pool.h>
 
-#include <stdbool.h>
+
 
 struct type;
 typedef List Symbols;

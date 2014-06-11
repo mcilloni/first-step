@@ -3,8 +3,10 @@
 
 #include "errors.h"
 
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
+
+#include <string>
 
 struct filereader {
   size_t lineno;
@@ -12,10 +14,9 @@ struct filereader {
 };
 
 struct line {
-  size_t len;
   size_t position;
   uintmax_t lineno;
-  char *val;
+  std::string val;
 };
 
 struct filereader* filereader_open(const char *path);

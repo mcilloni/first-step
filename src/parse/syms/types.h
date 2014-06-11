@@ -1,9 +1,9 @@
 #if !defined(_TYPES_H) 
 #define _TYPES_H
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
+
+#include <cstddef>
+#include <cstdint>
 
 #include "symbols.h"
 
@@ -17,7 +17,7 @@ enum type_kind {
   TYPE_NONE = 0,
   TYPE_BOOL,
   TYPE_NUMERIC,
-  TYPE_NULL,
+  TYPE_nullptr,
 
   //free
   TYPE_FUNC,
@@ -36,7 +36,7 @@ enum type_compatible {
 
 struct type {
   enum type_kind kind;
-  char *name;
+  const char *name;
   size_t size;
   bool uns;
   Aliases *discover;

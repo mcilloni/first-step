@@ -6,9 +6,9 @@
 #include <utils/errors.h>
 #include <utils/lines.h>
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <cstdio>
+#include <cstdint>
+
 
 enum token_type {
   LEX_NONE = 0,

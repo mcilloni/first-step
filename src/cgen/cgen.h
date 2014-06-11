@@ -3,7 +3,7 @@
 
 #include "../parse/ptree.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 void cgen(const char *filename, struct pnode *tree, FILE *out);
 

@@ -20,8 +20,8 @@ endif
 
 .PHONY: all,clean
 
-SRCS = $(wildcard *.c)
-OBJS = $(patsubst %.c,%.o,$(SRCS))
+SRCS = $(wildcard *.cc)
+OBJS = $(patsubst %.cc,%.o,$(SRCS))
 OPATHS = $(foreach obj, $(OBJS), $(OUTDIR)/$(obj))
 all: dir $(OBJS)
 	$(AR) rc $(OBJDIR)/liblex.a $(OPATHS)
@@ -34,6 +34,6 @@ clean:
 dir:
 	mkdir -p $(OUTDIR)
 
-%.o: %.c 
+%.o: %.cc 
 	$(CXX) $(INCLUDES) -c $< -o $(OUTDIR)/$@ -std=c++11 -Wall -pedantic
 

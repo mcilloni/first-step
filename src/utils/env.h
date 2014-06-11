@@ -3,8 +3,8 @@
 
 #include "lines.h"
 
-#include <stdbool.h>
-#include <stdint.h>
+
+#include <cstdint>
 
 typedef int (*printfmt)(const char *fmt, ...);
 
