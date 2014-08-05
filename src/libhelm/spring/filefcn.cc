@@ -14,6 +14,7 @@
  *  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
  *
  */
+#undef _GNU_SOURCE
 
 #include <cerrno>
 #include <fcntl.h>

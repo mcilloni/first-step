@@ -78,7 +78,7 @@ func fileOpen(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
   val err = null
 
   var fd = open_readfile(filename, buf, 512)
-  if fd < -1
+  if fd < 0
     val err = spring:errorNew(buf)
     return null
   /if
@@ -91,7 +91,7 @@ func fileCreate(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
   var buf [512] uint8
 
   var fd = open_writefile(filename, buf, 512)
-  if fd < -1
+  if fd < 0
     val err = spring:errorNew(buf)
     return null
   /if

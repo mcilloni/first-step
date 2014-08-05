@@ -123,8 +123,16 @@ func vectFreeContents(vect ptr spring:Vector,  freefunc ptr func(data))
       i++
     /while
 
+    spring:vectPrune(vect)
   /if
 
+/func
+
+func vectFreeAll(vect ptr spring:Vector,  freefunc ptr func(data))
+  if vect != null
+    vectFreeContents(vect, freefunc)
+    vectFree(vect)
+  /if
 /func
 
 func vectPrune(vect ptr spring:Vector)
