@@ -502,7 +502,6 @@ void alias(struct parser *prs, struct pnode *thisNode) {
   struct type *tp = type(prs, thisNode);
 
   if (!tp) {
-    char buf[4096];
     env.fail("Cannot create alias %s of a not defined type", id);
   }
 
