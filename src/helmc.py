@@ -3,8 +3,10 @@ import argparse
 import atexit
 import os
 import platform
+import signal
 import subprocess
 import sys
+import termcolor
 
 todelete = []
 
@@ -38,7 +40,10 @@ def helmc1(helmfile):
                             env=newenv, stdout=subprocess.PIPE)
     out, err = proc.communicate()
 
-    if (proc.returncode != 0):
+    if proc.returncode != 0:
+        if proc.returncode == -signal.SIGSEGV:
+            sys.exit(termcolor.colored('FATAL COMPILER ERROR: ','red', attrs=['bold','blink']) 
+                    + termcolor.colored("helmc1 segfaulted :(", attrs=['bold']))
         sys.exit(proc.returncode)
 
     outfile = open(cname, 'wb')
