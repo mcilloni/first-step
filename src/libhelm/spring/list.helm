@@ -275,7 +275,9 @@ func listPopint(list ptr spring:List) uintptr
 
   spring:free(list'start)
 
-  next'prec = null
+  if next != null
+    next'prec = null
+  /if
 
   if list'start == list'end
     spring:memset(list, 0, size(spring:List))
