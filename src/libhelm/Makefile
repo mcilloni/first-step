@@ -1,5 +1,5 @@
 ifndef HELMC
-	HELMC=helmc
+	HELMC=../../build/helmc
 endif
 
 ifndef CXX
