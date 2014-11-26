@@ -15,8 +15,8 @@
 
 entry
 
-  var a int16
-  var c int8
+  mut a int16
+  mut c int8
 
   a = 21
 

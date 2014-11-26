@@ -16,7 +16,7 @@ decl puts func(ptr uint8)
 
 entry
 
-  var i uint16 = 0
+  mut i uint16 = 0
 
   while true
 

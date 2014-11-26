@@ -2,7 +2,7 @@ decl puts func(ptr uint8)
 
 entry
 
-  var i ptr int8
+  mut i ptr int8
 
   i = null
 

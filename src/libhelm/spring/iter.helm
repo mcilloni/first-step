@@ -15,7 +15,7 @@
 import spring
 
 func mapiterStart(map ptr spring:Map) ptr spring:MapIter
-  var iter = cast<ptr spring:MapIter>(spring:alloc(size(spring:MapIter)))
+  mut iter = cast<ptr spring:MapIter>(spring:alloc(size(spring:MapIter)))
   iter'map = map
   iter'lastKey = null
   iter'begin = true
@@ -28,11 +28,11 @@ func iterIntNext(node ptr spring:Mnode, lastKey data) ptr spring:Pair
     return null
   /if
 
-  var cmp = node'cmp(lastKey, node'key)
+  mut cmp = node'cmp(lastKey, node'key)
 
   #lastKey < node'key
   if cmp < 0
-    var pair = iterIntNext(node'left, lastKey)
+    mut pair = iterIntNext(node'left, lastKey)
     if pair != null
       return pair
     /if
@@ -46,7 +46,7 @@ func iterIntNext(node ptr spring:Mnode, lastKey data) ptr spring:Pair
 /func
 
 func mapiterNext(iter ptr spring:MapIter) ptr spring:Pair
-  var root = iter'map'root
+  mut root = iter'map'root
 
   if root == null
     return null
@@ -55,12 +55,12 @@ func mapiterNext(iter ptr spring:MapIter) ptr spring:Pair
   if iter'begin
     iter'begin = false
     decl node_minpair func(ptr spring:Mnode) ptr spring:Pair
-    var pair = node_minpair(root)
+    mut pair = node_minpair(root)
     iter'lastKey = pair'key
     return pair
   /if
 
-  var pair = iterIntNext(root, iter'lastKey)
+  mut pair = iterIntNext(root, iter'lastKey)
 
   if pair != null
     iter'lastKey = pair'key

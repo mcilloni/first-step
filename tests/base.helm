@@ -33,8 +33,8 @@ func trueFuffa(value ptr fuffa) bool
 
 entry
 
-  var b fuffa
-  var p ptr fuffa
+  mut b fuffa
+  mut p ptr fuffa
 
   b'good = true
   b'msg = "HEY!"

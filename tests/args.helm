@@ -15,14 +15,14 @@
 import spring
 
 entry
-  var argv = spring:args()
+  mut argv = spring:args()
 
   spring:out(argv'progname)
   spring:out(", ")
   spring:outint(argv'len)
   spring:outln(" arguments\n")
 
-  var i uintptr = 0
+  mut i uintptr = 0
 
   while i < argv'len
     spring:out("Argument ")

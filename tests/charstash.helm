@@ -15,16 +15,16 @@
 import spring
 
 entry
-  var cs = spring:csNew(10)
-  var i uint16 = 0
+  mut cs = spring:csNew(10)
+  mut i uint16 = 0
 
   while i < 10000
     spring:csAppend(cs, 90)
     i++
   /while
 
-  var len = spring:csLen(cs)
-  var str = spring:csUnleash(cs)
+  mut len = spring:csLen(cs)
+  mut str = spring:csUnleash(cs)
 
   spring:outln(str)
   spring:out("strlen == ")

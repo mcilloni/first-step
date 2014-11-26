@@ -15,10 +15,10 @@
 import spring
 
 entry
-  var stdout spring:FILE = spring:stdout_file()
-  var list = spring:listNew()
+  mut stdout spring:FILE = spring:stdout_file()
+  mut list = spring:listNew()
 
-  var i uint8 = 0
+  mut i uint8 = 0
   while i < 31
     spring:listAppendint(list, i)
     i++
@@ -28,7 +28,7 @@ entry
 
   spring:listPrint(list)
 
-  var extract = spring:listExtract(list, 3, 11)
+  mut extract = spring:listExtract(list, 3, 11)
 
   spring:out("list[3:14] == ")
   spring:listPrint(extract)

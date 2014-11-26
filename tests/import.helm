@@ -1,7 +1,7 @@
 import modsample
 
 entry
-  var a modsample:strdef
+  mut a modsample:strdef
   a'a = "LEL"
   modsample:puts(a'a)
 /entry

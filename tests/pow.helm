@@ -15,7 +15,7 @@
 import spring
 
 entry
-  var a = 2
+  mut a = 2
   spring:outint(a ^ 16)
   spring:outch(10)
 /entry

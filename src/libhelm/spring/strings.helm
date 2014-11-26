@@ -15,8 +15,8 @@
 import spring
 
 func strclone(orig ptr uint8) ptr uint8
-  var len = spring:strlen(orig)
-  var new = cast<ptr uint8>(spring:zalloc(len + 1))
+  mut len = spring:strlen(orig)
+  mut new = cast<ptr uint8>(spring:zalloc(len + 1))
   spring:strncpy(new, orig, len)
   return new
 /func
@@ -31,8 +31,8 @@ func strequals(s1, s2 ptr uint8) bool
 /func
 
 func strreverse(str ptr uint8, len uintptr)
-  var i uintptr = 0
-  var end = len / 2
+  mut i uintptr = 0
+  mut end = len / 2
 
   while i < end
     str[i] = str[i] ^ str[len - 1 - i]
@@ -53,8 +53,8 @@ func numtostr(num uintptr, buf ptr uint8, len uintptr) ptr uint8
     return buf
   /if
 
-  var i uintptr = 0
-  var digit uintptr
+  mut i uintptr = 0
+  mut digit uintptr
   while i < (len - 1) and num != 0
     digit = num mod 10
     num = num / 10
@@ -69,7 +69,7 @@ func numtostr(num uintptr, buf ptr uint8, len uintptr) ptr uint8
 /func
 
 func strglue(strs ptr ptr uint8) ptr uint8
-  var cs = spring:csNew(10)
+  mut cs = spring:csNew(10)
   while val strs != null
     spring:csAppendStr(cs, val strs)
     strs++
@@ -79,9 +79,9 @@ func strglue(strs ptr ptr uint8) ptr uint8
 /func
 
 func strappend(str1 ptr uint8, str2 ptr uint8) ptr uint8
-  var len1 = spring:strlen(str1)
-  var len2 = spring:strlen(str2)
-  var ret = cast<ptr uint8>(spring:zalloc(len1 + len2 + 1))
+  mut len1 = spring:strlen(str1)
+  mut len2 = spring:strlen(str2)
+  mut ret = cast<ptr uint8>(spring:zalloc(len1 + len2 + 1))
 
   spring:memmove(ret, str1, len1)
   spring:memmove(ret + len1, str2, len2)
@@ -91,9 +91,9 @@ func strappend(str1 ptr uint8, str2 ptr uint8) ptr uint8
 /func
 
 func strtonum(str ptr uint8) intptr
-  var ret uintptr = 0
-  var sign int8 = 1
-  var len = spring:strlen(str)
+  mut ret uintptr = 0
+  mut sign int8 = 1
+  mut len = spring:strlen(str)
 
   if len == 0
     return 0

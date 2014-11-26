@@ -36,7 +36,7 @@ endif
 syn case match
 
 "syn keyword     helmDirective         module import
-syn keyword     helmDeclaration       var decl alias module import
+syn keyword     helmDeclaration       mut decl alias module import
 syn keyword     helmDeclType          struct func entry
 syn match       helmDeclType          "\/func" 
 syn match       helmDeclType          "\/entry" 

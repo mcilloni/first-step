@@ -30,8 +30,8 @@ func __helmpow(base,exp uintptr) uintptr
     return 0
   /if
 
-  var ret uintptr = 1
-  var i uintptr = 1
+  mut ret uintptr = 1
+  mut i uintptr = 1
 
   while i <= exp
     ret = ret * base
@@ -42,7 +42,7 @@ func __helmpow(base,exp uintptr) uintptr
 
 /func
 
-var __helmprogArgs spring:Args
+mut __helmprogArgs spring:Args
 
 func main(argc intptr, argv ptr ptr uint8) int8
   __helmprogArgs'len = cast<uintptr>(argc - 1)

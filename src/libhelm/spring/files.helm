@@ -15,10 +15,10 @@
 import spring
 
 func filereadInternal(camoFd data, bytes ptr uint8, len intptr, err ptr ptr spring:Error, eof ptr bool) uintptr
-  var fd = cast<int64>(camoFd)
+  mut fd = cast<int64>(camoFd)
   decl stream_readfileInternal func(int64, data, intptr, ptr uint8, uintptr) intptr
-  var buf [512] uint8
-  var rd = stream_readfileInternal(fd, bytes, len, buf, 512)
+  mut buf [512] uint8
+  mut rd = stream_readfileInternal(fd, bytes, len, buf, 512)
 
   if rd < 0
     val err = spring:errorNew(buf)
@@ -33,11 +33,11 @@ func filereadInternal(camoFd data, bytes ptr uint8, len intptr, err ptr ptr spri
 /func
 
 func filewriteInternal(camoFd data, bytes ptr uint8, len intptr, err ptr ptr spring:Error) uintptr
-  var fd = cast<int64>(camoFd)
+  mut fd = cast<int64>(camoFd)
   decl stream_writefileInternal func(int64, data, intptr, ptr uint8, uintptr) intptr
-  var buf [512] uint8
-  var wt intptr
-  var wttot intptr = 0
+  mut buf [512] uint8
+  mut wt intptr
+  mut wttot intptr = 0
 
   while wttot < len
     wt = stream_writefileInternal(fd, bytes + wttot, len - wttot, buf, 512)
@@ -55,7 +55,7 @@ func filewriteInternal(camoFd data, bytes ptr uint8, len intptr, err ptr ptr spr
 
 func filecloseInternal(camoFd data, err ptr ptr spring:Error) bool
   decl stream_closefileInternal func(int64, ptr uint8, uintptr) uint8
-  var buf [512] uint8
+  mut buf [512] uint8
 
   if stream_closefileInternal(cast<int64>(camoFd), buf, 512) != 0
     return true
@@ -66,11 +66,11 @@ func filecloseInternal(camoFd data, err ptr ptr spring:Error) bool
 
 func fileOpen(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
   decl open_readfile func(ptr uint8, ptr uint8, uintptr) int64
-  var buf [512] uint8
+  mut buf [512] uint8
 
   val err = null
 
-  var fd = open_readfile(filename, buf, 512)
+  mut fd = open_readfile(filename, buf, 512)
   if fd < 0
     val err = spring:errorNew(buf)
     return null
@@ -81,9 +81,9 @@ func fileOpen(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
 
 func fileCreate(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
   decl open_writefile func(ptr uint8, ptr uint8, uintptr) int64
-  var buf [512] uint8
+  mut buf [512] uint8
 
-  var fd = open_writefile(filename, buf, 512)
+  mut fd = open_writefile(filename, buf, 512)
   if fd < 0
     val err = spring:errorNew(buf)
     return null

@@ -13,7 +13,7 @@
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
 entry 
-  var p data
-  var x uintptr
+  mut p data
+  mut x uintptr
   p = ptr x
 /entry

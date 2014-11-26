@@ -1,12 +1,12 @@
 import spring
 entry
-  var v [27] ptr uint8
+  mut v [27] ptr uint8
   v[0] = "  v["
   v[1] = "] = "
   v[2] = "import spring"
   v[3] = "entry"
-  v[4] = "  var v [27] ptr uint8"
-  v[5] = "  var i uint8 = 2"
+  v[4] = "  mut v [27] ptr uint8"
+  v[5] = "  mut i uint8 = 2"
   v[6] = "  while i < 5"
   v[7] = "    spring:outln(v[i])"
   v[8] = "    i++"
@@ -28,7 +28,7 @@ entry
   v[24] = "    i++"
   v[25] = "  /while"
   v[26] = "/entry"
-  var i uint8 = 2
+  mut i uint8 = 2
   while i < 5
     spring:outln(v[i])
     i++

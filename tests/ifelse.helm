@@ -17,13 +17,13 @@ decl getchar func() uint8
 
 entry
 
-  var ch = getchar()
+  mut ch = getchar()
   getchar() #discard `\n`
 
   if ch == 97
     puts("is-a")
 
-    var ch2 = getchar()
+    mut ch2 = getchar()
 
     if ch2 == 98
       puts("is-b")

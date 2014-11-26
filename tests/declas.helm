@@ -12,9 +12,9 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-var a = 8
+mut a = 8
 
 entry
-  var b = ptr a
-  var c int8 = 16
+  mut b = ptr a
+  mut c int8 = 16
 /entry

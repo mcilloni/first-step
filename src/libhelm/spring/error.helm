@@ -30,13 +30,13 @@ func errorMsg(err ptr spring:Error) ptr uint8
 /func
 
 func errorNew(str ptr uint8) ptr spring:Error
-  var err = cast<ptr spring:Error>(spring:alloc(size(spring:Error)))
+  mut err = cast<ptr spring:Error>(spring:alloc(size(spring:Error)))
   err'msg = spring:strclone(str)
   return err
 /func
 
 func errorGlue(strs ptr ptr uint8) ptr spring:Error
-  var err = cast<ptr spring:Error>(spring:alloc(size(spring:Error)))
+  mut err = cast<ptr spring:Error>(spring:alloc(size(spring:Error)))
   err'msg = spring:strglue(strs)
   return err
 /func

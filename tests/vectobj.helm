@@ -14,9 +14,9 @@ func printStruct(strct ptr Struct)
 /func
 
 entry
-  var one = cast<ptr Struct>(spring:zalloc(size(Struct)))
-  var two = cast<ptr Struct>(spring:zalloc(size(Struct)))
-  var three = cast<ptr Struct>(spring:zalloc(size(Struct)))
+  mut one = cast<ptr Struct>(spring:zalloc(size(Struct)))
+  mut two = cast<ptr Struct>(spring:zalloc(size(Struct)))
+  mut three = cast<ptr Struct>(spring:zalloc(size(Struct)))
 
   one'first = "11"
   one'second = "12"
@@ -25,17 +25,17 @@ entry
   three'first = "31"
   three'second = "32"
 
-  var vect = spring:vectNew(3)
+  mut vect = spring:vectNew(3)
 
   spring:vectAppend(vect, one)
   spring:vectAppend(vect, two)
   spring:vectAppend(vect, three)
 
-  var vLen = spring:vectLen(vect)
-  var i = 0
+  mut vLen = spring:vectLen(vect)
+  mut i = 0
 
   while i < vLen
-    var strct = cast<ptr Struct>(val spring:vectGet(vect, 0))
+    mut strct = cast<ptr Struct>(val spring:vectGet(vect, 0))
 
     printStruct(strct)
     i++

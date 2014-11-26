@@ -14,7 +14,7 @@
 
 entry
 
-  var a [3]int8
+  mut a [3]int8
 
   a[1] = 2
   a[0] = 1

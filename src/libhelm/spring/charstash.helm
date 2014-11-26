@@ -17,7 +17,7 @@ import spring
 func csAppend(cs ptr spring:Charstash, ch uint8)
   if cs'len == cs'cap
     cs'cap = cs'cap + 10
-    var new = cast<ptr uint8>(spring:alloc(cs'cap))
+    mut new = cast<ptr uint8>(spring:alloc(cs'cap))
     spring:memmove(new, cs'base, cs'len)
     spring:free(cs'base)
     cs'base = new
@@ -42,7 +42,7 @@ func csFree(cs ptr spring:Charstash)
 /func
 
 func csNew(cap uintptr) ptr spring:Charstash
-  var cs = cast<ptr spring:Charstash>(spring:zalloc(size(spring:Charstash)))
+  mut cs = cast<ptr spring:Charstash>(spring:zalloc(size(spring:Charstash)))
 
   cs'work = cs'base = cast<ptr uint8>(spring:alloc(cap))
   cs'cap = cap
@@ -53,7 +53,7 @@ func csNew(cap uintptr) ptr spring:Charstash
 func csUnleash(cs ptr spring:Charstash) ptr uint8
   csAppend(cs, 0)
 
-  var ret = cs'base
+  mut ret = cs'base
   spring:free(cs)
 
   return ret

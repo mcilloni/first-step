@@ -13,9 +13,9 @@
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
 entry
-  var p int32
-  var b uint8
-  var l struct(p ptr func())
-  var x ptr uint8
+  mut p int32
+  mut b uint8
+  mut l struct(p ptr func())
+  mut x ptr uint8
   x[p] = x[p - 2 - b]
 /entry

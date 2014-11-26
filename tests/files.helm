@@ -15,22 +15,22 @@
 import spring
 
 entry
-  var error ptr spring:Error
+  mut error ptr spring:Error
 
-  var f = spring:fileOpen("quine.helm", ptr error)
+  mut f = spring:fileOpen("quine.helm", ptr error)
   if error != null
     spring:err("Error: ")
     spring:failln(spring:errorMsg(error))
   /if
 
-  var g = spring:fileCreate("lelz.out", ptr error)
+  mut g = spring:fileCreate("lelz.out", ptr error)
   if error != null
     spring:err("Error: ")
     spring:failln(spring:errorMsg(error))
   /if
 
-  var buf [512] uint8
-  var rd uintptr
+  mut buf [512] uint8
+  mut rd uintptr
   while !spring:streamEnded(f)
     rd = spring:streamRead(f, buf, 511)
 

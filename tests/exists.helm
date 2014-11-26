@@ -15,14 +15,14 @@
 import spring
 
 entry
-  var error ptr spring:Error
-  var argv = spring:args()
+  mut error ptr spring:Error
+  mut argv = spring:args()
 
   if argv'len != 1
     spring:failln("Wrong number of arguments, must be 1")
   /if
 
-  var f = spring:fileOpen(argv'args[0], ptr error)
+  mut f = spring:fileOpen(argv'args[0], ptr error)
   if error != null
     spring:err("Error: ")
     spring:failln(spring:errorMsg(error))

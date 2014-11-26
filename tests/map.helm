@@ -15,24 +15,24 @@
 import spring
 
 entry
-  var map = spring:strmapNew()
-  var stdout = spring:stdout_file()
+  mut map = spring:strmapNew()
+  mut stdout = spring:stdout_file()
 
   spring:mapPut(map, "potato", "battery", spring:FREE_NONE)
   spring:mapPut(map, "honey", "poney", spring:FREE_NONE)
   spring:mapPut(map, "flare", "guaxxa", spring:FREE_NONE)
   spring:mapPut(map, "guagua", "lelzie", spring:FREE_NONE)
 
-  var value data
+  mut value data
 
   if spring:mapGet(map, "flare", ptr value)
     spring:outln(cast<ptr uint8>(value))
   /if
 
-  var iter = spring:mapiterStart(map)
-  var pair ptr spring:Pair
+  mut iter = spring:mapiterStart(map)
+  mut pair ptr spring:Pair
 
-  var inside = false
+  mut inside = false
 
   spring:out("Size: ")
   spring:outint(spring:mapLen(map))

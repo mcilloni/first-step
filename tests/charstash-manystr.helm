@@ -15,12 +15,12 @@
 import spring
 
 entry
-  var cs = spring:csNew(20)
+  mut cs = spring:csNew(20)
   spring:csAppendStr(cs, "This ")
   spring:csAppendStr(cs, "actually ")
   spring:csAppendStr(cs, "works!")
 
-  var str = spring:csUnleash(cs)
+  mut str = spring:csUnleash(cs)
   spring:outln(str)
   spring:free(str)
 /entry

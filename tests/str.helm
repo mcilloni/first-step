@@ -2,8 +2,8 @@ alias value struct (a int8, b ptr value)
 alias vul struct (p ptr vul, b ptr value)
 entry
 
-  var l value
-  var v vul
+  mut l value
+  mut v vul
 
   l'b = ptr l
   v'b = l'b

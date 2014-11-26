@@ -15,7 +15,7 @@
 import spring
 
 func vectNew(cap uintptr) ptr spring:Vector
-  var arr = cast<ptr spring:Vector>(spring:zalloc(size(spring:Vector)))
+  mut arr = cast<ptr spring:Vector>(spring:zalloc(size(spring:Vector)))
 
   if cap != 0
     arr'arr = cast<ptr uintptr>(spring:zalloc(cap * size(uintptr)))
@@ -27,7 +27,7 @@ func vectNew(cap uintptr) ptr spring:Vector
 
 func vectNewcap(vect ptr spring:Vector, newcap uintptr)
 
-  var lowercap uintptr
+  mut lowercap uintptr
 
   if vect'cap > newcap
     lowercap = newcap
@@ -35,7 +35,7 @@ func vectNewcap(vect ptr spring:Vector, newcap uintptr)
     lowercap = vect'cap
   /if
 
-  var newarr = cast<ptr uintptr>(spring:zalloc(newcap * size(uintptr)))
+  mut newarr = cast<ptr uintptr>(spring:zalloc(newcap * size(uintptr)))
 
   spring:memmove(newarr, vect'arr, lowercap * size(uintptr))
 
@@ -66,10 +66,10 @@ func vectLen(vect ptr spring:Vector) uintptr
   return vect'len
 /func
 
-var CAP_INC uint8 = 10
+mut CAP_INC uint8 = 10
 
 func vectPutint(vect ptr spring:Vector, index uintptr, value uintptr) bool
-  var newalloc = false
+  mut newalloc = false
   if vect'cap <= index
     newalloc = true
   # Why this? Because I want cap to be rounded to a multiple of CAP_INC for sake of simplicity. I.e., if index is 12 and CAP_INC is 10, we have 12 / 10 == 1 so new capacity will be 2 * 10 == 20.
@@ -117,7 +117,7 @@ func vectFreeContents(vect ptr spring:Vector,  freefunc ptr func(data))
       freefunc = ptr spring:free
     /if
 
-    var i uintptr = 0
+    mut i uintptr = 0
     while i < vect'len
       freefunc(cast<data>(vect'arr[i]))
       i++
@@ -141,7 +141,7 @@ func vectPrune(vect ptr spring:Vector)
 /func
 
 func vectSlice(vect ptr spring:Vector, start uintptr, len intptr) ptr spring:Vector
-  var ret = vectNew(0)
+  mut ret = vectNew(0)
 
   ret'isSlice = true
 
@@ -162,11 +162,11 @@ func vectSlice(vect ptr spring:Vector, start uintptr, len intptr) ptr spring:Vec
 /func
 
 func vectPrint(vect ptr spring:Vector)
-  var inside = false
+  mut inside = false
 
   spring:out("[ ")
-  var len = vectLen(vect)
-  var i uint8 = 0
+  mut len = vectLen(vect)
+  mut i uint8 = 0
 
   while i < len
     if inside
@@ -182,7 +182,7 @@ func vectPrint(vect ptr spring:Vector)
   spring:outln(" ]")
 /func
 
-var vectAppend = cast<ptr func(ptr spring:Vector,data) bool>(vectAppendint)
-var vectGet = cast<ptr func(ptr spring:Vector, uintptr) ptr data>(vectGetint)
-var vectPut = cast<ptr func(ptr spring:Vector, uintptr, data) bool>(vectPutint)
+mut vectAppend = cast<ptr func(ptr spring:Vector,data) bool>(vectAppendint)
+mut vectGet = cast<ptr func(ptr spring:Vector, uintptr) ptr data>(vectGetint)
+mut vectPut = cast<ptr func(ptr spring:Vector, uintptr, data) bool>(vectPutint)
 

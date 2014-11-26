@@ -14,12 +14,12 @@
 
 import spring
 
-var STREAM_IN uint8 = 1
-var STREAM_OUT uint8 = 2
-var STREAM_INOUT uint8 = 3
+mut STREAM_IN uint8 = 1
+mut STREAM_OUT uint8 = 2
+mut STREAM_INOUT uint8 = 3
 
 func streamClose(stream ptr spring:Stream) bool
-  var ret = stream'cookie'cfn(stream'cookie'priv8, ptr stream'error)
+  mut ret = stream'cookie'cfn(stream'cookie'priv8, ptr stream'error)
 
   spring:free(stream)
   return ret
@@ -34,7 +34,7 @@ func streamError(stream ptr spring:Stream) ptr spring:Error
 /func
 
 func streamNew(priv8 data, rfn ptr spring:readfunc, wfn ptr spring:writefunc, cfn ptr spring:closefunc) ptr spring:Stream
-  var ret = cast<ptr spring:Stream>(spring:zalloc(size(spring:Stream)))
+  mut ret = cast<ptr spring:Stream>(spring:zalloc(size(spring:Stream)))
   ret'cookie'priv8 = priv8
 
   if wfn != null

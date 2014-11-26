@@ -15,7 +15,7 @@
 import spring
 
 entry
-  var buf [10] uint8
-  var str = spring:numtostr(333, buf, 10)
+  mut buf [10] uint8
+  mut str = spring:numtostr(333, buf, 10)
   spring:outln(str)
 /entry

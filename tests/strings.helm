@@ -15,12 +15,12 @@
 import spring
 
 entry
-  var strs [4] ptr uint8
+  mut strs [4] ptr uint8
   strs[0] = "Maybe "
   strs[1] = "this "
   strs[2] = "works?"
   strs[3] = null
-  var glued = spring:strglue(strs)
+  mut glued = spring:strglue(strs)
   spring:outln(glued)
   spring:free(glued)
 
