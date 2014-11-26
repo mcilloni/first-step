@@ -1,10 +1,10 @@
 /*
  *  This file is part of First Step.
- *  
- *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
- *  Foundation, either version 3 of the License, or (at your option) any later version. 
  *
- *  First Step is distributed in the hope that it will be useful, but 
+ *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+ *  Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  First Step is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
@@ -34,7 +34,7 @@ struct type* type(struct parser *prs, struct pnode *thisNode);
 
 void parser_loadToken(struct parser *prs) {
   prs->nextTok = token_get(prs->lex);
-  
+
   if (prs->nextTok) {
     if (lexer_eof(prs->lex)) {
       prs->nextTok = nullptr;
@@ -77,11 +77,11 @@ struct token* parser_getTok(struct parser *prs) {
 
 struct type* idType(struct parser *prs, struct pnode *thisNode) {
   struct token *type = parser_getTok(prs);
-  
+
   if(!type) {
     env.fail("Unexpected end of file during var declaration");
   }
-  
+
   const char *id = (const char*) type->value;
 
   if (prs->nextTok && prs->nextTok->type == LEX_COLON) {
@@ -96,7 +96,7 @@ struct type* idType(struct parser *prs, struct pnode *thisNode) {
     if (type->type != LEX_ID) {
       env.fail("Unexpected %s, expected identifier after '%s:'", token_str(type), module);
     }
-  
+
     id = (const char*) type->value;
 
     struct type *ret = pnode_getModuleAlias(thisNode, module, id);
@@ -138,12 +138,12 @@ struct type* funcType(struct parser *prs, struct pnode *thisNode) {
   Array *arr = array_new(3U);
   struct type *tp;
   struct type *retType = type_none;
-  
+
   do {
 
     tp = type(prs, thisNode);
     if (tp) {
-      array_append(arr, (void*) tp);  
+      array_append(arr, (void*) tp);
     }
 
     tok = parser_getTok(prs);
@@ -165,7 +165,7 @@ struct type* funcType(struct parser *prs, struct pnode *thisNode) {
 endparms:
 
   if (prs->nextTok && (prs->nextTok->type == LEX_ID || prs->nextTok->type == LEX_FUNC || prs->nextTok->type == LEX_PTR || prs->nextTok->type == LEX_VAL)) {
-    retType = type(prs, thisNode);    
+    retType = type(prs, thisNode);
   }
 
   return type_makeFuncType(prs->types, retType, arr);
@@ -223,10 +223,10 @@ Pair* argTypeList(struct parser *prs, struct pnode *thisNode) {
 }
 
 void symPairAdd(Symbols *syms, Pair *pair) {
-  
+
   struct type *type = (struct type*) pair->key;
   Array *names = (Array*) pair->value;
-  size_t len = array_len(names); 
+  size_t len = array_len(names);
 
   for (size_t i = 0; i < len; ++i) {
     if (symbols_register(syms, (char*) *array_get(names, i), type, false) != SYM_ADDED) {
@@ -260,7 +260,7 @@ Symbols* argParams(struct parser *prs, struct pnode *thisNode) {
     }
 
     symPairAdd(ret, argTypeList(prs, thisNode));
-    
+
   }
 
   return ret;
@@ -290,8 +290,8 @@ Symbols* structDef(struct parser *prs, struct pnode *root) {
       parser_getTok(prs); //discard newline before )
     }
 
-  } 
-  
+  }
+
   tok = parser_getTok(prs);
 
   if (!tok) {
@@ -307,7 +307,7 @@ Symbols* structDef(struct parser *prs, struct pnode *root) {
 
 struct type* structType(struct parser *prs, struct pnode *thisNode) {
   parser_getTok(prs); //discard 'struct'
-  
+
   return type_makeStructType(prs->types, structDef(prs, thisNode));
 }
 
@@ -326,7 +326,7 @@ struct type* type(struct parser *prs, struct pnode *thisNode) {
   }
 
   case LEX_OBRAC: {
-    parser_getTok(prs); 
+    parser_getTok(prs);
     struct token *tok = parser_getTok(prs);
 
     if (!tok) {
@@ -358,11 +358,11 @@ struct type* type(struct parser *prs, struct pnode *thisNode) {
   }
 
   case LEX_VAL: {
-    parser_getTok(prs); //discard the meaningless 'val' 
+    parser_getTok(prs); //discard the meaningless 'val'
     return type(prs, thisNode);
   }
 
-  default: { 
+  default: {
     if ((prs->nextTok->type != LEX_ID)) {
       return nullptr;
     }
@@ -379,13 +379,13 @@ bool nextIsEndEofAware(struct token *tok) {
   return false;
 }
 
-struct pnode* varDeclGeneric(struct parser *prs, struct pnode *thisNode, bool decl) {
+struct pnode* mutDeclGeneric(struct parser *prs, struct pnode *thisNode, bool decl) {
 
   struct token *tok = parser_getTok(prs);
 
   if (!tok) {
     env.fail("Unexpected eof, expected an identifier");
-  }  
+  }
 
   if (tok->type != LEX_ID) {
     env.fail("Unexpected token %s, expected an identifier", token_str(tok));
@@ -398,7 +398,7 @@ struct pnode* varDeclGeneric(struct parser *prs, struct pnode *thisNode, bool de
   }
 
   struct type *tp = nullptr;
-  
+
   if (!prs->nextTok) {
     env.fail("Unexpected EOF, expected '=' or a type");
   }
@@ -443,13 +443,13 @@ struct pnode* varDeclGeneric(struct parser *prs, struct pnode *thisNode, bool de
         break;
       }
     }
-  }    
+  }
 
   struct type *declType = pnode_symbolType(thisNode,id);
 
   enum symbols_resp resp;
   bool res = false;
-  
+
   if (extra) {
     res = pnode_addSymbolAndInit(thisNode, id, tp, extra, &resp);
   } else {
@@ -475,12 +475,12 @@ struct pnode* varDeclGeneric(struct parser *prs, struct pnode *thisNode, bool de
 
 }
 
-struct pnode* var(struct parser *prs, struct pnode *thisNode) {
-  return varDeclGeneric(prs, thisNode, false);
+struct pnode* mut(struct parser *prs, struct pnode *thisNode) {
+  return mutDeclGeneric(prs, thisNode, false);
 }
 
 struct pnode* decl(struct parser *prs, struct pnode *thisNode) {
-  return varDeclGeneric(prs, thisNode, true);
+  return mutDeclGeneric(prs, thisNode, true);
 }
 
 void alias(struct parser *prs, struct pnode *thisNode) {
@@ -489,14 +489,14 @@ void alias(struct parser *prs, struct pnode *thisNode) {
 
   if (!tok) {
     env.fail("Unexpected eof, expected an identifier");
-  }  
+  }
 
   if (tok->type != LEX_ID) {
     env.fail("Unexpected token %s, expected an identifier", token_str(tok));
   }
 
   const char *id = (const char*) tok->value;
-  
+
   pnode_alias(thisNode, id, type_makeAlias(prs->types, id, pnode_getAliases(thisNode)));
 
   struct type *tp = type(prs, thisNode);
@@ -585,7 +585,7 @@ struct pnode* ifStmt(struct parser *prs, struct pnode *root) {
 
   if (tok->type == LEX_ELSE) {
     ret->id = PR_IFELSE;
-    
+
     tok = parser_getTok(prs);
 
     if (!tok) {
@@ -597,7 +597,7 @@ struct pnode* ifStmt(struct parser *prs, struct pnode *root) {
     }
 
     pnode_addLeaf(ret, body(prs, ret, ifBe));
-    
+
     tok = parser_getTok(prs);
   }
 
@@ -660,7 +660,7 @@ struct pnode* stmt(struct parser *prs, struct pnode *root) {
   struct token savedNext = *prs->nextTok;
 
   switch (prs->nextTok->type) {
-  case LEX_BREAK: 
+  case LEX_BREAK:
     parser_getTok(prs); //discard
     if (!prs->inBreakableBody) {
       env.fail("break outside of a breakable body");
@@ -690,18 +690,18 @@ struct pnode* stmt(struct parser *prs, struct pnode *root) {
     break;
   }
 
-  case LEX_RETURN: 
+  case LEX_RETURN:
     ret = returnStmt(prs, root);
-    break;  
+    break;
 
-  case LEX_VAR: {
+  case LEX_MUT: {
     parser_getTok(prs); //discard
-    ret = var(prs, root);
+    ret = mut(prs, root);
     break;
   }
 
   case LEX_WHILE: {
-    parser_getTok(prs); //discard 
+    parser_getTok(prs); //discard
     ret = whileStmt(prs, root);
     break;
   }
@@ -758,7 +758,7 @@ void funcCommons(struct parser *prs, struct pnode *thisNode, bodyender be) {
   struct token *tok = parser_getTok(prs);
 
   if (!be(tok)) {
-    env.fail("Unexpected token found: got %s, expected end of function (or entry)", token_str(tok)); 
+    env.fail("Unexpected token found: got %s, expected end of function (or entry)", token_str(tok));
   }
 
 }
@@ -775,7 +775,7 @@ struct pnode* entry(struct parser *prs, struct pnode *root) {
   if (!tok) {
     env.fail("Unexpected end of file in function");
   }
-  
+
   if (tok->type != LEX_NEWLINE) {
     env.fail("Unexpected token found: got %s, expected a new line after entry definition", token_str(tok));
   }
@@ -836,7 +836,7 @@ struct pnode* func(struct parser *prs, struct pnode *root) {
 
   funcCommons(prs, ret, funcBe);
   return ret;
-  
+
 }
 
 struct pnode declaration_fake_node = {};
@@ -865,10 +865,10 @@ struct pnode* definition(struct parser *prs, struct pnode *root) {
   case LEX_FUNC:
     ret = func(prs, root);
     break;
-  case LEX_VAR:
-    ret = var(prs, root);
+  case LEX_MUT:
+    ret = mut(prs, root);
     break;
-  default: 
+  default:
     env.fail("Unexpected token found: got %s, expected 'decl', 'entry', 'func', 'var'", token_str(tok));
     break;
   }
@@ -920,7 +920,7 @@ bool import(struct parser *prs, Imports *imps) {
     env_reset();
 
     struct pnode *module = importer_import(prs->importer, name);
-    
+
     env_set(oldenv);
 
     lineno_setLoc(&prs->lastLineno);
@@ -952,7 +952,7 @@ struct pnode* parser_parse(struct parser *prs, FILE *file) {
   }
 
   lineno_setLoc(&prs->lastLineno);
-  
+
   env_setFilename(prs->filename);
 
   prs->lex = lexer_fromFile(file);
@@ -994,16 +994,16 @@ struct pnode* parser_parse(struct parser *prs, FILE *file) {
   }
 
   Imports *imports = imports_new();
-  
+
   while (import(prs, imports));
 
   env_setFilename(prs->filename);
 
-  struct pnode *root = pnode_newroot(prs->filename, module, imports), *nextDef;  
+  struct pnode *root = pnode_newroot(prs->filename, module, imports), *nextDef;
 
   while ((nextDef = definition(prs, root))) {
     if (nextDef != &declaration_fake_node) {
-      pnode_addLeaf(root, nextDef);    
+      pnode_addLeaf(root, nextDef);
     }
   }
 
@@ -1016,4 +1016,3 @@ struct pnode* parser_parse(struct parser *prs, FILE *file) {
 
   return root;
 }
-

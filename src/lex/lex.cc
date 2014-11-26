@@ -1,10 +1,10 @@
 /*
  *  This file is part of First Step.
- *  
- *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
- *  Foundation, either version 3 of the License, or (at your option) any later version. 
  *
- *  First Step is distributed in the hope that it will be useful, but 
+ *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+ *  Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  First Step is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
@@ -46,8 +46,8 @@ struct lexer* lexer_open(const char *path) {
 }
 
 struct lexer* lexer_fromFile(FILE *file) {
-  struct lexer *lex = new lexer(); 
-  
+  struct lexer *lex = new lexer();
+
   if (!file) {
     env.fail("nullptr file given for lexer");
   }
@@ -55,18 +55,18 @@ struct lexer* lexer_fromFile(FILE *file) {
   lex->fr = filereader_fromFile(file);
   lex->tokens = pool_new();
   lex_setLine(lex, line_read(lex->fr, &lex->errcode));
-  
+
   if (lexer_error(lex)) {
     env.fail("Error while reading file %s: %s", strerror(errno));
   }
 
   lex->peek = lex->line->val[0];
   ++lex->line->position;
-  
+
   lex->newline = false;
 
   return lex;
-  
+
 }
 
 void token_free(struct token *tok) {
@@ -91,7 +91,7 @@ void token_free(struct token *tok) {
 }
 
 void lexer_close(struct lexer *lex) {
-  
+
   if (lex->fr && lex->closeFile) {
     filereader_close(lex->fr);
   }
@@ -102,7 +102,7 @@ void lexer_close(struct lexer *lex) {
 
   line_free(lex->line);
   delete lex;
-  
+
 }
 
 void lexer_discardLine(struct lexer *lex) {
@@ -141,14 +141,14 @@ bool stok(struct lexer *lex, char *data, size_t max) {
     }
 
     for (i = 0; i < max && !lex->newline;) {
-      
+
       ch = lex->peek;
       ++lex->line->position;
 
-      lex->newline = (lex->line->val.length() + 1) == lex->line->position;     
+      lex->newline = (lex->line->val.length() + 1) == lex->line->position;
 
       if (!lex->newline) {
-        lex->peek = lex->line->val[lex->line->position - 1];     
+        lex->peek = lex->line->val[lex->line->position - 1];
       } else {
         lexer_discardLine(lex);
         if (lexer_error(lex)) {
@@ -167,11 +167,11 @@ bool stok(struct lexer *lex, char *data, size_t max) {
           lex->inString = true;
           continue;
         }
-        
+
       } else {
         escape = false;
       }
-      
+
       if (ch == '\\') {
         escape = true;
       }
@@ -216,7 +216,7 @@ bool stok(struct lexer *lex, char *data, size_t max) {
 
   data[i] = 0;
 
-  return true;   
+  return true;
 
 }
 
@@ -242,7 +242,7 @@ struct token* token_get(struct lexer *lex) {
   }
 
   auto res = static_cast<token*>(pool_zalloc(lex->tokens, sizeof(struct token)));
-  
+
   res->lineno = lineno;
 
   if (lex->inString) {
@@ -334,7 +334,7 @@ struct token* token_get(struct lexer *lex) {
     res->type = LEX_PLUS;
     return res;
   }
-  
+
   // -
   if (!strcmp("-", data)) {
     res->type = LEX_MINUS;
@@ -537,8 +537,8 @@ struct token* token_get(struct lexer *lex) {
   }
 
   // var
-  if (!strcmp("var", data)) {
-    res->type = LEX_VAR;
+  if (!strcmp("mut", data)) {
+    res->type = LEX_MUT;
     return res;
   }
 
@@ -566,7 +566,7 @@ struct token* token_get(struct lexer *lex) {
     res->type = LEX_VAL;
     return res;
   }
-  
+
   //generic id
   res->type = LEX_ID;
   res->value = (uintptr_t) str_clone(data);
@@ -652,6 +652,8 @@ const char* tokentype_str(enum token_type type) {
     return "mod";
   case LEX_MODULE:
     return "module";
+  case LEX_MUT:
+    return "mut";
   case LEX_NEWLINE:
     return "a newline";
   case LEX_NOT:
@@ -684,8 +686,6 @@ const char* tokentype_str(enum token_type type) {
     return "*";
   case LEX_VAL:
     return "val";
-  case LEX_VAR:
-    return "var";
   case LEX_WHILE:
     return "while";
   case LEX_XOR:
@@ -833,4 +833,3 @@ bool token_isBooleanOp(enum token_type type) {
     return false;
   }
 }
-

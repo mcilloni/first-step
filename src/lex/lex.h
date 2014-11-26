@@ -47,6 +47,7 @@ enum token_type {
   LEX_MINUS,
   LEX_MOD,
   LEX_MODULE,
+  LEX_MUT,
   LEX_NEWLINE,
   LEX_NOT,
   LEX_NUMBER,
@@ -63,7 +64,6 @@ enum token_type {
   LEX_STRUCT,
   LEX_TIMES,
   LEX_VAL,
-  LEX_VAR,
   LEX_WHILE,
   LEX_XOR
 };

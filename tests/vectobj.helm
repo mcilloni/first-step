@@ -1,0 +1,46 @@
+import spring
+
+alias Struct struct(
+  first ptr uint8,
+  second ptr uint8
+)
+
+func printStruct(strct ptr Struct)
+  if strct != null
+    spring:out(strct'first)
+    spring:outch(32)
+    spring:outln(strct'second)
+  /if
+/func
+
+entry
+  var one = cast<ptr Struct>(spring:zalloc(size(Struct)))
+  var two = cast<ptr Struct>(spring:zalloc(size(Struct)))
+  var three = cast<ptr Struct>(spring:zalloc(size(Struct)))
+
+  one'first = "11"
+  one'second = "12"
+  two'first = "21"
+  two'second = "22"
+  three'first = "31"
+  three'second = "32"
+
+  var vect = spring:vectNew(3)
+
+  spring:vectAppend(vect, one)
+  spring:vectAppend(vect, two)
+  spring:vectAppend(vect, three)
+
+  var vLen = spring:vectLen(vect)
+  var i = 0
+
+  while i < vLen
+    var strct = cast<ptr Struct>(val spring:vectGet(vect, 0))
+
+    printStruct(strct)
+    i++
+  /while
+
+  spring:vectFreeAll(vect, ptr spring:free)
+
+/entry
