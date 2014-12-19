@@ -21,23 +21,23 @@ all:
 	$(MAKE) -C lex 
 	$(MAKE) -C parse 
 	$(MAKE) -C cgen 
-	$(MAKE) -C helmc1 
-	cp -f header.txt ../build/helmc
-	cat helmc.py >> ../build/helmc
-	chmod +x ../build/helmc
-	cp -f header.txt ../build/helml
-	cat helml.py >> ../build/helml
-	chmod +x ../build/helml
-	$(MAKE) -C libhelm
+	$(MAKE) -C forkc1 
+	cp -f header.txt ../build/forkc
+	cat forkc.py >> ../build/forkc
+	chmod +x ../build/forkc
+	cp -f header.txt ../build/forkl
+	cat forkl.py >> ../build/forkl
+	chmod +x ../build/forkl
+	$(MAKE) -C libfork
 
 
 clean:
-	$(MAKE) -C libhelm clean
+	$(MAKE) -C libfork clean
 	$(MAKE) -C utils clean 
 	$(MAKE) -C lex clean
 	$(MAKE) -C parse clean 
 	$(MAKE) -C cgen clean 
-	$(MAKE) -C helmc1 clean 
-	rm -f ../build/helmc
-	rm -f ../build/helml
+	$(MAKE) -C forkc1 clean 
+	rm -f ../build/forkc
+	rm -f ../build/forkl
 

@@ -780,7 +780,7 @@ struct pnode* entry(struct parser *prs, struct pnode *root) {
     env.fail("Unexpected token found: got %s, expected a new line after entry definition", token_str(tok));
   }
 
-  struct pnode *ret = pnode_newfunc(prs->types, PR_FUNC, "__helm_entry", type_none, symbols_new());
+  struct pnode *ret = pnode_newfunc(prs->types, PR_FUNC, "__fork_entry", type_none, symbols_new());
 
   ret->root = root; //in thisNode case, thisNode is needed
 

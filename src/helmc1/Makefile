@@ -4,7 +4,7 @@ endif
 
 include ../includes.mk
 
-OUTDIR = $(OBJDIR)/helmc1-build
+OUTDIR = $(OBJDIR)/forkc1-build
 
 ifndef CXX
 	CXX=clang++ 
@@ -20,15 +20,15 @@ endif
 
 .PHONY: all,clean
 
-all: dir helmc1 
+all: dir forkc1 
 
-helmc1: 
-	$(CXX) -o $(OBJDIR)/helmtree helmtree.cc $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu++11 -Wall -pedantic
-	$(CXX) -o $(OBJDIR)/helmc1 helmc1.cc $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu++11 -Wall -pedantic
+forkc1: 
+	$(CXX) -o $(OBJDIR)/forktree forktree.cc $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu++11 -Wall -pedantic
+	$(CXX) -o $(OBJDIR)/forkc1 forkc1.cc $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu++11 -Wall -pedantic
 
 clean:
 	rm -rf $(OUTDIR)
-	rm -f $(OBJDIR)/helmc1
+	rm -f $(OBJDIR)/forkc1
 
 dir:
 	mkdir -p $(OUTDIR)

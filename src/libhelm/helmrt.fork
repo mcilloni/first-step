@@ -14,42 +14,40 @@
 
 import spring
 
-entry
-  mut error ptr spring:Error
+decl __fork_entry func()
 
-  mut f = spring:fileOpen("quine.helm", ptr error)
-  if error != null
-    spring:err("Error: ")
-    spring:failln(spring:errorMsg(error))
+func __forkpow(base,exp uintptr) uintptr
+
+  if exp == 0
+    return 1
   /if
 
-  mut g = spring:fileCreate("lelz.out", ptr error)
-  if error != null
-    spring:err("Error: ")
-    spring:failln(spring:errorMsg(error))
+  if base == 1
+    return 1
   /if
 
-  mut buf [512] uint8
-  mut rd uintptr
-  while !spring:streamEnded(f)
-    rd = spring:streamRead(f, buf, 511)
+  if base == 0
+    return 0
+  /if
 
-    if (error = spring:streamError(f)) != null
-      spring:err("Error: ")
-      spring:failln(spring:errorMsg(error))
-    /if
+  mut ret uintptr = 1
+  mut i uintptr = 1
 
-    buf[rd] = 0
-
-    spring:streamWrite(g, buf)
-    if (error = spring:streamError(g)) != null
-      spring:err("Error: ")
-      spring:failln(spring:errorMsg(error))
-    /if
-
+  while i <= exp
+    ret = ret * base
+    i++
   /while
 
-  spring:streamClose(f)
+  return ret
 
-/entry
+/func
 
+mut __forkprogArgs spring:Args
+
+func main(argc intptr, argv ptr ptr uint8) int8
+  __forkprogArgs'len = cast<uintptr>(argc - 1)
+  __forkprogArgs'progname = val argv
+  __forkprogArgs'args = argv + 1
+  __fork_entry()
+  return 0
+/func

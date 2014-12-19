@@ -1,7 +1,7 @@
-OUTDIR = ../../../build/libhelm
+OUTDIR = ../../../build/libfork
 
-ifndef HELMC
-	HELMC=$(OUTDIR)/../helmc
+ifndef FORKC
+	FORKC=$(OUTDIR)/../forkc
 endif
 
 ifndef CXX
@@ -34,9 +34,9 @@ endif
 
 .PHONY: all clean
 
-HSRCS = $(wildcard *.helm)
+HSRCS = $(wildcard *.fork)
 CSRCS = $(wildcard *.cc)
-HOBJS = $(patsubst %.helm,%.helm.o,$(HSRCS))
+HOBJS = $(patsubst %.fork,%.fork.o,$(HSRCS))
 COBJS = $(patsubst %.cc,%.cc.o,$(CSRCS))
 OPATHS = $(foreach obj, $(HOBJS), $(OUTDIR)/$(obj))
 OPATHS += $(foreach obj, $(COBJS), $(OUTDIR)/$(obj))
@@ -48,9 +48,9 @@ all: $(COBJS) $(HOBJS)
 	@echo [CXX] $<
 	@$(CXX) -c -g -o $(OUTDIR)/$@ $< $(FPIC) -std=c++11 -D_POSIX_C_SOURCE=200112L
 
-%.helm.o: %.helm
-	@echo [HELMC] $<
-	@$(HELMC) -o $(OUTDIR)/$@ $<
+%.fork.o: %.fork
+	@echo [FORKC] $<
+	@$(FORKC) -o $(OUTDIR)/$@ $<
 
 clean:
 	rm -f $(OPATHS)

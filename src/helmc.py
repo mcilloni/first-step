@@ -18,32 +18,32 @@ def clean():
 atexit.register(clean)
 
 buildpath = os.path.dirname(os.path.abspath(__file__))
-helmc1path = os.path.join(buildpath, 'helmc1')
+forkc1path = os.path.join(buildpath, 'forkc1')
 
 
-def helmc1(helmfile):
+def forkc1(forkfile):
 
-    if not helmfile.endswith('.helm'):
+    if not forkfile.endswith('.fork'):
         sys.exit((__file__ +
-                 ': error: file {} does not end with .helm').format(helmfile))
+                 ': error: file {} does not end with .fork').format(forkfile))
 
-    cname = helmfile.replace('.helm', '.c', 1)
+    cname = forkfile.replace('.fork', '.c', 1)
 
     newenv = os.environ.copy()
-    newenv['HELM_MODULES'] = buildpath + '/libhelm/hemd/'
+    newenv['FORK_MODULES'] = buildpath + '/libfork/ford/'
 
-    if 'HELM_MODULES' in os.environ:
-        newenv['HELM_MODULES'] = newenv['HELM_MODULES'] \
-            + ':' + os.environ['HELM_MODULES']
+    if 'FORK_MODULES' in os.environ:
+        newenv['FORK_MODULES'] = newenv['FORK_MODULES'] \
+            + ':' + os.environ['FORK_MODULES']
 
-    proc = subprocess.Popen([helmc1path, helmfile],
+    proc = subprocess.Popen([forkc1path, forkfile],
                             env=newenv, stdout=subprocess.PIPE)
     out, err = proc.communicate()
 
     if proc.returncode != 0:
         if proc.returncode == -signal.SIGSEGV:
             sys.exit(termcolor.colored('FATAL COMPILER ERROR: ','red', attrs=['bold','blink']) 
-                    + termcolor.colored("helmc1 segfaulted :(", attrs=['bold']))
+                    + termcolor.colored("forkc1 segfaulted :(", attrs=['bold']))
         sys.exit(proc.returncode)
 
     outfile = open(cname, 'wb')
@@ -74,14 +74,14 @@ def cc(ccCommand, cfile, ofile=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="helmc compiles .helm files to objects."
-        " Use helml to link them."
-        " Set HELM_MODULES to specify where to find more modules.\n")
+        description="forkc compiles .fork files to objects."
+        " Use forkl to link them."
+        " Set FORK_MODULES to specify where to find more modules.\n")
     parser.add_argument('files',
                         metavar='FILE',
                         type=str,
                         nargs='+',
-                        help='.helm file to compile')
+                        help='.fork file to compile')
     parser.add_argument('-C',
                         '--emit-c',
                         action='store_true',
@@ -97,7 +97,7 @@ def main():
                         type=str,
                         help='indicates the alternative name '
                              'for the object file. '
-                             'Defaults to <helmfile>.o')
+                             'Defaults to <forkfile>.o')
     args = parser.parse_args()
 
     if len(args.files) > 1 and args.objname:
@@ -110,14 +110,14 @@ def main():
             args.cc = os.environ['CC']
 
     if args.objname:
-        cfile = helmc1(args.files[0])
+        cfile = forkc1(args.files[0])
         if not args.emit_c:
             todelete.append(cfile)
             cc(args.cc, cfile, args.objname)
 
     else:
         for f in args.files:
-            cfile = helmc1(f)
+            cfile = forkc1(f)
             if not args.emit_c:
                 todelete.append(cfile)
                 cc(args.cc, cfile)

@@ -17,159 +17,159 @@ if exists("b:current_syntax")
   finish
 endif
 
-if !exists("helm_highlight_array_whitespace_error")
-  let helm_highlight_array_whitespace_error = 1
+if !exists("fork_highlight_array_whitespace_error")
+  let fork_highlight_array_whitespace_error = 1
 endif
-if !exists("helm_highlight_chan_whitespace_error")
-  let helm_highlight_chan_whitespace_error = 1
+if !exists("fork_highlight_chan_whitespace_error")
+  let fork_highlight_chan_whitespace_error = 1
 endif
-if !exists("helm_highlight_extra_types")
-  let helm_highlight_extra_types = 1
+if !exists("fork_highlight_extra_types")
+  let fork_highlight_extra_types = 1
 endif
-if !exists("helm_highlight_space_tab_error")
-  let helm_highlight_space_tab_error = 1
+if !exists("fork_highlight_space_tab_error")
+  let fork_highlight_space_tab_error = 1
 endif
-if !exists("helm_highlight_trailing_whitespace_error")
-  let helm_highlight_trailing_whitespace_error = 1
+if !exists("fork_highlight_trailing_whitespace_error")
+  let fork_highlight_trailing_whitespace_error = 1
 endif
 
 syn case match
 
-"syn keyword     helmDirective         module import
-syn keyword     helmDeclaration       mut decl alias module import
-syn keyword     helmDeclType          struct func entry
-syn match       helmDeclType          "\/func" 
-syn match       helmDeclType          "\/entry" 
+"syn keyword     forkDirective         module import
+syn keyword     forkDeclaration       mut decl alias module import
+syn keyword     forkDeclType          struct func entry
+syn match       forkDeclType          "\/func" 
+syn match       forkDeclType          "\/entry" 
 
-"hi def link     helmDirective         Statement
-hi def link     helmDeclaration       Keyword
-hi def link     helmDeclType          Keyword
+"hi def link     forkDirective         Statement
+hi def link     forkDeclaration       Keyword
+hi def link     forkDeclType          Keyword
 
 " Keywords within functions
-syn keyword     helmStatement         return break continue 
-syn keyword     helmConditional       if else 
-syn match       helmConditional       "\/if"
-"syn keyword     helmLabel             case default
-syn keyword     helmRepeat            while
-syn match       helmRepeat            "\/while"
+syn keyword     forkStatement         return break continue 
+syn keyword     forkConditional       if else 
+syn match       forkConditional       "\/if"
+"syn keyword     forkLabel             case default
+syn keyword     forkRepeat            while
+syn match       forkRepeat            "\/while"
 
-hi def link     helmStatement         Statement
-hi def link     helmConditional       Conditional
-"hi def link     helmLabel             Label
-hi def link     helmRepeat            Repeat
+hi def link     forkStatement         Statement
+hi def link     forkConditional       Conditional
+"hi def link     forkLabel             Label
+hi def link     forkRepeat            Repeat
 
 " Predefined types
-syn keyword     helmType              bool
-syn keyword     helmSignedInts        int8 int16 int32 int64 intptr
-syn keyword     helmUnsignedInts      uint8 uint16 uint32 uint64 uintptr
-syn keyword     helmData              data
+syn keyword     forkType              bool
+syn keyword     forkSignedInts        int8 int16 int32 int64 intptr
+syn keyword     forkUnsignedInts      uint8 uint16 uint32 uint64 uintptr
+syn keyword     forkData              data
 
-hi def link     helmType              Type
-hi def link     helmSignedInts        Type
-hi def link     helmUnsignedInts      Type
-hi def link     helmData              Type
+hi def link     forkType              Type
+hi def link     forkSignedInts        Type
+hi def link     forkUnsignedInts      Type
+hi def link     forkData              Type
 
 " Predefined functions and values
-"syn keyword     helmBuiltins          append cap close complex copy delete imag len
-"syn keyword     helmBuiltins          make new panic print println real recover
-syn keyword     helmConstants         true false null
-syn keyword     helmKey               ptr val or and mod size cast xor
+"syn keyword     forkBuiltins          append cap close complex copy delete imag len
+"syn keyword     forkBuiltins          make new panic print println real recover
+syn keyword     forkConstants         true false null
+syn keyword     forkKey               ptr val or and mod size cast xor
 
-"hi def link     helmBuiltins          Keyword
-hi def link     helmConstants         Keyword
-hi def link     helmKey               Operator 
+"hi def link     forkBuiltins          Keyword
+hi def link     forkConstants         Keyword
+hi def link     forkKey               Operator 
 
 " Comments; their contents
-syn keyword     helmTodo              contained TODO FIXME XXX BUG
-syn cluster     helmCommentGroup      contains=helmTodo
-syn region      helmComment           start="#" end="$" contains=@helmCommentGroup,@Spell
+syn keyword     forkTodo              contained TODO FIXME XXX BUG
+syn cluster     forkCommentGroup      contains=forkTodo
+syn region      forkComment           start="#" end="$" contains=@forkCommentGroup,@Spell
 
-hi def link     helmComment           Comment
-hi def link     helmTodo              Todo
+hi def link     forkComment           Comment
+hi def link     forkTodo              Todo
 
-"syn match       helmEscapeOctal       display contained "\\[0-7]\{3}"
-"syn match       helmEscapeC           display contained +\\[abfnrtv\\'"]+
-"syn match       helmEscapeX           display contained "\\x\x\{2}"
-"syn match       helmEscapeU           display contained "\\u\x\{4}"
-"syn match       helmEscapeBigU        display contained "\\U\x\{8}"
-"syn match       helmEscapeError       display contained +\\[^0-7xuUabfnrtv\\'"]+
+"syn match       forkEscapeOctal       display contained "\\[0-7]\{3}"
+"syn match       forkEscapeC           display contained +\\[abfnrtv\\'"]+
+"syn match       forkEscapeX           display contained "\\x\x\{2}"
+"syn match       forkEscapeU           display contained "\\u\x\{4}"
+"syn match       forkEscapeBigU        display contained "\\U\x\{8}"
+"syn match       forkEscapeError       display contained +\\[^0-7xuUabfnrtv\\'"]+
 
-"hi def link     helmEscapeOctal       helmSpecialString
-"hi def link     helmEscapeC           helmSpecialString
-"hi def link     helmEscapeX           helmSpecialString
-"hi def link     helmEscapeU           helmSpecialString
-"hi def link     helmEscapeBigU        helmSpecialString
-"hi def link     helmSpecialString     Special
-"hi def link     helmEscapeError       Error
+"hi def link     forkEscapeOctal       forkSpecialString
+"hi def link     forkEscapeC           forkSpecialString
+"hi def link     forkEscapeX           forkSpecialString
+"hi def link     forkEscapeU           forkSpecialString
+"hi def link     forkEscapeBigU        forkSpecialString
+"hi def link     forkSpecialString     Special
+"hi def link     forkEscapeError       Error
 
 " Strings and their contents
-"syn cluster     helmStringGroup       contains=helmEscapeOctal,helmEscapeC,helmEscapeX,helmEscapeU,helmEscapeBigU,helmEscapeError
-syn region      helmString            start=+"+ skip=+\\\\\|\\"+ end=+"+ 
-"contains=@helmStringGroup
-"syn region      helmRawString         start=+`+ end=+`+
+"syn cluster     forkStringGroup       contains=forkEscapeOctal,forkEscapeC,forkEscapeX,forkEscapeU,forkEscapeBigU,forkEscapeError
+syn region      forkString            start=+"+ skip=+\\\\\|\\"+ end=+"+ 
+"contains=@forkStringGroup
+"syn region      forkRawString         start=+`+ end=+`+
 
-hi def link     helmString            String
-"hi def link     helmRawString         String
+hi def link     forkString            String
+"hi def link     forkRawString         String
 
 " Characters; their contents
-"syn cluster     helmCharacterGroup    contains=helmEscapeOctal,helmEscapeC,helmEscapeX,helmEscapeU,helmEscapeBigU
-"syn region      helmCharacter         start=+'+ skip=+\\\\\|\\'+ end=+'+ contains=@helmCharacterGroup
+"syn cluster     forkCharacterGroup    contains=forkEscapeOctal,forkEscapeC,forkEscapeX,forkEscapeU,forkEscapeBigU
+"syn region      forkCharacter         start=+'+ skip=+\\\\\|\\'+ end=+'+ contains=@forkCharacterGroup
 
-"hi def link     helmCharacter         Character
+"hi def link     forkCharacter         Character
 
 " Regions
-"syn region      helmBlock             start="{" end="}" transparent fold
-syn region      helmParen             start='(' end=')' transparent
+"syn region      forkBlock             start="{" end="}" transparent fold
+syn region      forkParen             start='(' end=')' transparent
 
 " Integers
-syn match       helmDecimalInt        "\<\d\+\([Ee]\d\+\)\?\>"
-"syn match       helmHexadecimalInt    "\<0x\x\+\>"
-"syn match       helmOctalInt          "\<0\o\+\>"
-"syn match       helmOctalError        "\<0\o*[89]\d*\>"
+syn match       forkDecimalInt        "\<\d\+\([Ee]\d\+\)\?\>"
+"syn match       forkHexadecimalInt    "\<0x\x\+\>"
+"syn match       forkOctalInt          "\<0\o\+\>"
+"syn match       forkOctalError        "\<0\o*[89]\d*\>"
 
-hi def link     helmDecimalInt        Integer
-"hi def link     helmHexadecimalInt    Integer
-"hi def link     helmOctalInt          Integer
+hi def link     forkDecimalInt        Integer
+"hi def link     forkHexadecimalInt    Integer
+"hi def link     forkOctalInt          Integer
 hi def link     Integer             Number
 
 " Floating point
-"syn match       helmFloat             "\<\d\+\.\d*\([Ee][-+]\d\+\)\?\>"
-"syn match       helmFloat             "\<\.\d\+\([Ee][-+]\d\+\)\?\>"
-"syn match       helmFloat             "\<\d\+[Ee][-+]\d\+\>"
+"syn match       forkFloat             "\<\d\+\.\d*\([Ee][-+]\d\+\)\?\>"
+"syn match       forkFloat             "\<\.\d\+\([Ee][-+]\d\+\)\?\>"
+"syn match       forkFloat             "\<\d\+[Ee][-+]\d\+\>"
 
-"hi def link     helmFloat             Float
+"hi def link     forkFloat             Float
 
 " Imaginary literals
-"syn match       helmImaginary         "\<\d\+i\>"
-"syn match       helmImaginary         "\<\d\+\.\d*\([Ee][-+]\d\+\)\?i\>"
-"syn match       helmImaginary         "\<\.\d\+\([Ee][-+]\d\+\)\?i\>"
-"syn match       helmImaginary         "\<\d\+[Ee][-+]\d\+i\>"
+"syn match       forkImaginary         "\<\d\+i\>"
+"syn match       forkImaginary         "\<\d\+\.\d*\([Ee][-+]\d\+\)\?i\>"
+"syn match       forkImaginary         "\<\.\d\+\([Ee][-+]\d\+\)\?i\>"
+"syn match       forkImaginary         "\<\d\+[Ee][-+]\d\+i\>"
 
-"hi def link     helmImaginary         Number
+"hi def link     forkImaginary         Number
 
 " Spaces after "[]"
-if helm_highlight_array_whitespace_error != 0
-  syn match helmSpaceError display "\(\[\]\)\@<=\s\+"
+if fork_highlight_array_whitespace_error != 0
+  syn match forkSpaceError display "\(\[\]\)\@<=\s\+"
 endif
 
 " Space-tab error
-if helm_highlight_space_tab_error != 0
-  syn match helmSpaceError display " \+\t"me=e-1
+if fork_highlight_space_tab_error != 0
+  syn match forkSpaceError display " \+\t"me=e-1
 endif
 
 " Trailing white space error
-if helm_highlight_trailing_whitespace_error != 0
-  syn match helmSpaceError display excludenl "\s\+$"
+if fork_highlight_trailing_whitespace_error != 0
+  syn match forkSpaceError display excludenl "\s\+$"
 endif
 
-hi def link     helmExtraType         Type
-hi def link     helmSpaceError        Error
+hi def link     forkExtraType         Type
+hi def link     forkSpaceError        Error
 
 " Search backwards for a global declaration to start processing the syntax.
-"syn sync match helmSync grouphere NONE /^\(const\|var\|type\|func\)\>/
+"syn sync match forkSync grouphere NONE /^\(const\|var\|type\|func\)\>/
 
 " There's a bug in the implementation of grouphere. For now, use the
 " following as a more expensive/less precise workaround.
 syn sync minlines=500
 
-let b:current_syntax = "helm"
+let b:current_syntax = "fork"

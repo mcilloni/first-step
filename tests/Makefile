@@ -2,24 +2,24 @@ ifndef CXX
 	CXX=clang++
 endif
 
-HELMC = ../build/helmc
-HELML = ../build/helml
+FORKC = ../build/forkc
+FORKL = ../build/forkl
 
 .PHONY: all,clean
 
-SRCS = $(wildcard *.helm)
-OBJS = $(patsubst %.helm,%.o,$(SRCS))
-BINS = $(patsubst %.helm,%,$(SRCS))
+SRCS = $(wildcard *.fork)
+OBJS = $(patsubst %.fork,%.o,$(SRCS))
+BINS = $(patsubst %.fork,%,$(SRCS))
 all: $(BINS)
 
 clean:
 	rm -f $(BINS) $(OBJS)
 
 %: %.o
-	@echo [HELML] $<
-	@$(HELML) $<
+	@echo [FORKL] $<
+	@$(FORKL) $<
 
-%.o: %.helm 
-	@echo [HELMC] $<
-	@$(HELMC) $<  
+%.o: %.fork 
+	@echo [FORKC] $<
+	@$(FORKC) $<  
 

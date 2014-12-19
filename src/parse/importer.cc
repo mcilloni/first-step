@@ -40,7 +40,7 @@
 struct importer {
   Pool *pool;
   Imports *imported;
-  Map *hemdFiles;
+  Map *fordFiles;
 };
 
 Pool* importer_getPool(struct importer *impr) {
@@ -54,7 +54,7 @@ struct importer* importer_new(Pool *pool) {
   std::vector<char*> paths;
   FTS *fts;
   paths.push_back(str_clone(getenv("PWD")));
-  const char *modPath = getenv("HELM_MODULES");
+  const char *modPath = getenv("FORK_MODULES");
 
   if (modPath) {
     char *path;
@@ -82,9 +82,9 @@ struct importer* importer_new(Pool *pool) {
           char *buf = str_clone(entry->fts_path);
           char *base = basename(buf);
           size_t len = strlen(base);
-          if (len > 6 && !strcmp(base + len - 5, ".hemd")) { //name + '.hemd' at should be at least 6
+          if (len > 6 && !strcmp(base + len - 5, ".ford")) { //name + '.ford' at should be at least 6
             base[len - 5] = '\0';
-            map_put(importer->hemdFiles, str_clone(base), str_clone(entry->fts_path), FREE_KEY | FREE_VALUE);
+            map_put(importer->fordFiles, str_clone(base), str_clone(entry->fts_path), FREE_KEY | FREE_VALUE);
           }
           free(buf);
           break;
@@ -124,7 +124,7 @@ struct pnode* importer_import(struct importer *impr, char *name) {
 
   char *path; 
 
-  if (!map_get(impr->hemdFiles, name, (void**) &path)) {
+  if (!map_get(impr->fordFiles, name, (void**) &path)) {
     return nullptr;
   }
 
@@ -154,7 +154,7 @@ void fakeFree(void *ignored) {
 
 void importer_free(struct importer *impr) {
   map_freeSpec(impr->imported, nullptr, fakeFree);
-  map_free(impr->hemdFiles);
+  map_free(impr->fordFiles);
   delete impr;  
 }
 

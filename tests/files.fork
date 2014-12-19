@@ -14,40 +14,42 @@
 
 import spring
 
-decl __helm_entry func()
+entry
+  mut error ptr spring:Error
 
-func __helmpow(base,exp uintptr) uintptr
-
-  if exp == 0
-    return 1
+  mut f = spring:fileOpen("quine.fork", ptr error)
+  if error != null
+    spring:err("Error: ")
+    spring:failln(spring:errorMsg(error))
   /if
 
-  if base == 1
-    return 1
+  mut g = spring:fileCreate("lelz.out", ptr error)
+  if error != null
+    spring:err("Error: ")
+    spring:failln(spring:errorMsg(error))
   /if
 
-  if base == 0
-    return 0
-  /if
+  mut buf [512] uint8
+  mut rd uintptr
+  while !spring:streamEnded(f)
+    rd = spring:streamRead(f, buf, 511)
 
-  mut ret uintptr = 1
-  mut i uintptr = 1
+    if (error = spring:streamError(f)) != null
+      spring:err("Error: ")
+      spring:failln(spring:errorMsg(error))
+    /if
 
-  while i <= exp
-    ret = ret * base
-    i++
+    buf[rd] = 0
+
+    spring:streamWrite(g, buf)
+    if (error = spring:streamError(g)) != null
+      spring:err("Error: ")
+      spring:failln(spring:errorMsg(error))
+    /if
+
   /while
 
-  return ret
+  spring:streamClose(f)
 
-/func
+/entry
 
-mut __helmprogArgs spring:Args
-
-func main(argc intptr, argv ptr ptr uint8) int8
-  __helmprogArgs'len = cast<uintptr>(argc - 1)
-  __helmprogArgs'progname = val argv
-  __helmprogArgs'args = argv + 1
-  __helm_entry()
-  return 0
-/func

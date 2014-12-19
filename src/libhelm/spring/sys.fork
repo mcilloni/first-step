@@ -15,6 +15,6 @@
 import spring
 
 func args() ptr spring:Args
-  decl __helmprogArgs spring:Args
-  return ptr __helmprogArgs
+  decl __forkprogArgs spring:Args
+  return ptr __forkprogArgs
 /func

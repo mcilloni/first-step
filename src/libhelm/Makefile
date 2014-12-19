@@ -1,5 +1,5 @@
-ifndef HELMC
-	HELMC=../../build/helmc
+ifndef FORKC
+	FORKC=../../build/forkc
 endif
 
 ifndef CXX
@@ -17,17 +17,17 @@ endif
 .PHONY: all clean
 
 all: 
-	mkdir -p ../../build/libhelm/hemd/
-	cp *.hemd ../../build/libhelm/hemd/
+	mkdir -p ../../build/libfork/ford/
+	cp *.ford ../../build/libfork/ford/
 	$(MAKE) -C spring
-	$(AR) rc ../../build/libhelm.a ../../build/libhelm/*.o
-	$(CXX) -shared -o ../../build/libhelm/libhelm.so ../../build/libhelm/*.o
-	$(RANLIB) ../../build/libhelm.a
-	$(HELMC) -o ../../build/helmrt.o helmrt.helm
+	$(AR) rc ../../build/libfork.a ../../build/libfork/*.o
+	$(CXX) -shared -o ../../build/libfork/libfork.so ../../build/libfork/*.o
+	$(RANLIB) ../../build/libfork.a
+	$(FORKC) -o ../../build/forkrt.o forkrt.fork
 
 
 clean:
 	$(MAKE) -C spring clean 
-	rm -f ../../build/libhelm.a
-	rm -rf ../../build/libhelm/
+	rm -f ../../build/libfork.a
+	rm -rf ../../build/libfork/
 
