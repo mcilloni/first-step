@@ -1,0 +1,329 @@
+#  This file is part of First Step.
+#  
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
+#  Foundation, either version 3 of the License, or (at your option) any later version. 
+#
+#  First Step is distributed in the hope that it will be useful, but 
+#  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with First Step.  If not, see <http://www.gnu.org/licenses/>
+#
+#  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
+
+import spring
+
+func listSeekAhead(list ptr spring:List, pos uintptr)
+
+  if (list'current == null) or (pos == 0)
+    list'current = list'start
+    list'pos = 0
+  /if
+
+  while list'pos < pos
+    list'current = list'current'succ
+    list'pos++
+  /while
+
+/func
+
+func listSeekBehind(list ptr spring:List, pos uintptr)
+
+  if (list'current == null) or ((list'len - 1) == pos)
+    list'current = list'end
+    list'pos = list'len - 1
+  /if
+
+  while list'pos > pos
+    list'current = list'current'prec
+    list'pos--
+  /while
+
+/func
+
+func listSeek(list ptr spring:List, pos uintptr)
+  if (list'current == null) and (pos == 0)
+    list'current = list'start
+    list'pos = 0
+  /if
+
+  if pos > list'pos
+    listSeekAhead(list, pos)
+  else
+    if pos < list'pos
+      listSeekBehind(list, pos)
+    /if
+  /if
+/func
+
+func listPushint(list ptr spring:List, value uintptr)
+  mut new = cast<ptr spring:Lnode>(spring:zalloc(size(spring:Lnode)))
+
+  new'succ = list'start
+  if list'start != null
+    list'start'prec = new
+  /if
+
+  if list'end == null
+    list'end = new
+    list'current = new
+  else
+    list'pos++
+  /if
+
+  new'value = value
+  list'start = new
+
+  list'len++
+/func
+
+mut listPush = cast<ptr func(ptr spring:List, data)>(ptr listPushint)
+
+func listAppendint(list ptr spring:List, value uintptr) intptr
+  if list'start == null
+    listPushint(list, value)
+    return 1
+  /if
+
+  mut new = cast<ptr spring:Lnode>(spring:zalloc(size(spring:Lnode)))
+
+  new'value = value
+
+  new'prec = list'end
+  list'end'succ = new
+
+  list'end = new
+
+  return cast<intptr>(list'len++)
+/func
+
+mut listAppend = cast<ptr func(ptr spring:List, data) intptr>(ptr listAppendint)
+
+func listAddint(list ptr spring:List, pos uintptr, value uintptr) intptr
+  if pos > list'len
+    return -1
+  /if
+
+  if pos == list'len
+    return listAppendint(list, value)
+  /if
+
+  listSeek(list, pos)
+
+  mut new = cast<ptr spring:Lnode>(spring:zalloc(size(spring:Lnode)))
+  mut prec = list'current'prec
+
+  if prec != null
+    prec'succ = new
+  /if
+
+  new'prec = prec
+  new'value = value
+  new'succ = list'current
+  list'current'prec = new
+
+  list'current = cast<ptr spring:Lnode>(list'pos = 0)
+
+  list'len++
+
+  return cast<intptr>(pos)
+/func
+
+mut listAdd = cast<ptr func(ptr spring:List, uintptr, data) intptr>(ptr listAddint)
+
+func listNew() ptr spring:List
+  return cast<ptr spring:List>(spring:zalloc(size(spring:List)))
+/func
+
+func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:List
+
+  mut extract = listNew()
+
+  if start < list'len
+    if len > list'len
+      len = cast<intptr>(list'len - start)
+    /if
+
+    if len < 0
+      len = cast<intptr>(list'len - start)
+    /if
+    listSeek(list, start)
+
+    mut prec = list'current'prec
+    mut link1 ptr ptr spring:Lnode
+    if prec != null
+      link1 = ptr prec'succ
+    else
+      link1 = ptr list'start
+    /if
+
+    extract'current = extract'start = extract'end = list'current
+
+    listSeek(list, start + len - 1)
+
+    mut succ = list'current'succ
+    mut link2 ptr ptr spring:Lnode
+    if succ != null
+      link2 = ptr succ'prec
+    else
+      link2 = ptr list'end
+    /if
+
+    extract'end = list'current
+
+    extract'len = len
+
+    val link1 = succ
+    val link2 = prec
+
+    extract'start'prec = extract'end'succ = null
+
+    list'len = list'len - len
+
+    list'current = list'start
+    list'pos = 0
+  /if
+
+  return extract
+
+/func
+
+func lnode_free(lnode ptr spring:Lnode)
+  if lnode != null
+    lnode_free(lnode'succ)
+    spring:free(lnode)
+  /if
+/func
+
+func listFree(list ptr spring:List)
+  lnode_free(list'start)
+
+  spring:free(list)
+/func
+
+func lnode_freeAll(lnode ptr spring:Lnode, freefunc ptr func(data))
+  if lnode != null
+    lnode_freeAll(lnode'succ, freefunc)
+    freefunc(cast<data>(lnode'value))
+    spring:free(lnode)
+  /if
+/func
+
+func listFreeAll(list ptr spring:List, freefunc ptr func(data))
+  lnode_freeAll(list'start, freefunc)
+
+  spring:free(list)
+/func
+
+func lnode_freeContents(lnode ptr spring:Lnode, freefunc ptr func(data))
+  if lnode != null
+    lnode_freeContents(lnode'succ, freefunc)
+    freefunc(cast<data>(lnode'value))
+  /if
+/func
+
+func listFreeContents(list ptr spring:List, freefunc ptr func(data))
+  lnode_freeContents(list'start, freefunc)
+/func
+
+func listGetint(list ptr spring:List, pos uintptr) ptr uintptr
+  if pos >= list'len
+    return null
+  /if
+
+  listSeek(list, pos)
+
+  if list'current != null
+    return ptr list'current'value
+  /if
+
+ return null
+/func
+
+mut listGet = cast<ptr func(ptr spring:List, uintptr) ptr data>(ptr listGetint)
+
+func listInsertint(list ptr spring:List, pos uintptr, value uintptr) intptr
+  if pos > list'len
+    return -1
+  /if
+
+  if pos == list'len
+    return listAppendint(list, value)
+  /if
+
+  listSeek(list, pos)
+
+  list'current'value = value
+
+  return cast<intptr>(list'pos)
+/func
+
+mut listInsert = cast<ptr func(ptr spring:List, uintptr, data) intptr>(ptr listInsertint)
+
+func listLen(list ptr spring:List) uintptr
+  return list'len
+/func
+
+func listPopint(list ptr spring:List) uintptr
+  if list'start == null
+    return 0
+  /if
+
+  mut next = list'start'succ
+  mut ret = list'start'value
+
+  spring:free(list'start)
+
+  if next != null
+    next'prec = null
+  /if
+
+  if list'start == list'end
+    spring:memset(list, 0, size(spring:List))
+  else
+    list'start = next
+  /if
+
+  return ret
+/func
+
+mut listPop = cast<ptr func(data) data>(ptr listPopint)
+
+func listPrune(list ptr spring:List)
+  lnode_free(list'start)
+  spring:memset(list, 0, size(spring:List))
+/func
+
+func listShallowCopy(list ptr spring:List) ptr spring:List
+  mut new = listNew()
+  mut len = listLen(list)
+  mut i uintptr = 0
+
+  while i < len
+    listAppendint(new, val listGetint(list, i))
+    i++
+  /while
+
+  return new
+/func
+
+func listPrint(list ptr spring:List)
+  mut inside = false
+  spring:out("[ ")
+  mut len = listLen(list)
+  mut i uint8 = 0
+
+  while i < len
+    if inside
+      spring:out(", ")
+    else
+      inside = true
+    /if
+
+    spring:outint(val listGetint(list, i))
+    i++
+  /while
+  spring:outln(" ]")
+/func
+

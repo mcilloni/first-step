@@ -1,0 +1,251 @@
+#  This file is part of First Step.
+#  
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
+#  Foundation, either version 3 of the License, or (at your option) any later version. 
+#
+#  First Step is distributed in the hope that it will be useful, but 
+#  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with First Step.  If not, see <http://www.gnu.org/licenses/>
+#
+#  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
+
+module spring
+
+alias FILE data
+alias comparer ptr func(data, data) int8
+
+# error structure
+
+alias Error struct (
+  msg ptr uint8
+)
+
+# cookie structure
+
+alias closefunc func(data, ptr ptr Error) bool
+alias readfunc func(data, ptr uint8, intptr, ptr ptr Error, ptr bool) uintptr
+alias writefunc func(data, ptr uint8, intptr, ptr ptr Error) uintptr
+
+alias Cookie struct (
+  priv8 data,
+  cfn ptr closefunc,
+  rfn ptr readfunc,
+  wfn ptr writefunc
+)
+
+# stream structure
+
+decl STREAM_IN uint8
+decl STREAM_OUT uint8
+
+alias Stream struct (
+  cookie Cookie,
+  eof bool,
+  error ptr Error,
+  inout uint8
+)
+
+# pair structure
+alias Pair struct (
+  key, value data
+)
+
+# map structures
+
+alias Mnode struct (
+  left, right ptr Mnode,
+  key, value data,
+  color bool,
+  freewhat uint8,
+  cmp comparer
+)
+
+alias Map struct (
+  root ptr Mnode,
+  len uintptr,
+  cmp comparer
+)
+
+alias MapIter struct (
+  map ptr Map,
+  lastKey data,
+  begin bool
+)
+
+# list structures
+alias Lnode struct(
+  prec, succ ptr Lnode,
+  value uintptr
+)
+
+alias List struct(
+  start, end ptr Lnode,
+  len uintptr,
+
+  current ptr Lnode,
+  pos uintptr
+)
+
+# vector structure
+alias Vector struct (
+  arr ptr uintptr,
+  cap,len uintptr,
+  isSlice bool
+)
+
+# charstash structure
+alias Charstash struct (
+  base, work ptr uint8,
+  len, cap uintptr
+)
+
+# args structure
+alias Args struct (
+  len uintptr,
+  progname ptr uint8,
+  args ptr ptr uint8
+)
+
+# Memory functions
+decl alloc func(uintptr) data
+decl free func(data)
+decl memcpy func(data, data, uintptr) data
+decl memmove func(data, data, uintptr) data
+decl memset func(data, uintptr, uintptr) data
+decl zalloc func(uintptr) data
+
+# System functions
+decl exit func(int16)
+
+# Error functions
+
+decl errorFree func(ptr Error)
+decl errorGlue func(ptr ptr uint8) ptr Error
+decl errorMsg func(ptr Error) ptr uint8
+decl errorNew func(ptr uint8) ptr Error
+decl errorNewStrs func(ptr ptr uint8) ptr Error
+
+# Stream functions 
+decl streamClose func(ptr Stream) bool
+decl streamEnded func(ptr Stream) bool
+decl streamError func(ptr Stream) ptr Error
+decl streamNew func(data, ptr readfunc, ptr writefunc, ptr closefunc) ptr Stream
+decl streamRead func(ptr Stream, ptr uint8, intptr) uintptr
+decl streamWrite func(ptr Stream, ptr uint8) uintptr
+
+# File stream functions
+decl fileOpen func(ptr uint8, ptr ptr Error) ptr Stream
+decl fileCreate func(ptr uint8, ptr ptr Error) ptr Stream
+
+# Console output functions
+decl err func(ptr uint8)
+decl errch func(uint8)
+decl errln func(ptr uint8)
+decl fail func(ptr uint8)
+decl failln func(ptr uint8)
+decl out func(ptr uint8)
+decl outch func(uint8)
+decl outint func(uint64)
+decl outln func(ptr uint8)
+
+# libc std streams wrapper functions
+decl stderr_file func() FILE
+decl stdin_file func() FILE
+decl stdout_file func() FILE
+
+# string functions
+decl numtostr func(uintptr, ptr uint8, uintptr) ptr uint8
+decl strappend func(ptr uint8, ptr uint8) ptr uint8
+decl strclone func(ptr uint8) ptr uint8
+decl strequals func(ptr uint8, ptr uint8) bool
+decl strglue func(ptr ptr uint8) ptr uint8
+decl strlen func(ptr uint8) uintptr
+decl strncpy func(ptr uint8, ptr uint8, uintptr) ptr uint8
+decl strreverse func(ptr uint8, uintptr)
+decl strtonum func(ptr uint8) intptr
+
+# pair functions 
+
+decl pairFree func(ptr Pair)
+
+# lists functions
+
+decl listAdd ptr func(ptr List, uintptr, data) intptr
+decl listAddint func(ptr List, uintptr, uintptr) intptr
+decl listAppend ptr func(ptr List, data) intptr
+decl listAppendint func(ptr List, uintptr) intptr
+decl listExtract func(ptr List, uintptr, intptr) ptr List
+decl listFree func(ptr List)
+decl listFreeAll func(ptr List, ptr func(data))
+decl listFreeContents func(ptr List, ptr func(data))
+decl listGet ptr func(ptr List, uintptr) ptr data
+decl listGetint func(ptr List, uintptr) ptr uintptr
+decl listInsert ptr func(ptr List, uintptr, data) intptr
+decl listInsertint func(ptr List, uintptr, uintptr) intptr
+decl listLen func(ptr List) uintptr
+decl listNew func() ptr List
+decl listPop ptr func(data) data
+decl listPopint func(ptr List) uintptr
+decl listPrint func(ptr List)
+decl listPrune func(ptr List)
+decl listPush ptr func(ptr List, data)
+decl listPushint func(ptr List, uintptr)
+decl listShallowCopy func(ptr List) ptr List
+
+# vector functions
+
+decl vectAppend ptr func(ptr Vector, data) bool
+decl vectAppendint func(ptr Vector, uintptr) bool
+decl vectCap func(ptr Vector) uintptr
+decl vectExtract func(ptr Vector, uintptr, intptr) ptr Vector
+decl vectFree func(ptr Vector)
+decl vectFreeAll func(ptr Vector, ptr func(data))
+decl vectFreeContents func(ptr Vector, ptr func(data))
+decl vectGet ptr func(ptr Vector, uintptr) ptr data
+decl vectGetint func(ptr Vector, uintptr) ptr uintptr
+decl vectLen func(ptr Vector) uintptr
+decl vectNew func(uintptr) ptr Vector
+decl vectNewcap func(ptr Vector, uintptr)
+decl vectPrint func(ptr Vector)
+decl vectPrune func(ptr Vector)
+decl vectPut ptr func(ptr Vector, uintptr, data) bool
+decl vectPutint func(ptr Vector, uintptr, uintptr) bool
+decl vectSlice func(ptr Vector, uintptr, intptr) ptr Vector
+
+# map functions
+
+decl mapNew func(comparer) ptr Map
+decl mapGet func(ptr Map, data, ptr data) bool
+decl mapLen func(ptr Map) uintptr
+decl mapPut func(ptr Map, data, data, uint8) data
+decl mapContains func(ptr Map, data) bool
+decl mapRemove func(ptr Map, data) bool
+decl mapFreeSpec func(ptr Map, ptr func(data), ptr func(data))
+decl mapFree func(ptr Map)
+decl strmapNew func() ptr Map
+
+# mapiter functions 
+
+decl mapiterStart func(ptr Map) ptr MapIter
+decl mapiterNext func(ptr MapIter) ptr Pair
+decl mapiterFree func(ptr MapIter)
+
+# map values
+decl FREE_NONE uint8
+decl FREE_KEY uint8
+decl FREE_VALUE uint8
+
+# charstash functions
+decl csAppend func(ptr Charstash, uint8)
+decl csAppendStr func(ptr Charstash, ptr uint8)
+decl csFree func(ptr Charstash)
+decl csLen func(ptr Charstash) uintptr
+decl csNew func(uintptr) ptr Charstash
+decl csUnleash func(ptr Charstash) ptr uint8
+
+# args functions
+decl args func() ptr Args
+
