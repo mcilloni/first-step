@@ -1,4 +1,4 @@
-decl puts func(ptr uint8)
+decl puts func(str ptr uint8)
 
 entry
 

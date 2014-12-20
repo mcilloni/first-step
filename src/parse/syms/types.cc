@@ -1,10 +1,10 @@
 /*
  *  This file is part of First Step.
- *  
- *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
- *  Foundation, either version 3 of the License, or (at your option) any later version. 
  *
- *  First Step is distributed in the hope that it will be useful, but 
+ *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+ *  Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  First Step is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
@@ -25,7 +25,7 @@
 #include <cstdio>
 #include <cstring>
 
-//According to gcc, a const value is not good inside an initializer. 
+//According to gcc, a const value is not good inside an initializer.
 //According to me, gcc is a huge pile of crap.
 #define ptrSize  sizeof(uintptr_t)
 
@@ -68,16 +68,16 @@ struct type* type_getBuiltin(const char *name) {
   if (!strcmp(name, "int64")) {
     return &type_int64;
   }
-   
+
   if (!strcmp(name, "intptr")) {
     return &type_intptr;
   }
 
-  if (!strcmp(name, "uint8")) { 
+  if (!strcmp(name, "uint8")) {
     return &type_uint8;
   }
 
-  if (!strcmp(name, "uint16")) {                                                                        
+  if (!strcmp(name, "uint16")) {
     return &type_uint16;
   }
 
@@ -86,8 +86,8 @@ struct type* type_getBuiltin(const char *name) {
   }
 
   if (!strcmp(name, "uint64")) {
-    return &type_uint64;                                                                                  
-  }                
+    return &type_uint64;
+  }
 
   if (!strcmp(name, "uintptr")) {
     return &type_uintptr;
@@ -100,7 +100,7 @@ struct type* type_getBuiltin(const char *name) {
   if (!strcmp(name, "null")) {
     env.fail("null is a reserved type");
   }
-   
+
   return nullptr;
 }
 
@@ -120,15 +120,19 @@ bool type_equal(struct type *a, struct type *b) {
       return false;
     }
 
-    size_t len = array_len(f1->params);
+    size_t len = symbols_len(f1->params);
 
-    if (len != array_len(f2->params)) {
+    if (len != symbols_len(f2->params)) {
       return false;
     }
 
-    for (size_t i = 0; i < len; ++i) {
+    struct spair *pair1, *pair2;
 
-      if (!type_equal((struct type*) *array_get(f1->params, i), (struct type*) *array_get(f2->params, i))) {
+    for (size_t i = 0; i < len; ++i) {
+      pair1 = static_cast<spair*>(*list_get(f1->params, i));
+      pair2 = static_cast<spair*>(*list_get(f2->params, i));
+
+      if (!type_equal(pair1->sym->type, pair2->sym->type)) {
         return false;
       }
 
@@ -157,13 +161,12 @@ bool type_equal(struct type *a, struct type *b) {
     struct spair *pair1, *pair2;
 
     for (size_t i = 0; i < len; ++i) {
-      pair1 = static_cast<spair*>(*list_get(s1->symbols, i)); 
+      pair1 = static_cast<spair*>(*list_get(s1->symbols, i));
       pair2 = static_cast<spair*>(*list_get(s2->symbols, i));
 
       if (strcmp(pair1->id, pair2->id)) {
         return false;
       }
-
 
       if (!type_equal(pair1->sym->type, pair2->sym->type)) {
         return false;
@@ -174,7 +177,7 @@ bool type_equal(struct type *a, struct type *b) {
     break;
   }
 
-  default: 
+  default:
     break;
   }
 
@@ -196,7 +199,7 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
 
   if (first == second) {
 
-    switch (first) { 
+    switch (first) {
     case TYPE_ALIAS:
       return strcmp(assign->name, assigned->name) ? TYPECOMP_NO : TYPECOMP_YES;
     case TYPE_BOOL:
@@ -205,20 +208,20 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
       if (assign->size < assigned->size) {
         return TYPECOMP_SMALLER;
       }
-      
+
       if (assign->size == assigned->size && !assign->uns && assigned->uns) {
-       	char buf[2048], cuf[2048]; 
+       	char buf[2048], cuf[2048];
         type_str(assign, buf, 2048);
         type_str(assigned, cuf, 2048);
 	      env.warning("Assigning unsigned type %s to same-size signed type %s", cuf, buf);
       }
 
       return TYPECOMP_YES;
-      
+
     case TYPE_FUNC:
     case TYPE_STRUCT: {
       return type_equal(assign, assigned) ? TYPECOMP_YES : TYPECOMP_NO;
-    }   
+    }
 
     case TYPE_PTR: {
       if (assign == type_data) {
@@ -229,7 +232,7 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
       struct ptype *ptr2 = (struct ptype*) assigned;
 
       return type_areCompatible(ptr1->val, ptr2->val);
-    } 
+    }
     default:
       break;
     }
@@ -333,7 +336,7 @@ struct apair* aliases_pairGet(Aliases *aliases, const char *name) {
 
     if (!strcmp(apair->name, name)) {
       return apair;
-    } 
+    }
   }
 
   return nullptr;
@@ -380,7 +383,7 @@ struct type* type_makeAlias(Pool *pool, const char *name, Aliases *discover) {
   return alias;
 }
 
-struct type* type_makeFuncType(Pool *pool, struct type *ret, Array *args) {
+struct type* type_makeFuncType(Pool *pool, struct type *ret, Symbols *args) {
   struct ftype *ftype = static_cast<struct ftype*>(pool_zalloc(pool, sizeof(struct ftype)));
 
   *ftype = {{TYPE_FUNC, nullptr, ptrSize}, ret, args};
@@ -412,7 +415,7 @@ struct type* type_makeArray(Pool *pool, struct type *val, size_t len) {
   return (struct type*) atype;
 }
 
-void aliases_defineFuncId(Aliases *aliases, Pool *pool, const char *name, struct type *ret, Array *args) {
+void aliases_defineFuncId(Aliases *aliases, Pool *pool, const char *name, struct type *ret, Symbols *args) {
 
   struct type *type = type_makeFuncType(pool, ret, args);
 
@@ -421,7 +424,7 @@ void aliases_defineFuncId(Aliases *aliases, Pool *pool, const char *name, struct
 }
 
 bool aliases_isFuncDefined(Aliases *aliases, const char *name, const char *ret, Array *args) {
-  struct type *type; 
+  struct type *type;
   return (type = aliases_get(aliases, name)) && (type->kind == TYPE_FUNC);
 }
 
@@ -470,10 +473,10 @@ void aliases_dump(Aliases *aliases, const char *title, int8_t depth) {
 }
 
 char* type_str(struct type *type, char *buffer, size_t bufLen) {
-  
+
   if (type->name) {
     strncpy(buffer, type->name, bufLen);
-    return buffer;  
+    return buffer;
   }
 
   switch (type->kind) {
@@ -481,7 +484,7 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
     strncpy(buffer, type->name, bufLen);
     return buffer;
   }
-  
+
   case TYPE_nullptr: {
     strncpy(buffer, "nullptr", bufLen);
     return buffer;
@@ -492,7 +495,7 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
     size_t wrtn = 7U;
     char *base = buffer;
     strncpy(buffer, "struct(", bufLen);
-    
+
     if (wrtn >= bufLen) {
       return base;
     }
@@ -510,17 +513,17 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
       } else {
         strncpy(buffer, ", ", bufLen - wrtn);
         wrtn += 2;
-      
+
         if (wrtn >= bufLen) {
           return base;
         }
-      
+
         buffer += 2;
       }
 
       strncpy(buffer, (char*) pair->id, bufLen - wrtn);
       wrtn += strlen((char*) pair->id);
-      
+
       buffer = base + wrtn;
 
       if (wrtn >= bufLen) {
@@ -532,15 +535,15 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
       if (++wrtn >= bufLen) {
         return base;
       }
-      
+
       buffer = base + wrtn;
       type_str(pair->sym->type, buffer, bufLen - wrtn);
       wrtn += strlen(buffer);
-      
+
       if (wrtn >= bufLen) {
         return base;
       }
-      
+
       buffer = base + wrtn;
     }
 
@@ -552,37 +555,53 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
   case TYPE_FUNC: {
     struct ftype *ftype = (struct ftype*) type;
     size_t wrtn = 5U;
-    char *base = buffer, *tmp;
+    char *base = buffer;
     strncpy(buffer, "func(", bufLen);
-    
+
     if (wrtn >= bufLen) {
       return base;
     }
 
     buffer += wrtn;
 
-    size_t pLen = array_len(ftype->params);
+    Symbols *syms = ftype->params;
+    size_t len = symbols_len(syms);
+    struct spair *pair;
     bool first = true;
 
-    for (size_t i = 0; i < pLen; ++i) {
-
-      if (wrtn >= bufLen) {
-        return base;
-      }
-
+    for (size_t i = 0; i < len; ++i) {
+      pair = static_cast<spair*>(*list_get(syms, i));
       if (first) {
         first = false;
       } else {
-        *buffer = ',';
-        buffer = base + ++wrtn;
+        strncpy(buffer, ", ", bufLen - wrtn);
+        wrtn += 2;
+
+        if (wrtn >= bufLen) {
+          return base;
+        }
+
+        buffer += 2;
       }
+
+      strncpy(buffer, (char*) pair->id, bufLen - wrtn);
+      wrtn += strlen((char*) pair->id);
+
+      buffer = base + wrtn;
 
       if (wrtn >= bufLen) {
         return base;
       }
 
-      tmp = type_str(static_cast<struct type*>(*array_get(ftype->params, i)), buffer, bufLen - wrtn);
-      wrtn += strlen(tmp);
+      *buffer = ' ';
+      ++buffer;
+      if (++wrtn >= bufLen) {
+        return base;
+      }
+
+      buffer = base + wrtn;
+      type_str(pair->sym->type, buffer, bufLen - wrtn);
+      wrtn += strlen(buffer);
 
       if (wrtn >= bufLen) {
         return base;
@@ -591,17 +610,11 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
       buffer = base + wrtn;
     }
 
-    strncpy(buffer, ") ", bufLen - wrtn);
-    buffer += 2;
-    wrtn += 2;
+    strncpy(buffer, ")", bufLen - wrtn);
 
-    if (ftype->ret != type_none) {
-      type_str(ftype->ret, buffer, bufLen - wrtn);
-    }
-    
     return base;
   }
-                  
+
   case TYPE_ARRAY:
   case TYPE_PTR: {
     if (bufLen < 10) {

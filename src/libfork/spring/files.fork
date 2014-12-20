@@ -1,9 +1,9 @@
 #  This file is part of First Step.
-#  
-#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
-#  Foundation, either version 3 of the License, or (at your option) any later version. 
 #
-#  First Step is distributed in the hope that it will be useful, but 
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
 #  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
@@ -16,7 +16,7 @@ import spring
 
 func filereadInternal(camoFd data, bytes ptr uint8, len intptr, err ptr ptr spring:Error, eof ptr bool) uintptr
   mut fd = cast<int64>(camoFd)
-  decl stream_readfileInternal func(int64, data, intptr, ptr uint8, uintptr) intptr
+  decl stream_readfileInternal func(fd int64, buf data, len intptr, error ptr uint8, errLen uintptr) intptr
   mut buf [512] uint8
   mut rd = stream_readfileInternal(fd, bytes, len, buf, 512)
 
@@ -34,7 +34,7 @@ func filereadInternal(camoFd data, bytes ptr uint8, len intptr, err ptr ptr spri
 
 func filewriteInternal(camoFd data, bytes ptr uint8, len intptr, err ptr ptr spring:Error) uintptr
   mut fd = cast<int64>(camoFd)
-  decl stream_writefileInternal func(int64, data, intptr, ptr uint8, uintptr) intptr
+  decl stream_writefileInternal func(fd int64, buf data, len intptr, error ptr uint8, errLen uintptr) intptr
   mut buf [512] uint8
   mut wt intptr
   mut wttot intptr = 0
@@ -54,7 +54,7 @@ func filewriteInternal(camoFd data, bytes ptr uint8, len intptr, err ptr ptr spr
 /func
 
 func filecloseInternal(camoFd data, err ptr ptr spring:Error) bool
-  decl stream_closefileInternal func(int64, ptr uint8, uintptr) uint8
+  decl stream_closefileInternal func(fd int64, error ptr uint8, errLen uintptr) uint8
   mut buf [512] uint8
 
   if stream_closefileInternal(cast<int64>(camoFd), buf, 512) != 0
@@ -65,7 +65,7 @@ func filecloseInternal(camoFd data, err ptr ptr spring:Error) bool
 /func
 
 func fileOpen(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
-  decl open_readfile func(ptr uint8, ptr uint8, uintptr) int64
+  decl open_readfile func(name ptr uint8, error ptr uint8, errlen uintptr) int64
   mut buf [512] uint8
 
   val err = null
@@ -80,7 +80,7 @@ func fileOpen(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
 /func
 
 func fileCreate(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
-  decl open_writefile func(ptr uint8, ptr uint8, uintptr) int64
+  decl open_writefile func(name ptr uint8, error ptr uint8, errlen uintptr) int64
   mut buf [512] uint8
 
   mut fd = open_writefile(filename, buf, 512)
@@ -91,4 +91,3 @@ func fileCreate(filename ptr uint8, err ptr ptr spring:Error) ptr spring:Stream
 
   return spring:streamNew(cast<data>(fd), null, ptr filewriteInternal, ptr filecloseInternal)
 /func
-

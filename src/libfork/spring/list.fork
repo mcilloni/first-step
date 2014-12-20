@@ -1,9 +1,9 @@
 #  This file is part of First Step.
-#  
-#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
-#  Foundation, either version 3 of the License, or (at your option) any later version. 
 #
-#  First Step is distributed in the hope that it will be useful, but 
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
 #  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
@@ -78,7 +78,7 @@ func listPushint(list ptr spring:List, value uintptr)
   list'len++
 /func
 
-mut listPush = cast<ptr func(ptr spring:List, data)>(ptr listPushint)
+mut listPush = cast<ptr func(list ptr spring:List, item data)>(ptr listPushint)
 
 func listAppendint(list ptr spring:List, value uintptr) intptr
   if list'start == null
@@ -98,7 +98,7 @@ func listAppendint(list ptr spring:List, value uintptr) intptr
   return cast<intptr>(list'len++)
 /func
 
-mut listAppend = cast<ptr func(ptr spring:List, data) intptr>(ptr listAppendint)
+mut listAppend = cast<ptr func(list ptr spring:List, item data) intptr>(ptr listAppendint)
 
 func listAddint(list ptr spring:List, pos uintptr, value uintptr) intptr
   if pos > list'len
@@ -130,7 +130,7 @@ func listAddint(list ptr spring:List, pos uintptr, value uintptr) intptr
   return cast<intptr>(pos)
 /func
 
-mut listAdd = cast<ptr func(ptr spring:List, uintptr, data) intptr>(ptr listAddint)
+mut listAdd = cast<ptr func(list ptr spring:List, index uintptr, item data) intptr>(ptr listAddint)
 
 func listNew() ptr spring:List
   return cast<ptr spring:List>(spring:zalloc(size(spring:List)))
@@ -202,7 +202,7 @@ func listFree(list ptr spring:List)
   spring:free(list)
 /func
 
-func lnode_freeAll(lnode ptr spring:Lnode, freefunc ptr func(data))
+func lnode_freeAll(lnode ptr spring:Lnode, freefunc ptr func(item data))
   if lnode != null
     lnode_freeAll(lnode'succ, freefunc)
     freefunc(cast<data>(lnode'value))
@@ -210,20 +210,20 @@ func lnode_freeAll(lnode ptr spring:Lnode, freefunc ptr func(data))
   /if
 /func
 
-func listFreeAll(list ptr spring:List, freefunc ptr func(data))
+func listFreeAll(list ptr spring:List, freefunc ptr func(item data))
   lnode_freeAll(list'start, freefunc)
 
   spring:free(list)
 /func
 
-func lnode_freeContents(lnode ptr spring:Lnode, freefunc ptr func(data))
+func lnode_freeContents(lnode ptr spring:Lnode, freefunc ptr func(item data))
   if lnode != null
     lnode_freeContents(lnode'succ, freefunc)
     freefunc(cast<data>(lnode'value))
   /if
 /func
 
-func listFreeContents(list ptr spring:List, freefunc ptr func(data))
+func listFreeContents(list ptr spring:List, freefunc ptr func(item data))
   lnode_freeContents(list'start, freefunc)
 /func
 
@@ -241,7 +241,7 @@ func listGetint(list ptr spring:List, pos uintptr) ptr uintptr
  return null
 /func
 
-mut listGet = cast<ptr func(ptr spring:List, uintptr) ptr data>(ptr listGetint)
+mut listGet = cast<ptr func(list ptr spring:List, index uintptr) ptr data>(ptr listGetint)
 
 func listInsertint(list ptr spring:List, pos uintptr, value uintptr) intptr
   if pos > list'len
@@ -259,7 +259,7 @@ func listInsertint(list ptr spring:List, pos uintptr, value uintptr) intptr
   return cast<intptr>(list'pos)
 /func
 
-mut listInsert = cast<ptr func(ptr spring:List, uintptr, data) intptr>(ptr listInsertint)
+mut listInsert = cast<ptr func(list ptr spring:List, index uintptr, item data) intptr>(ptr listInsertint)
 
 func listLen(list ptr spring:List) uintptr
   return list'len
@@ -288,7 +288,7 @@ func listPopint(list ptr spring:List) uintptr
   return ret
 /func
 
-mut listPop = cast<ptr func(data) data>(ptr listPopint)
+mut listPop = cast<ptr func(list ptr spring:List) data>(ptr listPopint)
 
 func listPrune(list ptr spring:List)
   lnode_free(list'start)
@@ -326,4 +326,3 @@ func listPrint(list ptr spring:List)
   /while
   spring:outln(" ]")
 /func
-

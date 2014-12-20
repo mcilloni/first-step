@@ -1,9 +1,9 @@
 #  This file is part of First Step.
-#  
-#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
-#  Foundation, either version 3 of the License, or (at your option) any later version. 
 #
-#  First Step is distributed in the hope that it will be useful, but 
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
 #  WITHOUT ANY WARRANTY without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
@@ -62,7 +62,7 @@ func node_isBlack(node ptr spring:Mnode) bool
   return (node == null) or (node'color == BLACK)
 /func
 
-func node_free(node ptr spring:Mnode, freeKey ptr func(data), freeVal ptr func(data))
+func node_free(node ptr spring:Mnode, freeKey ptr func(item data), freeVal ptr func(item data))
 
   if node == null
     return
@@ -289,7 +289,7 @@ func mapRemove(map ptr spring:Map, key data) bool
 	return ret
 /func
 
-func mapFreeSpec(map ptr spring:Map, freeKey ptr func(data), freeVal ptr func(data))
+func mapFreeSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr func(item data))
   if map == null
     return
   /if
@@ -315,7 +315,7 @@ func mapLen(map ptr spring:Map) uintptr
 /func
 
 func strcomparer(s1 data, s2 data) int8
-  decl strcmp func(data, data) int8
+  decl strcmp func(str1 data, str2 data) int8
   mut comp = strcmp(s1, s2)
 
   if comp > 0
@@ -332,4 +332,3 @@ func strcomparer(s1 data, s2 data) int8
 func strmapNew() ptr spring:Map
   return mapNew(ptr strcomparer)
 /func
-

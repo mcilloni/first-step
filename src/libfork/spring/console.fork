@@ -1,9 +1,9 @@
 #  This file is part of First Step.
-#  
-#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
-#  Foundation, either version 3 of the License, or (at your option) any later version. 
 #
-#  First Step is distributed in the hope that it will be useful, but 
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
 #  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
@@ -15,12 +15,12 @@
 import spring
 
 func err(str ptr uint8)
-  decl fputs func(ptr uint8, spring:FILE)
+  decl fputs func(str ptr uint8, file spring:FILE)
   fputs(str, spring:stderr_file())
 /func
 
 func errch(ch uint8)
-  decl putc func(uint8, spring:FILE)
+  decl putc func(ch uint8, file spring:FILE)
   putc(ch, spring:stderr_file())
 /func
 
@@ -40,16 +40,16 @@ func failln(str ptr uint8)
 /func
 
 func out(str ptr uint8)
-  decl fputs func(ptr uint8, spring:FILE)
+  decl fputs func(str ptr uint8, file spring:FILE)
   fputs(str, spring:stdout_file())
 /func
 
 func outch(ch uint8)
-  decl putchar func(uint8)
+  decl putchar func(ch uint8)
   putchar(ch)
 /func
 
 func outln(str ptr uint8)
-  decl puts func(ptr uint8)
+  decl puts func(str ptr uint8)
   puts(str)
 /func

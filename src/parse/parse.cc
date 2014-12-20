@@ -121,55 +121,19 @@ struct type* idType(struct parser *prs, struct pnode *thisNode) {
   return ret;
 }
 
-struct type* funcType(struct parser *prs, struct pnode *thisNode) {
+void symPairAdd(Symbols *syms, Pair *pair) {
 
-  parser_getTok(prs); //discard 'func'
+  struct type *type = (struct type*) pair->key;
+  Array *names = (Array*) pair->value;
+  size_t len = array_len(names);
 
-  struct token *tok = parser_getTok(prs);
-
-  if (!tok) {
-    env.fail("Unexpected EOF in func type, expected '('");
+  for (size_t i = 0; i < len; ++i) {
+    if (symbols_register(syms, (char*) *array_get(names, i), type, false) != SYM_ADDED) {
+      env.fail("Function parameter %s already defined", (char*) array_get(names, i));
+    }
   }
 
-  if (tok->type != LEX_OPAR) {
-    env.fail("Unexpected %s in func type, expected '('", token_str(tok));
-  }
-
-  Array *arr = array_new(3U);
-  struct type *tp;
-  struct type *retType = type_none;
-
-  do {
-
-    tp = type(prs, thisNode);
-    if (tp) {
-      array_append(arr, (void*) tp);
-    }
-
-    tok = parser_getTok(prs);
-
-    if (!tok) {
-      env.fail("Unexpected EOF during func type, expected ',' or ')'");
-    }
-
-    switch(tok->type) {
-    case LEX_COMMA:
-      break;
-    case LEX_CPAR:
-      goto endparms;
-    default:
-      env.fail("Unexpected token %s, expected ',' or ')'", token_str(tok));
-    }
-  } while (tp);
-
-endparms:
-
-  if (prs->nextTok && (prs->nextTok->type == LEX_ID || prs->nextTok->type == LEX_FUNC || prs->nextTok->type == LEX_PTR || prs->nextTok->type == LEX_VAL)) {
-    retType = type(prs, thisNode);
-  }
-
-  return type_makeFuncType(prs->types, retType, arr);
-
+  pair_free(pair);
 }
 
 Pair* argTypeList(struct parser *prs, struct pnode *thisNode) {
@@ -182,7 +146,7 @@ Pair* argTypeList(struct parser *prs, struct pnode *thisNode) {
     tok = parser_getTok(prs);
 
     if (!tok) {
-     env.fail("Unexpected EOF, expected an identifier");
+      env.fail("Unexpected EOF, expected an identifier");
     }
 
     if (!first) {
@@ -193,7 +157,7 @@ Pair* argTypeList(struct parser *prs, struct pnode *thisNode) {
       tok = parser_getTok(prs);
 
       if (!tok) {
-       env.fail("Unexpected EOF, expected an identifier");
+        env.fail("Unexpected EOF, expected an identifier");
       }
 
     }
@@ -220,21 +184,6 @@ Pair* argTypeList(struct parser *prs, struct pnode *thisNode) {
   *ret = { tp, names };
 
   return ret;
-}
-
-void symPairAdd(Symbols *syms, Pair *pair) {
-
-  struct type *type = (struct type*) pair->key;
-  Array *names = (Array*) pair->value;
-  size_t len = array_len(names);
-
-  for (size_t i = 0; i < len; ++i) {
-    if (symbols_register(syms, (char*) *array_get(names, i), type, false) != SYM_ADDED) {
-      env.fail("Function parameter %s already defined", (char*) array_get(names, i));
-    }
-  }
-
-  pair_free(pair);
 }
 
 Symbols* argParams(struct parser *prs, struct pnode *thisNode) {
@@ -303,6 +252,21 @@ Symbols* structDef(struct parser *prs, struct pnode *root) {
   }
 
   return syms;
+}
+
+struct type* funcType(struct parser *prs, struct pnode *thisNode) {
+
+  parser_getTok(prs); //discard 'func'
+
+  Symbols* params = structDef(prs, thisNode);
+
+  struct type *retType = type_none;
+  if (prs->nextTok && (prs->nextTok->type == LEX_ID || prs->nextTok->type == LEX_FUNC || prs->nextTok->type == LEX_PTR || prs->nextTok->type == LEX_VAL)) {
+    retType = type(prs, thisNode);
+  }
+
+  return type_makeFuncType(prs->types, retType, params);
+
 }
 
 struct type* structType(struct parser *prs, struct pnode *thisNode) {

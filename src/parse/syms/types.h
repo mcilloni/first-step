@@ -1,4 +1,4 @@
-#if !defined(_TYPES_H) 
+#if !defined(_TYPES_H)
 #define _TYPES_H
 
 
@@ -46,7 +46,7 @@ struct ftype {
   struct type t;
 
   struct type *ret;
-  Array* params;
+  Symbols* params;
 };
 
 struct ptype {
@@ -80,7 +80,7 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
 struct type* type_evalLarger(struct type *first, struct type *second);
 struct type* type_evalNumberType(int64_t number);
 void type_free(struct type *type);
-struct type* type_getBuiltin(const char *name); 
+struct type* type_getBuiltin(const char *name);
 struct type* type_getTypeDef(Aliases *aliases, const char *name);
 bool type_isAlias(struct type *type);
 bool type_isArray(struct type *type);
@@ -90,7 +90,7 @@ bool type_isNull(struct type *type);
 bool type_isNumeric(struct type *type);
 bool type_isPtr(struct type *type);
 bool type_isStruct(struct type *type);
-struct type* type_makeFuncType(Pool *pool, struct type *ret, Array *args);
+struct type* type_makeFuncType(Pool *pool, struct type *ret, Symbols *args);
 struct type* type_makePtr(Pool *pool, struct type *val);
 struct type* type_makeAlias(Pool *pool, const char *name, Aliases *discover);
 struct type* type_makeArray(Pool *pool, struct type *val, size_t len);

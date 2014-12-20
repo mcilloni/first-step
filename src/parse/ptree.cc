@@ -1,10 +1,10 @@
 /*
  *  This file is part of First Step.
- *  
- *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
- *  Foundation, either version 3 of the License, or (at your option) any later version. 
  *
- *  First Step is distributed in the hope that it will be useful, but 
+ *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+ *  Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  First Step is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
@@ -40,7 +40,7 @@ bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type,
 
   if (!pnode_isScope(pnode)) {
     bool ret = pnode_addSymbolReal(pnode->root, id, type, init, &res, decl);
-    
+
     if (resp) {
       *resp = res;
     }
@@ -53,7 +53,7 @@ bool pnode_addSymbolReal(struct pnode *pnode, const char *id, struct type *type,
   }
 
   res = symbols_registerWithOpt(((struct pscope*) pnode)->symbols, id, type, init, (void (*)(void*)) pnode_free, decl);
-  
+
   if (resp) {
     *resp = res;
   }
@@ -82,7 +82,7 @@ Symbols* pnode_getFuncParams(struct pnode *pnode) {
 }
 
 Aliases* pnode_getAliases(struct pnode *pnode) {
-  
+
   if (!pnode_isScope(pnode)) {
     return nullptr;
   }
@@ -92,7 +92,7 @@ Aliases* pnode_getAliases(struct pnode *pnode) {
 }
 
 Symbols* pnode_getSyms(struct pnode *pnode) {
-  
+
   if (!pnode_isScope(pnode)) {
     return nullptr;
   }
@@ -104,12 +104,12 @@ Symbols* pnode_getSyms(struct pnode *pnode) {
 void pnode_alias(struct pnode *pnode, const char *name, struct type *type) {
   if (!pnode) {
     env.fail("Broken tree: found nullptr root");
-  }  
+  }
 
   if (pnode_isScope(pnode)) {
     struct pscope *pscope = (struct pscope*) pnode;
 
-    
+
 
     if (type_getBuiltin(name)) {
       env.fail("Cannot alias: %s is a builtin type", name);
@@ -156,7 +156,7 @@ struct type* pnode_findExportedSym(struct proot *root, const char *name) {
   if ((sym = symbols_get(pscope->symbols, name))) {
     return sym->type;
   }
-  
+
   return pnode_isRootAndIdIsFunc(pnode, name);
 }
 
@@ -216,7 +216,7 @@ struct type* pnode_getType(struct pnode *pnode, const char *name) {
 
   struct pscope *pscope = (struct pscope*) pnode;
   if (!(ret = aliases_get(pscope->aliases, name))) {
-    return pnode_getType(pnode->root, name); 
+    return pnode_getType(pnode->root, name);
   }
 
   if (ret->kind == TYPE_STRUCT || ret->kind == TYPE_FUNC) {
@@ -296,10 +296,10 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
   struct type *ret = nullptr;
 
   if (pexpr->type) {
-    return pexpr->type; 
-  } 
+    return pexpr->type;
+  }
 
-  switch (pnode->id){ 
+  switch (pnode->id){
   case PR_ACCESS: {
     ret = ((struct ptype*) pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope))->val;
     break;
@@ -308,7 +308,7 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
   case PR_CALL: {
     struct type *toCall = pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope);
     struct ftype *ftype = (struct ftype*) toCall;
-    
+
     if (type_isPtr(toCall)) {
       ftype = (struct ftype*) ((struct ptype*) toCall)->val;
     }
@@ -328,7 +328,7 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
   }
 
   case PR_BINOP: {
-  
+
     struct type *firstType = pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope);
     struct pnode *second = *leaves_get(pnode->leaves, 1);
 
@@ -361,7 +361,7 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
     ret = pnode_symbolType(scope, (const char*) pexpr->value);
     break;
   }
-                
+
   case PR_UNOP: {
     ret = pnode_evalType(pool, *leaves_get(pnode->leaves, 0), scope);
 
@@ -376,7 +376,7 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
 
     default:
       break;
-    }   
+    }
 
     break;
   }
@@ -385,8 +385,8 @@ struct type* pnode_evalType(Pool *pool, struct pnode *pnode, struct pnode *scope
     ret = type_evalNumberType(pexpr->value);
     break;
   }
- 
-  default: 
+
+  default:
     ret = nullptr;
   }
 
@@ -405,7 +405,7 @@ bool pnode_getValue(struct pnode *pnode, uintmax_t *val) {
   if (!pnode_isValue(pnode)) {
     return false;
   }
-  
+
   *val = ((struct pexpr*) pnode)->value;
 
   return true;
@@ -429,13 +429,13 @@ struct type* pnode_symbolType(struct pnode *pnode, const char *id) {
     return type;
   }
 
-  struct symbol *sym = nullptr; 
+  struct symbol *sym = nullptr;
 
   bool isFunc = pnode_isFunc(pnode);
 
   if (isFunc) {
     struct pfunc *pfunc = (struct pfunc*) pnode;
-  
+
     if (!strcmp(pfunc->name, id)) {
       return (struct type*) pfunc->ftype;
     }
@@ -474,7 +474,7 @@ struct symbol* pnode_matchSymbolForDeclaration(struct pnode *pnode, const char *
 }
 
 struct type* pnode_funcReturnType(struct pnode *pnode) {
-  
+
   if (!pnode) {
     return nullptr;
   }
@@ -507,7 +507,7 @@ bool nonterminals_isFunc(enum nonterminals id) {
   }
 }
 
-bool pnode_isFunc(struct pnode *pnode) { 
+bool pnode_isFunc(struct pnode *pnode) {
   return nonterminals_isFunc(pnode->id);
 }
 
@@ -543,7 +543,7 @@ bool nonterminals_isValue(enum nonterminals id) {
 }
 
 bool pnode_isConstNum(struct pnode *pnode) {
-  return nonterminals_isConstNum(pnode->id); 
+  return nonterminals_isConstNum(pnode->id);
 }
 
 bool pnode_isScope(struct pnode *pnode) {
@@ -619,29 +619,13 @@ struct pnode* pnode_new(enum nonterminals id) {
   return ret;
 }
 
-struct ftype* type_mkFunFromRetSyms(Pool *pool, struct type *ret, Symbols *params) {
-  size_t len = params ? symbols_len(params) : 0U;
-  Array *arp = array_new(len);
-
-  if (len) {
-
-    size_t len = symbols_len(params);
-    struct spair *pair;
-    
-    for (size_t i = 0; i < len; ++i) {
-      pair = static_cast<spair*>(*list_get(params, i));
-      array_append(arp, pair->sym->type);
-    }
-
-  }
-  return (struct ftype*) type_makeFuncType(pool, ret, arp);
-}
-
 struct pnode* pnode_newfunc(Pool *pool, enum nonterminals id, const char *name, struct type *ret, Symbols *params) {
-  struct pfunc *retVal = (struct pfunc*) pnode_new(id);
+  struct pfunc *retVal = reinterpret_cast<struct pfunc*>(pnode_new(id));
 
   if (pnode_isFunc(&(retVal->node))) {
-    *retVal = {retVal->node, type_mkFunFromRetSyms(pool, ret, params), str_clone(name), params};
+    retVal->ftype = reinterpret_cast<struct ftype*>(type_makeFuncType(pool, ret, list_shallowCopy(params)));
+    retVal->name = str_clone(name);
+    retVal->params = params;
   }
 
   return (struct pnode*) retVal;
@@ -659,11 +643,11 @@ struct pnode* pnode_newroot(const char *filename, const char *module, Imports *i
 
 struct pnode* pnode_newval(enum nonterminals id, uintmax_t val) {
   struct pexpr *ret = (struct pexpr*) pnode_new(id);
-  
+
   if (pnode_isValue(&(ret->node))) {
     ret->value = val;
   }
-  
+
   return (struct pnode*) ret;
 }
 
@@ -683,7 +667,7 @@ void pnode_free(struct pnode *pnode) {
     struct pscope *pscope = (struct pscope*) pnode;
     symbols_free(pscope->symbols);
     aliases_free(pscope->aliases);
-  } 
+  }
 
   if (pnode_isFunc(pnode)) {
     struct pfunc *pfunc = (struct pfunc*) pnode;
@@ -723,7 +707,7 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
     printf("Identifier: %s:%s, type %s\n", (char*) pnode_getval(module), (char*) pnode_getval(id), type_str(type, buf, 4096));
 
     return;
-  } 
+  }
 
   fputs(nt_str(val->id), stdout);
   if (val->startLine && val->endLine) {
@@ -778,14 +762,14 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
   default:
     break;
   }
-  
+
   if (pnode_isFunc(val)) {
     struct pfunc *pfunc = (struct pfunc*) val;
-    char buf[2048];    
+    char buf[2048];
     printf(" %s of type %s\n", pfunc->name, type_str((struct type*) pfunc->ftype, buf, 2048));
 
-    symbols_dump(pfunc->params, pool, "Parameters:", (void (*)(Pool *, void *, uint64_t)) pnode_dump, depth + 1); 
-  } else { 
+    symbols_dump(pfunc->params, pool, "Parameters:", (void (*)(Pool *, void *, uint64_t)) pnode_dump, depth + 1);
+  } else {
     putchar('\n');
   }
 
@@ -810,7 +794,6 @@ void pnode_dump(Pool *pool, struct pnode *val, uint64_t depth) {
 void ptree_dump(struct pnode *root) {
   Pool *tmpPool = pool_new();
   pnode_dump(tmpPool, root, 0);
-  
+
   pool_release(tmpPool, (void (*)(void*)) type_free);
 }
-

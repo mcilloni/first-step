@@ -1,9 +1,9 @@
 #  This file is part of First Step.
-#  
-#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
-#  Foundation, either version 3 of the License, or (at your option) any later version. 
 #
-#  First Step is distributed in the hope that it will be useful, but 
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
 #  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
@@ -22,7 +22,7 @@ func strclone(orig ptr uint8) ptr uint8
 /func
 
 func strequals(s1, s2 ptr uint8) bool
-  decl strcmp func(ptr uint8, ptr uint8) int32
+  decl strcmp func(str1 ptr uint8, str2 ptr uint8) int32
   if strcmp(s1,s2) == 0
     return true
   /if

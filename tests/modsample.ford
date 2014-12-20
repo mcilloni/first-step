@@ -1,5 +1,4 @@
 module modsample
 
 alias strdef struct(a ptr uint8)
-decl puts func(ptr uint8)
-
+decl puts func(str ptr uint8)
