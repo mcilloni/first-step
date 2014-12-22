@@ -170,6 +170,7 @@ decl strtonum func(str ptr uint8) intptr
 # pair functions
 
 decl pairFree func(pair ptr Pair)
+decl pairNew func(item1,item2 data) ptr Pair
 
 # lists functions
 

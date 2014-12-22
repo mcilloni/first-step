@@ -14,6 +14,14 @@
 
 import spring
 
+func pairNew(first,second data) ptr spring:Pair
+  mut pair = cast<ptr spring:Pair>(spring:zalloc(size(spring:Pair)))
+  pair'key = first
+  pair'value = second
+
+  return pair
+/func
+
 func pairFree(pair ptr spring:Pair)
   spring:free(pair)
 /func
