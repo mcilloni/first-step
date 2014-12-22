@@ -371,6 +371,9 @@ struct pnode* mutDeclGeneric(struct parser *prs, struct pnode *thisNode, bool de
 
   if (prs->nextTok->type != LEX_ASSIGN) {
     tp = type(prs, thisNode); //side effect will change nextTok, so I should stop changing the line below with an else breaking everything
+    if (!tp) {
+      env.fail("No type specified and no expression to infer it from either");
+    }
   }
 
   struct type *assType;
