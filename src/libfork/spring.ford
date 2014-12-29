@@ -249,3 +249,6 @@ decl csUnleash func(cs ptr Charstash) ptr uint8
 
 # args functions
 decl args func() ptr Args
+
+# generical libc declarations
+decl getenv func(variable ptr uint8) ptr uint8
