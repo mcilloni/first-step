@@ -256,9 +256,7 @@ Symbols* structDef(struct parser *prs, struct pnode *root) {
 
 struct type* funcType(struct parser *prs, struct pnode *thisNode) {
 
-  if (prs->nextTok->type == LEX_FUNC) {
-    parser_getTok(prs); //discard 'func'
-  }
+  parser_getTok(prs); //discard 'func'
 
   Symbols* params = structDef(prs, thisNode);
 
@@ -283,7 +281,6 @@ struct type* type(struct parser *prs, struct pnode *thisNode) {
   }
 
   switch (prs->nextTok->type) {
-  case LEX_OPAR:
   case LEX_FUNC: {
     return funcType(prs, thisNode);
   }
