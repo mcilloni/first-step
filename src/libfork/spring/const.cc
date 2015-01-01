@@ -1,10 +1,10 @@
 /*
  *  This file is part of First Step.
- *  
- *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
- *  Foundation, either version 3 of the License, or (at your option) any later version. 
  *
- *  First Step is distributed in the hope that it will be useful, but 
+ *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+ *  Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  First Step is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
@@ -20,21 +20,20 @@
 
 extern "C" {
 
-FILE* stderr_file(void) {
+auto stderr_file(void) -> FILE* {
   return stderr;
 }
 
-FILE* stdin_file(void) {
+auto stdin_file(void) -> FILE* {
   return stdin;
 }
 
-FILE* stdout_file(void) {
+auto stdout_file(void) -> FILE* {
   return stdout;
 }
 
-void outint(uint64_t n) {
+auto outint(uint64_t n) -> void {
   printf("%" PRIu64, n);
 }
 
 }
-

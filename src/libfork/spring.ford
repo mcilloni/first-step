@@ -158,7 +158,7 @@ decl stdout_file func() FILE
 
 # string functions
 decl numtostr func(num uintptr, str ptr uint8, strLen uintptr) ptr uint8
-decl strappend func(dest ptr uint8, toAppend ptr uint8) ptr uint8
+decl strappend func(str1 ptr uint8, str2 ptr uint8) ptr uint8
 decl strclone func(str ptr uint8) ptr uint8
 decl strequals func(str1 ptr uint8, str2 ptr uint8) bool
 decl strglue func(toGlue ptr ptr uint8) ptr uint8
@@ -166,6 +166,11 @@ decl strlen func(str ptr uint8) uintptr
 decl strncpy func(dest ptr uint8, source ptr uint8, cap uintptr) ptr uint8
 decl strreverse func(str ptr uint8, len uintptr)
 decl strtonum func(str ptr uint8) intptr
+
+# path functions
+decl pathContains func(path,filename ptr uint8) bool
+decl pathExists func(path ptr uint8) bool
+decl pathExistsDir func(path ptr uint8) bool
 
 # pair functions
 

@@ -1,9 +1,9 @@
 #  This file is part of First Step.
-#  
-#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
-#  Foundation, either version 3 of the License, or (at your option) any later version. 
 #
-#  First Step is distributed in the hope that it will be useful, but 
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
 #  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
@@ -15,23 +15,26 @@
 import spring
 
 entry
-  mut error ptr spring:Error
   mut argv = spring:args()
 
-  if argv'len != 1
-    spring:failln("Wrong number of arguments, must be 1")
+  if argv'len != 1 and argv'len != 2
+    spring:failln("Wrong number of arguments, must be 1 or 2")
   /if
 
-  mut f = spring:fileOpen(argv'args[0], ptr error)
-  if error != null
-    spring:err("Error: ")
-    spring:failln(spring:errorMsg(error))
+  mut exists = false
+
+  if argv'len == 1
+    exists = spring:pathExists(argv'args[0])
+  else
+    exists = spring:pathContains(argv'args[0], argv'args[1])
   /if
 
-  spring:out(argv'args[0])
-  spring:outln(" exists")
+  spring:out("File is")
 
-  spring:streamClose(f)
+  if !exists
+    spring:out(" not")
+  /if
+
+  spring:outln(" existent")
 
 /entry
-
