@@ -54,7 +54,7 @@ struct importer* importer_new(Pool *pool) {
   std::vector<char*> paths;
   FTS *fts;
   paths.push_back(str_clone(getenv("PWD")));
-  const char *modPath = getenv("FORK_MODULES");
+  const char *modPath = getenv("FORDPATHS");
 
   if (modPath) {
     char *path;

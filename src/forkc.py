@@ -30,11 +30,11 @@ def forkc1(forkfile):
     cname = forkfile.replace('.fork', '.c', 1)
 
     newenv = os.environ.copy()
-    newenv['FORK_MODULES'] = buildpath + '/libfork/ford/'
+    newenv['FORDPATHS'] = buildpath + '/libfork/ford/'
 
-    if 'FORK_MODULES' in os.environ:
-        newenv['FORK_MODULES'] = newenv['FORK_MODULES'] \
-            + ':' + os.environ['FORK_MODULES']
+    if 'FORDPATHS' in os.environ:
+        newenv['FORDPATHS'] = newenv['FORDPATHS'] \
+            + ':' + os.environ['FORDPATHS']
 
     proc = subprocess.Popen([forkc1path, forkfile],
                             env=newenv, stdout=subprocess.PIPE)
@@ -76,7 +76,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="forkc compiles .fork files to objects."
         " Use forkl to link them."
-        " Set FORK_MODULES to specify where to find more modules.\n")
+        " Set FORDPATHS to specify where to find more modules.\n")
     parser.add_argument('files',
                         metavar='FILE',
                         type=str,

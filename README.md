@@ -80,7 +80,7 @@ Executing forkc -C file.fork generates a file.c inside the current directory.
 
 Fork modules are .ford files with decl's of external symbols and aliases of types.
 They are, at least now, handwritten. 
-forkc1 searches for modules (with *.ford* extension) in the current directory and in the paths specified into the *FORK_MODULES* variable, separated by ':'. 
+forkc1 searches for modules (with *.ford* extension) in the current directory and in the paths specified into the *FORDPATHS* variable, separated by ':'. 
 All .ford files have a *module _name_* declaration identical to their file name; per example, spring module has a spring.ford module with *module spring* at its beginning.
 Symbols are not exported with their module name because of limitations of their implementation, so name collision can arise at linking time.
 This will be fixed for sure in second-step.

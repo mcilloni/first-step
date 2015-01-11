@@ -171,6 +171,7 @@ decl strtonum func(str ptr uint8) intptr
 decl pathContains func(path,filename ptr uint8) bool
 decl pathExists func(path ptr uint8) bool
 decl pathExistsDir func(path ptr uint8) bool
+decl pathJoin func(path1,path2 ptr uint8) ptr uint8
 
 # pair functions
 
