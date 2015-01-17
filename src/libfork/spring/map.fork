@@ -261,7 +261,7 @@ func mapGet(map ptr spring:Map, key data, value ptr data) bool
 /func
 
 func mapPut(map ptr spring:Map, key data, value data, freewhat uint8) data
-  mut oldvalue data
+  mut oldvalue data = null
   map'root = node_add(map'root, key, value, map'cmp, freewhat, ptr oldvalue)
   map'root'color = BLACK
 

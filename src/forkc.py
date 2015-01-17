@@ -2,10 +2,12 @@
 import argparse
 import atexit
 import os
+import os.path
 import platform
 import signal
 import subprocess
 import sys
+import tempfile
 import termcolor
 
 todelete = []
@@ -28,6 +30,7 @@ def forkc1(forkfile):
                  ': error: file {} does not end with .fork').format(forkfile))
 
     cname = forkfile.replace('.fork', '.c', 1)
+    tmpfile = os.path.join(tempfile.gettempdir(), cname)
 
     newenv = os.environ.copy()
     newenv['FORDPATHS'] = buildpath + '/libfork/ford/'
@@ -49,6 +52,10 @@ def forkc1(forkfile):
     outfile = open(cname, 'wb')
     outfile.write(out)
     outfile.close()
+
+    tfile = open(tmpfile, 'wb')
+    tfile.write(out)
+    tfile.close()
 
     return cname
 
