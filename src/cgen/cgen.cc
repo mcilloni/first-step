@@ -120,6 +120,25 @@ void ccode_genRecExpr(struct pnode *root, FILE *out) {
     break;
   }
 
+  case PR_TERNOP: {
+    if (array_len(root->leaves) != 3) {
+      env.fail("Unacceptable len: %zu", array_len(root->leaves));
+    }
+
+    fputs("( ", out);
+    pnode *cond = *leaves_get(root->leaves, 0);
+    ccode_genRecExpr(cond, out);
+
+    fputs(" ? ", out);
+    ccode_genRecExpr(*leaves_get(root->leaves, 1), out);
+
+    fputs(" : ", out);
+    ccode_genRecExpr(*leaves_get(root->leaves, 2), out);
+
+    fputs(" )", out);
+    break;
+  }
+  
   case PR_BINOP:
     if (array_len(root->leaves) != 2) {
       env.fail("Unacceptable len: %zu", array_len(root->leaves));
