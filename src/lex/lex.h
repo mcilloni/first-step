@@ -35,6 +35,7 @@ enum token_type {
   LEX_ENDWHILE,
   LEX_ENTRY,
   LEX_EQUAL,
+  LEX_FATARROW,
   LEX_FUNC,
   LEX_ID,
   LEX_IF,
@@ -97,6 +98,7 @@ struct lexer {
 
 enum optype {
   OPTYPE_NOTOP = 0,
+  OPTYPE_TERNARY,
   OPTYPE_BINARY,
   OPTYPE_UNARY
 };

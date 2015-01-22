@@ -263,6 +263,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // =>
+  if (!strcmp("=>", data)) {
+    res->type = LEX_FATARROW;
+    return res;
+  }
+
   // =
   if (!strcmp("=", data)) {
     res->type = LEX_ASSIGN;
@@ -628,6 +634,8 @@ const char* tokentype_str(enum token_type type) {
     return "entry";
   case LEX_EQUAL:
     return "==";
+  case LEX_FATARROW:
+    return "=>";
   case LEX_FUNC:
     return "func";
   case LEX_ID:
@@ -721,58 +729,61 @@ int8_t tokentype_getPriority(enum token_type type) {
   case LEX_ASSIGN:
     return 1;
 
-  case LEX_OR:
+  case LEX_FATARROW:
     return 2;
 
-  case LEX_AND:
+  case LEX_OR:
     return 3;
 
-  case LEX_PIPE:
+  case LEX_AND:
     return 4;
 
-  case LEX_XOR:
+  case LEX_PIPE:
     return 5;
 
-  case LEX_AMPER:
+  case LEX_XOR:
     return 6;
+
+  case LEX_AMPER:
+    return 7;
 
   case LEX_DIFFERENT:
   case LEX_EQUAL:
-    return 7;
+    return 8;
 
   case LEX_MAJEQ:
   case LEX_MAJOR:
   case LEX_MINEQ:
   case LEX_MINOR:
-    return 8;
+    return 9;
 
   case LEX_PLUS:
-    return 9;
+    return 10;
 
   case LEX_DIV:
   case LEX_MOD:
   case LEX_TIMES:
-    return 10;
+    return 11;
 
   case LEX_POW:
-    return 11;
+    return 12;
 
   case LEX_MINUS:
   case LEX_NOT:
   case LEX_PTR:
   case LEX_SIZE:
   case LEX_VAL:
-    return 12;
+    return 13;
 
   case LEX_CAST:
   case LEX_APOS:
   case LEX_CBRAC: //HACK: use ] as operator for precedence purposes
   case LEX_INC:
   case LEX_DEC:
-    return 13;
+    return 14;
 
   case LEX_COLON:
-    return 14;
+    return 15;
 
   default:
     return -1;
@@ -812,6 +823,9 @@ enum optype token_getOpType(struct token *tok) {
   case LEX_XOR:
     return OPTYPE_BINARY;
 
+  case LEX_FATARROW:
+    return OPTYPE_TERNARY;
+    
   default:
     return OPTYPE_NOTOP;
   }

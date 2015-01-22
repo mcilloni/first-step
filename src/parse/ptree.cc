@@ -261,7 +261,7 @@ void pnode_verifyNodesAreCompatible(Pool *pool, struct pnode *root, struct pnode
     char buf[4096];
     char cuf[4096];
 
-    env.fail("Cannot assign an expression of type %s to a location of type %s", type_str(second, buf, 4096), type_str(first, cuf, 4096));
+    env.fail("Type %s and type %s are not compatible", type_str(second, buf, 4096), type_str(first, cuf, 4096));
     break;
   }
 
@@ -525,6 +525,7 @@ bool nonterminals_isScope(enum nonterminals id) {
 bool nonterminals_isValue(enum nonterminals id) {
   switch (id) {
   case PR_ACCESS:
+  case PR_TERNOP:
   case PR_BINOP:
   case PR_CALL:
   case PR_CAST:

@@ -3,17 +3,21 @@
 
 #include "lines.h"
 
-
+#include <cstdio>
+#include <cstdarg>
 #include <cstdint>
 
 typedef int (*printfmt)(const char *fmt, ...);
 
 struct env {
-  printfmt debug;
-  printfmt error;
-  printfmt fail;
-  printfmt info;
-  printfmt warning;
+private:
+  int printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va);
+public:
+  int debug(const char *fmt, ...);
+  int error(const char *fmt, ...);
+  int fail(const char *fmt, ...);
+  int info(const char *fmt, ...);
+  int warning(const char *fmt, ...);
   uintmax_t *lastLineno;
   const char *filename;
 };

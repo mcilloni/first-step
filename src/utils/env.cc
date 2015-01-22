@@ -1,10 +1,10 @@
 /*
  *  This file is part of First Step.
- *  
- *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
- *  Foundation, either version 3 of the License, or (at your option) any later version. 
  *
- *  First Step is distributed in the hope that it will be useful, but 
+ *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+ *  Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  First Step is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
@@ -29,12 +29,12 @@ static bool debug_on = false;
 static uintmax_t errors = 0;
 static const uintmax_t MAX_ERRORS = 20;
 
-int std_printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va) {
+int env::printout(FILE *out, const char *level, const char *color, const char *fmt, va_list va) {
 
   int ret = fprintf(out, ANSI_COLOR_BOLD "(%s%s" ANSI_COLOR_RESET ANSI_COLOR_BOLD, color, level);
-  if (env.lastLineno && env.filename) {
-    char *tmp = str_clone(env.filename);
-    ret += fprintf(out, ": in file %s, line %ju): ", basename(tmp), *env.lastLineno);
+  if (this->lastLineno && this->filename) {
+    char *tmp = str_clone(this->filename);
+    ret += fprintf(out, ": in file %s, line %ju): ", basename(tmp), *this->lastLineno);
     free(tmp);
   } else {
     ret += fputs("): ", out);
@@ -46,8 +46,8 @@ int std_printout(FILE *out, const char *level, const char *color, const char *fm
 
   return ret + 1;
 }
- 
-int default_print_debug(const char *fmt, ...) {
+
+int env::debug(const char *fmt, ...) {
 
   int ret = 0;
 
@@ -55,7 +55,7 @@ int default_print_debug(const char *fmt, ...) {
     va_list va;
     va_start(va, fmt);
 
-    ret = std_printout(stderr, "DEBUG", ANSI_COLOR_GREEN, fmt, va);
+    ret = this->printout(stderr, "DEBUG", ANSI_COLOR_GREEN, fmt, va);
 
     va_end(va);
   }
@@ -64,29 +64,29 @@ int default_print_debug(const char *fmt, ...) {
 
 }
 
-int default_print_error(const char *fmt, ...) {
+int env::error(const char *fmt, ...) {
 
   va_list va;
   va_start(va, fmt);
 
-  int ret = std_printout(stderr, "ERROR", ANSI_COLOR_RED, fmt, va);
+  int ret = this->printout(stderr, "ERROR", ANSI_COLOR_RED, fmt, va);
 
   va_end(va);
 
   if ((++errors) > MAX_ERRORS) {
-    env.fail("Too many errors");
+    this->fail("Too many errors");
   }
 
   return ret;
 
 }
 
-int default_print_fail(const char *fmt, ...) {
+int env::fail(const char *fmt, ...) {
 
   va_list va;
   va_start(va, fmt);
 
-  std_printout(stderr, "FAIL", ANSI_COLOR_MAGENTA, fmt, va);
+  this->printout(stderr, "FAIL", ANSI_COLOR_MAGENTA, fmt, va);
 
   va_end(va);
 
@@ -96,12 +96,12 @@ int default_print_fail(const char *fmt, ...) {
 
 }
 
-int default_print_info(const char *fmt, ...) {
+int env::info(const char *fmt, ...) {
 
   va_list va;
   va_start(va, fmt);
 
-  int ret = std_printout(stderr, "INFO", ANSI_COLOR_CYAN, fmt, va);
+  int ret = this->printout(stderr, "INFO", ANSI_COLOR_CYAN, fmt, va);
 
   va_end(va);
 
@@ -109,12 +109,12 @@ int default_print_info(const char *fmt, ...) {
 
 }
 
-int default_print_warning(const char *fmt, ...) {
+int env::warning(const char *fmt, ...) {
 
   va_list va;
   va_start(va, fmt);
 
-  int ret = std_printout(stderr, "WARNING", ANSI_COLOR_YELLOW, fmt, va);
+  int ret = this->printout(stderr, "WARNING", ANSI_COLOR_YELLOW, fmt, va);
 
   va_end(va);
 
@@ -122,14 +122,14 @@ int default_print_warning(const char *fmt, ...) {
 
 }
 
-struct env env = {default_print_debug, default_print_error, default_print_fail, default_print_info, default_print_warning, nullptr};
+struct env env = {};
 
 bool env_error(void) {
   return errors;
 }
 
 void env_reset(void) {
-  env = {default_print_debug, default_print_error, default_print_fail, default_print_info, default_print_warning, nullptr};
+  env = {};
 }
 
 void env_set(struct env set) {

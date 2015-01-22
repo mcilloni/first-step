@@ -34,11 +34,11 @@ struct pfunc {
   Symbols *params;
 };
 
-struct pscope {                                                                                         
-  struct pnode node;                                                                                                               
-  Symbols *symbols;                                                                                        
+struct pscope {
+  struct pnode node;
+  Symbols *symbols;
   Aliases *aliases;
-};       
+};
 
 struct proot {
   struct pscope node;
@@ -83,4 +83,3 @@ struct type* pnode_funcReturnType(struct pnode *pnode);
 void ptree_dump(struct pnode *root);
 
 #endif
-

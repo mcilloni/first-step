@@ -577,6 +577,8 @@ bool expr_nextIsEnd(struct token *tok) {
 enum nonterminals expr_ntFromTokVal(struct token *tok) {
 
   switch (token_getOpType(tok)) {
+  case OPTYPE_TERNARY:
+    return PR_TERNOP;
   case OPTYPE_BINARY:
     return PR_BINOP;
 
@@ -776,7 +778,63 @@ List* expr_matchCBrac(List *expr, size_t cbPos) {
   return nullptr;
 }
 
-struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
+size_t expr_findMatchingTernary(List *expr) {
+  size_t fatArrows = 0u;
+  size_t bracs = 0u;
+  size_t parens = 0u;
+  auto len = list_len(expr);
+
+  for (size_t i = 0u; i < len; ++i) {
+    auto tok = static_cast<token*>(*list_get(expr, i));
+
+    switch (tok->type) {
+    case LEX_CBRAC:
+      if (bracs <= 0) {
+        env.fail("unmatched ')'");
+      }
+      --bracs;
+      break;
+
+    case LEX_COMMA:
+      if (!(fatArrows || bracs || parens)) {
+        if (!i) {
+          env.fail("found ',' at expression begin");
+        }
+
+        return i;
+      }
+      break;
+
+    case LEX_CPAR:
+      if (parens <= 0) {
+        env.fail("unmatched ')'");
+      }
+      --parens;
+      break;
+
+    case LEX_FATARROW:
+      ++fatArrows;
+      break;
+
+    case LEX_OBRAC:
+      ++bracs;
+      break;
+
+    case LEX_OPAR:
+      ++parens;
+      break;
+
+    default:
+      break;
+    }
+  }
+
+  env.fail("unmatched '=>', no ',' can be matched");
+
+  return 0u;
+}
+
+pnode* expr_treeize(parser *prs, pnode *root, List *expr) {
 
   if (!list_len(expr)) {
     return expr_empty;
@@ -785,7 +843,7 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
   expr_fixParentheses(&expr);
   expr_fixMinus(expr);
 
-  struct pnode *ret = nullptr;
+  pnode *ret = nullptr;
 
   if (list_len(expr) == 1) {
     ret = expr_handleSingle(root, expr);
@@ -805,6 +863,45 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
     }
 
     switch (token_getOpType(tok)) {
+    // This is evil. Terrible. God this parser sucks really hard.
+    // The very moment second-step works I'm going to shred this from my hdd.
+    case OPTYPE_TERNARY: {
+      if (!pos) {
+        env.fail("'=>' found ar expression start");
+      }
+
+      ret = pnode_newval(expr_ntFromTokVal(tok), uintptr_t(LEX_FATARROW));
+
+      auto left = expr_treeize(prs, root, list_extract(expr, 0, pos));
+
+      auto condType = pnode_evalType(prs->types, left, root);
+      if (!type_isBool(condType)) {
+        char buf[4096];
+        env.fail("Expected bool expression in ternary condition, got %s", type_str(condType, buf, 4096));
+      }
+
+      auto rightToks = list_extract(expr, 1, -1);
+
+      auto commaPos = expr_findMatchingTernary(rightToks);
+
+      auto mid = expr_treeize(prs, root, list_extract(rightToks, 0, commaPos));
+      auto end = expr_treeize(prs, root, list_extract(rightToks, 1, -1));
+
+      auto mType = pnode_evalType(prs->types, mid, root);
+      auto eType = pnode_evalType(prs->types, end, root);
+
+      if (!type_areCompatible(mType, eType)) {
+        env.fail("Ternary conditional with two incompatible types");
+      }
+
+      reinterpret_cast<pexpr*>(ret)->type = type_evalLarger(mType, eType);
+
+      pnode_addLeaf(ret, left);
+      pnode_addLeaf(ret, mid);
+      pnode_addLeaf(ret, end);
+      break;
+    }
+
     case OPTYPE_BINARY: {
 
       if (!pos) {
@@ -812,8 +909,8 @@ struct pnode* expr_treeize(struct parser *prs, struct pnode *root, List *expr) {
       }
 
       if (tok->type == LEX_COLON) {
-        struct token *left = static_cast<token*>(*list_get(expr, pos - 1));
-        struct token *right = static_cast<token*>(*list_get(expr, pos + 1));
+        auto left = static_cast<token*>(*list_get(expr, pos - 1));
+        auto right = static_cast<token*>(*list_get(expr, pos + 1));
         if (right->type != LEX_ID) {
           env.fail("Non-identifier right module member access");
         }

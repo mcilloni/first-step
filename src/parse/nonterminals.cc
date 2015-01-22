@@ -1,10 +1,10 @@
 /*
  *  This file is part of First Step.
- *  
- *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
- *  Foundation, either version 3 of the License, or (at your option) any later version. 
  *
- *  First Step is distributed in the hope that it will be useful, but 
+ *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+ *  Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  First Step is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
@@ -44,7 +44,7 @@ const char* nt_str(enum nonterminals nt) {
   case PR_FUNC:
     return "Function";
   case PR_STMTEND:
-    return "End of statement";  
+    return "End of statement";
   case PR_MULVARDECL:
     return "Multiple variable declaration";
   case PR_SINGLEVARDECL:
@@ -59,7 +59,7 @@ const char* nt_str(enum nonterminals nt) {
     return "Expression";
   case PR_EXPRC:
     return "Expression (C)";
-  case PR_ARITHEXP: 
+  case PR_ARITHEXP:
     return "Arithmetic expression";
   case PR_CONST:
     return "Constant";
@@ -79,6 +79,8 @@ const char* nt_str(enum nonterminals nt) {
     return "Continue";
   case PR_NUMBER:
     return "Number";
+  case PR_TERNOP:
+    return "Ternary Operator";
   case PR_BINOP:
     return "Binary Operation";
   case PR_UNOP:
@@ -91,4 +93,3 @@ const char* nt_str(enum nonterminals nt) {
     return "Unknown";
   }
 }
-

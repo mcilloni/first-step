@@ -35,6 +35,7 @@ enum nonterminals {
   PR_BREAK,
   PR_CONTINUE,
   PR_NUMBER,
+  PR_TERNOP,
   PR_BINOP,
   PR_UNOP,
   PR_INC,
@@ -44,4 +45,3 @@ enum nonterminals {
 const char* nt_str(enum nonterminals nt);
 
 #endif
-
