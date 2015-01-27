@@ -60,6 +60,7 @@ enum token_type {
   LEX_POW,
   LEX_PTR,
   LEX_RETURN,
+  LEX_SEPARATOR,
   LEX_SIZE,
   LEX_STRING,
   LEX_STRUCT,

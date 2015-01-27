@@ -795,10 +795,10 @@ size_t expr_findMatchingTernary(List *expr) {
       --bracs;
       break;
 
-    case LEX_COMMA:
+    case LEX_SEPARATOR:
       if (!(fatArrows || bracs || parens)) {
         if (!i) {
-          env.fail("found ',' at expression begin");
+          env.fail("found '||' at expression begin");
         }
 
         return i;
@@ -829,7 +829,7 @@ size_t expr_findMatchingTernary(List *expr) {
     }
   }
 
-  env.fail("unmatched '=>', no ',' can be matched");
+  env.fail("unmatched '=>', no '||' can be matched");
 
   return 0u;
 }
@@ -882,9 +882,9 @@ pnode* expr_treeize(parser *prs, pnode *root, List *expr) {
 
       auto rightToks = list_extract(expr, 1, -1);
 
-      auto commaPos = expr_findMatchingTernary(rightToks);
+      auto separatorPos = expr_findMatchingTernary(rightToks);
 
-      auto mid = expr_treeize(prs, root, list_extract(rightToks, 0, commaPos));
+      auto mid = expr_treeize(prs, root, list_extract(rightToks, 0, separatorPos));
       auto end = expr_treeize(prs, root, list_extract(rightToks, 1, -1));
 
       auto mType = pnode_evalType(prs->types, mid, root);

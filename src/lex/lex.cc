@@ -359,6 +359,12 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // || 
+  if (!strcmp("||", data)) {
+    res->type = LEX_SEPARATOR;
+    return res;
+  }
+
   // ++
   if (!strcmp("++", data)) {
     res->type = LEX_INC;
@@ -684,6 +690,8 @@ const char* tokentype_str(enum token_type type) {
     return "ptr";
   case LEX_RETURN:
     return "return";
+  case LEX_SEPARATOR:
+    return "||";
   case LEX_SIZE:
     return "size";
   case LEX_STRING:
@@ -825,7 +833,7 @@ enum optype token_getOpType(struct token *tok) {
 
   case LEX_FATARROW:
     return OPTYPE_TERNARY;
-    
+
   default:
     return OPTYPE_NOTOP;
   }
