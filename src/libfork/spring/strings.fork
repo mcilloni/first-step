@@ -15,6 +15,10 @@
 import spring
 
 func strclone(orig ptr uint8) ptr uint8
+  if orig == null
+    return null
+  /if
+
   mut len = spring:strlen(orig)
   mut new = cast<ptr uint8>(spring:zalloc(len + 1))
   spring:strncpy(new, orig, len)
@@ -34,7 +38,8 @@ func strreverse(str ptr uint8, len uintptr)
   mut i uintptr = 0
   mut end = len / 2
 
-  while i < end
+
+while i < end
     str[i] = str[i] ^ str[len - 1 - i]
     str[len - 1 - i] = str[i] ^ str[len - 1 - i]
     str[i] = str[i] ^ str[len - 1 - i]
