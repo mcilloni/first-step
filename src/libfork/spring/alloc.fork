@@ -12,12 +12,26 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
+decl abort func()
+
 func alloc(len uintptr) data
   decl malloc func(cap uintptr) data
-  return malloc(len)
+  mut ret = malloc(len)
+
+  if ret == null and len != 0
+    abort()
+  /if
+  
+  return ret
 /func
 
 func zalloc(len uintptr) data
   decl calloc func(len uintptr, storageSize uintptr) data
-  return calloc(1, len)
+  mut ret = calloc(1, len)
+  
+  if ret == null and len != 0
+    abort()
+  /if
+  
+  return ret
 /func
