@@ -12,26 +12,26 @@
 #
 #  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
 
-decl abort func()
+import spring
 
 func alloc(len uintptr) data
   decl malloc func(cap uintptr) data
   mut ret = malloc(len)
 
   if ret == null and len != 0
-    abort()
+    spring:abort()
   /if
-  
+
   return ret
 /func
 
 func zalloc(len uintptr) data
   decl calloc func(len uintptr, storageSize uintptr) data
   mut ret = calloc(1, len)
-  
+
   if ret == null and len != 0
-    abort()
+    spring:abort()
   /if
-  
+
   return ret
 /func
