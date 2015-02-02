@@ -25,24 +25,20 @@
 #include <cstdio>
 #include <cstring>
 
-//According to gcc, a const value is not good inside an initializer.
-//According to me, gcc is a huge pile of crap.
-#define ptrSize  sizeof(uintptr_t)
-
-struct type nTNex = {};
-struct type nTNull = { TYPE_nullptr, "null", ptrSize, false };
-struct ptype nPTDat = {{ TYPE_PTR, "data", ptrSize, false }, &nTNex };
-struct type type_bool = { TYPE_BOOL, "bool", 1, true };
-struct type type_int8 = { TYPE_NUMERIC, "int8", 1, false };
-struct type type_int16 = { TYPE_NUMERIC, "int16", 2, false };
-struct type type_int32 = { TYPE_NUMERIC, "int32", 4, false };
-struct type type_int64 = { TYPE_NUMERIC, "int64", 8, false };
-struct type type_intptr = { TYPE_NUMERIC, "intptr", ptrSize, false };
-struct type type_uint8 = { TYPE_NUMERIC, "uint8", 1, true };
-struct type type_uint16 = { TYPE_NUMERIC, "uint16", 2, true };
-struct type type_uint32 = { TYPE_NUMERIC, "uint32", 4, true };
-struct type type_uint64 = { TYPE_NUMERIC, "uint64", 8, true };
-struct type type_uintptr = { TYPE_NUMERIC, "uintptr", ptrSize, true };
+struct type nTNex(TYPE_NONE, nullptr, 0);
+struct type nTNull(TYPE_nullptr, "null", ptrSize, false);
+struct ptype nPTDat(&nTNex, "data");
+struct type type_bool(TYPE_BOOL, "bool", 1, true);
+struct type type_int8(TYPE_NUMERIC, "int8", 1, false);
+struct type type_int16(TYPE_NUMERIC, "int16", 2, false);
+struct type type_int32(TYPE_NUMERIC, "int32", 4, false);
+struct type type_int64(TYPE_NUMERIC, "int64", 8, false);
+struct type type_intptr(TYPE_NUMERIC, "intptr", ptrSize, false);
+struct type type_uint8(TYPE_NUMERIC, "uint8", 1, true);
+struct type type_uint16(TYPE_NUMERIC, "uint16", 2, true);
+struct type type_uint32(TYPE_NUMERIC, "uint32", 4, true);
+struct type type_uint64(TYPE_NUMERIC, "uint64", 8, true);
+struct type type_uintptr(TYPE_NUMERIC, "uintptr", ptrSize, true);
 
 struct type *type_data = (struct type*) &nPTDat;
 struct type *type_none = &nTNex;
@@ -346,8 +342,7 @@ void* aliases_alias(Aliases* aliases, const char* id, struct type* type) {
   struct apair *old = aliases_pairGet(aliases, id);
 
   if (old == nullptr) {
-    struct apair *apair = new struct apair();
-    *apair = { str_clone(id), type };
+    struct apair *apair = new struct apair(str_clone(id), type);
     list_append(aliases, apair);
     return nullptr;
   } else {
@@ -376,41 +371,31 @@ struct type* aliases_get(Aliases *aliases, const char *name) {
 }
 
 struct type* type_makeAlias(Pool *pool, const char *name, Aliases *discover) {
-  struct type *alias = static_cast<type*>(pool_zalloc(pool, sizeof(struct type)));
-
-  *alias = {TYPE_ALIAS, str_clone(name), 0, false, discover};
+  struct type *alias = new(pool_zalloc(pool, sizeof(struct type))) struct type(TYPE_ALIAS, str_clone(name), 0, false, discover);
 
   return alias;
 }
 
 struct type* type_makeFuncType(Pool *pool, struct type *ret, Symbols *args) {
-  struct ftype *ftype = static_cast<struct ftype*>(pool_zalloc(pool, sizeof(struct ftype)));
-
-  *ftype = {{TYPE_FUNC, nullptr, ptrSize}, ret, args};
+  ftype *ftype = new(pool_zalloc(pool, sizeof(struct ftype))) struct ftype(ptrSize, ret, args);
 
   return (struct type*) ftype;
 }
 
 struct type *type_makePtr(Pool *pool, struct type *val) {
-  struct ptype *ptype = static_cast<struct ptype*>(pool_zalloc(pool, sizeof(struct ptype)));
-
-  *ptype = {{TYPE_PTR, nullptr, ptrSize}, val};
+  struct ptype *ptype = new(pool_zalloc(pool, sizeof(struct ptype))) struct ptype(val);
 
   return (struct type*) ptype;
 }
 
 struct type* type_makeStructType(Pool *pool, Symbols *args) {
-  struct stype *stype = static_cast<struct stype*>(pool_zalloc(pool, sizeof(struct stype)));
-
-  *stype = {{TYPE_STRUCT, nullptr, 0}, args};
+  struct stype *stype = new(pool_zalloc(pool, sizeof(struct stype))) struct stype(args);
 
   return (struct type*) stype;
 }
 
 struct type* type_makeArray(Pool *pool, struct type *val, size_t len) {
-  struct atype *atype = static_cast<struct atype*>(pool_zalloc(pool, sizeof(struct atype)));
-
-  *atype = {{{TYPE_ARRAY, nullptr, ptrSize}, val}, len};
+  struct atype *atype = new(pool_zalloc(pool, sizeof(struct atype))) struct atype(val, len);
 
   return (struct type*) atype;
 }

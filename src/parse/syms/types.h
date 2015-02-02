@@ -10,6 +10,10 @@
 #include <array/array.h>
 #include <list/pool.h>
 
+//According to gcc, a const value is not good inside an initializer.
+//According to me, gcc is a huge pile of crap.
+#define ptrSize  sizeof(uintptr_t)
+
 typedef List Aliases;
 
 enum type_kind {
@@ -35,11 +39,14 @@ enum type_compatible {
 };
 
 struct type {
-  enum type_kind kind;
+  type_kind kind;
   const char *name;
   size_t size;
   bool uns;
   Aliases *discover;
+
+  type(type_kind kind, const char *name, size_t size, bool uns = false, Aliases *discover = nullptr)
+    : kind(kind), name(name), size(size), uns(uns), discover(discover) {}
 };
 
 struct ftype {
@@ -47,29 +54,40 @@ struct ftype {
 
   struct type *ret;
   Symbols* params;
+
+  ftype(size_t size, struct type *ret, Symbols *params) : t(TYPE_FUNC, nullptr, size), ret(ret), params(params) {}
 };
 
 struct ptype {
   struct type t;
 
   struct type *val;
+
+  ptype(struct type *val, const char *name = nullptr) : t(TYPE_PTR, name, ptrSize), val(val) {}
 };
 
 struct atype {
-  struct ptype t;
+  ptype t;
 
   size_t len;
+
+  atype(struct type *val, size_t len) : t(val), len(len) {
+    t.t.kind = TYPE_ARRAY;
+  }
 };
 
 struct stype {
   struct type t;
 
   Symbols *symbols;
+  stype(Symbols *syms) : t(TYPE_STRUCT, nullptr, 0), symbols(syms) {}
 };
 
 struct apair {
   char *name;
   struct type *type;
+
+  apair(char *name, struct type *type) : name(name), type(type) {}
 };
 
 extern struct type *type_data;
