@@ -14,6 +14,8 @@ struct symbol {
   struct type *type;
   void *optData;
   void (*freeOpt)(void*);
+
+symbol(bool d, struct type *t, void* opt, void(*f)(void*)) : decl(d), type(t), optData(opt), freeOpt(f) {}
 };
 
 struct spair {

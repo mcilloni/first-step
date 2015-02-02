@@ -22,6 +22,7 @@
 #include <cstdarg>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 
 #include <libgen.h>
 
@@ -122,14 +123,14 @@ int env::warning(const char *fmt, ...) {
 
 }
 
-struct env env = {};
+struct env env = {0};
 
 bool env_error(void) {
   return errors;
 }
 
 void env_reset(void) {
-  env = {};
+  std::memset(&env, 0, sizeof env);
 }
 
 void env_set(struct env set) {

@@ -17,6 +17,8 @@ struct line {
   size_t position;
   uintmax_t lineno;
   std::string val;
+
+  line(): position(0), lineno(0U), val("") {}
 };
 
 struct filereader* filereader_open(const char *path);

@@ -30,6 +30,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#define INT8_MAX 127
+
 struct pnode enVd = {PR_EXPR, nullptr, 0, 0, nullptr};
 
 struct pnode *expr_empty = &enVd;

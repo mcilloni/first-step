@@ -41,6 +41,7 @@ struct importer {
   Pool *pool;
   Imports *imported;
   Map *fordFiles;
+  importer(Pool *pl, Imports *im, Map *ff) : pool(pl), imported(im), fordFiles(ff) {}
 };
 
 Pool* importer_getPool(struct importer *impr) {
@@ -48,8 +49,7 @@ Pool* importer_getPool(struct importer *impr) {
 }
 
 struct importer* importer_new(Pool *pool) {
-  struct importer *importer = new struct importer;
-  *importer = { pool, imports_new(), strmap_new() }; 
+  struct importer *importer = new struct importer(pool, imports_new(), strmap_new()); 
   
   std::vector<char*> paths;
   FTS *fts;

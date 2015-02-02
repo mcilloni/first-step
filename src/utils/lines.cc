@@ -54,7 +54,7 @@ void filereader_free(struct filereader *fr) {
 
 struct line* line_read(struct filereader *file, enum errors *err) {
   struct line *ret = new line;
-  *ret = {0, file->lineno};
+  ret->lineno = file->lineno;
 
   int ch;
 
