@@ -46,7 +46,7 @@ all: $(COBJS) $(HOBJS)
 
 %.cc.o: %.cc
 	@echo [CXX] $<
-	@$(CXX) -c -g -o $(OUTDIR)/$@ $< $(FPIC) -std=c++14 -D_POSIX_C_SOURCE=200112L
+	@$(CXX) -c -g -o $(OUTDIR)/$@ $< $(FPIC) -std=c++11 -D_POSIX_C_SOURCE=200112L
 
 %.fork.o: %.fork
 	@echo [FORKC] $<

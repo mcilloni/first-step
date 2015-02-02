@@ -23,8 +23,8 @@ endif
 all: dir forkc1 
 
 forkc1: 
-	$(CXX) -o $(OBJDIR)/forktree forktree.cc $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu++14 -Wall -pedantic
-	$(CXX) -o $(OBJDIR)/forkc1 forkc1.cc $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu++14 -Wall -pedantic
+	$(CXX) -o $(OBJDIR)/forktree forktree.cc $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu++11 -Wall -pedantic
+	$(CXX) -o $(OBJDIR)/forkc1 forkc1.cc $(LIBS) $(LDFLAGS) $(INCLUDES) -std=gnu++11 -Wall -pedantic
 
 clean:
 	rm -rf $(OUTDIR)

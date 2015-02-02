@@ -24,5 +24,5 @@ dir:
 	mkdir -p $(OUTDIR)
 
 %: %.c 
-	$(CXX) $(INCLUDES) $< -o $(OUTDIR)/$@ -std=gnu++14 -Wall -pedantic $(LIBS) $(LDFLAGS)
+	$(CXX) $(INCLUDES) $< -o $(OUTDIR)/$@ -std=gnu++11 -Wall -pedantic $(LIBS) $(LDFLAGS)
 
