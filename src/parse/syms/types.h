@@ -21,7 +21,7 @@ enum type_kind {
   TYPE_NONE = 0,
   TYPE_BOOL,
   TYPE_NUMERIC,
-  TYPE_nullptr,
+  TYPE_NULL,
 
   //free
   TYPE_FUNC,
