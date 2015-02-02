@@ -360,7 +360,7 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
-  // || 
+  // ||
   if (!strcmp("||", data)) {
     res->type = LEX_SEPARATOR;
     return res;
@@ -522,18 +522,18 @@ struct token* token_get(struct lexer *lex) {
     return res;
   }
 
+  // /^
+  if (!strcmp("/^", data)) {
+    res->type = LEX_MOD;
+    return res;
+  }
+
   // /
   if (*data == '/') {
     res->type = LEX_DIV;
     if (strlen(data) > 1) {
       lex->saved = str_clone(data + 1);
     }
-    return res;
-  }
-
-  // mod
-  if (!strcmp("mod", data)) {
-    res->type = LEX_MOD;
     return res;
   }
 
@@ -664,7 +664,7 @@ const char* tokentype_str(enum token_type type) {
   case LEX_MINUS:
     return "-";
   case LEX_MOD:
-    return "mod";
+    return "/^";
   case LEX_MODULE:
     return "module";
   case LEX_MUT:
