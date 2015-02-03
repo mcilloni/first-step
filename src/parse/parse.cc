@@ -181,8 +181,7 @@ Pair* argTypeList(struct parser *prs, struct pnode *thisNode) {
     env.fail("Cannot instantiate non-specified type %s", tp->name);
   }
 
-  ret->key = tp;
-  ret->value = names;
+  *ret = { tp, names };
 
   return ret;
 }

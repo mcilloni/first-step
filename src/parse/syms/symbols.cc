@@ -119,7 +119,9 @@ enum symbols_resp symbols_registerWithOpt(Symbols *symt, const char *id, struct 
   }
 
   auto sp = new spair;
-  sp->sym = new symbol(decl, type, optData, freeOpt);
+  sp->sym = new symbol;
+
+  *sp->sym = {decl, type, optData, freeOpt};
   sp->id = str_clone(id);
 
   list_append(symt, sp);
@@ -129,12 +131,12 @@ enum symbols_resp symbols_registerWithOpt(Symbols *symt, const char *id, struct 
 
 extern struct type type_bool;
 
-struct symbol sym_false(false, &type_bool, nullptr, nullptr);
-struct symbol sym_true(false, &type_bool, nullptr, nullptr);
+struct symbol sym_false = { false, &type_bool };
+struct symbol sym_true = { false, &type_bool };
 
 extern struct type nTNull;
 
-struct symbol smNll(false, &nTNull, nullptr, nullptr);
+struct symbol smNll = { false, &nTNull };
 
 struct symbol *sym_null = &smNll;
 

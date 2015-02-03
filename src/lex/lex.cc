@@ -246,8 +246,7 @@ struct token* token_get(struct lexer *lex) {
   res->lineno = lineno;
 
   if (lex->inString) {
-    res->type = LEX_STRING;
-    res->value = (uintmax_t) str_clone(data);
+    *res = { LEX_STRING, (uintmax_t) str_clone(data) };
     lex->inString = false;
     return res;
   }
