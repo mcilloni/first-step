@@ -21,5 +21,6 @@ ex: all
 
 clean:
 	$(MAKE) -C deps clean 
+	$(MAKE) -C src clean
+	$(MAKE) -C examples clean
 	rm -rf build
-	$(MAKE) -C tests clean
