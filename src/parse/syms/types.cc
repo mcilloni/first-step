@@ -26,7 +26,7 @@
 #include <cstring>
 
 struct type nTNex(TYPE_NONE, nullptr, 0);
-struct type nTNull(TYPE_NULL, "null", ptrSize, false);
+struct type nTNull(TYPE_nullptr, "null", ptrSize, false);
 struct ptype nPTDat(&nTNex, "data");
 struct type type_bool(TYPE_BOOL, "bool", 1, true);
 struct type type_int8(TYPE_NUMERIC, "int8", 1, false);
@@ -189,7 +189,7 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
   enum type_kind first = type_isArray(assign) ? TYPE_PTR : assign->kind;
   enum type_kind second = type_isArray(assigned) ? TYPE_PTR : assigned->kind;
 
-  if (first == TYPE_NULL) {
+  if (first == TYPE_nullptr) {
     return TYPECOMP_NO;
   }
 
@@ -234,7 +234,7 @@ enum type_compatible type_areCompatible(struct type *assign, struct type *assign
     }
   }
 
-  if (first == TYPE_PTR && second == TYPE_NULL) {
+  if (first == TYPE_PTR && second == TYPE_nullptr) {
     return TYPECOMP_YES;
   }
 
@@ -470,7 +470,7 @@ char* type_str(struct type *type, char *buffer, size_t bufLen) {
     return buffer;
   }
 
-  case TYPE_NULL: {
+  case TYPE_nullptr: {
     strncpy(buffer, "nullptr", bufLen);
     return buffer;
   }
