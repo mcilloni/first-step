@@ -89,7 +89,6 @@ func listAppendint(list ptr spring:List, value uintptr) intptr
   mut new = cast<ptr spring:Lnode>(spring:zalloc(size(spring:Lnode)))
 
   new'value = value
-
   new'prec = list'end
   list'end'succ = new
 
@@ -190,10 +189,11 @@ func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:Lis
 /func
 
 func lnode_free(lnode ptr spring:Lnode)
-  if lnode != null
-    lnode_free(lnode'succ)
+  while lnode != null
+    mut next = lnode'succ
     spring:free(lnode)
-  /if
+    lnode = next
+  /while
 /func
 
 func listFree(list ptr spring:List)
@@ -203,11 +203,12 @@ func listFree(list ptr spring:List)
 /func
 
 func lnode_freeAll(lnode ptr spring:Lnode, freefunc ptr func(item data))
-  if lnode != null
-    lnode_freeAll(lnode'succ, freefunc)
+  while lnode != null
+    mut next = lnode'succ
     freefunc(cast<data>(lnode'value))
     spring:free(lnode)
-  /if
+    lnode = next
+  /while
 /func
 
 func listFreeAll(list ptr spring:List, freefunc ptr func(item data))
@@ -217,10 +218,11 @@ func listFreeAll(list ptr spring:List, freefunc ptr func(item data))
 /func
 
 func lnode_freeContents(lnode ptr spring:Lnode, freefunc ptr func(item data))
-  if lnode != null
-    lnode_freeContents(lnode'succ, freefunc)
+  while lnode != null
+    mut next = lnode'succ
     freefunc(cast<data>(lnode'value))
-  /if
+    lnode = next
+  /while
 /func
 
 func listFreeContents(list ptr spring:List, freefunc ptr func(item data))
