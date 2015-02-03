@@ -118,7 +118,6 @@ decl memset func(dest data, value uintptr, len uintptr) data
 decl zalloc func(bytes uintptr) data
 
 # System functions
-decl abort func()
 decl exit func(retval int16)
 
 # Error functions
