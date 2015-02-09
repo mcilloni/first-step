@@ -45,7 +45,7 @@ def forkc1(forkfile):
 
     if proc.returncode != 0:
         if proc.returncode == -signal.SIGSEGV:
-            sys.exit(termcolor.colored('FATAL COMPILER ERROR: ','red', attrs=['bold','blink']) 
+            sys.exit(termcolor.colored('FATAL COMPILER ERROR: ','red', attrs=['bold','blink'])
                     + termcolor.colored("forkc1 segfaulted :(", attrs=['bold']))
         sys.exit(proc.returncode)
 
@@ -105,6 +105,10 @@ def main():
                         help='indicates the alternative name '
                              'for the object file. '
                              'Defaults to <forkfile>.o')
+    parser.add_argument('--fordpath',
+                        action='version',
+                        version=buildpath + '/libfork/ford/',
+                        help='dumps the FORDPATH for default .ford files shipped with first-step')
     args = parser.parse_args()
 
     if len(args.files) > 1 and args.objname:
