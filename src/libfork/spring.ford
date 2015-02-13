@@ -227,6 +227,7 @@ decl vectSlice func(vect ptr Vector, from uintptr, len intptr) ptr Vector
 
 decl mapNew func(cmp comparer) ptr Map
 decl mapGet func(map ptr Map, key data, value ptr data) bool
+decl mapFirst func(map ptr Map) ptr Pair
 decl mapLen func(map ptr Map) uintptr
 decl mapPut func(map ptr Map, key data, value data, freewhat uint8) data
 decl mapContains func(map ptr Map, key data) bool

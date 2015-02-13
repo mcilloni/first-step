@@ -289,6 +289,10 @@ func mapRemove(map ptr spring:Map, key data) bool
 	return ret
 /func
 
+func mapFirst(map ptr spring:Map) ptr spring:Pair
+  return node_minpair(map'root)
+/func
+
 func mapFreeSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr func(item data))
   if map == null
     return
