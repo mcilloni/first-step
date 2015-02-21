@@ -25,7 +25,7 @@ func vectNew(cap uintptr) ptr spring:Vector
   return arr
 /func
 
-func vectNewcap(vect ptr spring:Vector, newcap uintptr)
+func vectNewCap(vect ptr spring:Vector, newcap uintptr)
 
   mut lowercap uintptr
 
@@ -58,22 +58,39 @@ func vectGetint(vect ptr spring:Vector, index uintptr) ptr uintptr
   return vect'arr + index
 /func
 
+
 func vectCap(vect ptr spring:Vector) uintptr
   return vect'cap
 /func
+
 
 func vectLen(vect ptr spring:Vector) uintptr
   return vect'len
 /func
 
-mut CAP_INC uint8 = 10
+
+func vectEnsureCap(vect ptr spring:Vector, newMinCap uintptr)
+  if newMinCap > vect'cap
+    # prevent overflows
+    mut oldCap = vect'cap
+
+    # exponential growth
+    mut newCap = oldCap + (oldCap / 2)
+    if newCap < newMinCap
+      newCap = newMinCap
+    /if
+
+    spring:vectNewCap(vect, newCap)
+  /if
+/func
+
 
 func vectPutint(vect ptr spring:Vector, index uintptr, value uintptr) bool
   mut newalloc = false
   if vect'cap <= index
     newalloc = true
-  # Why this? Because I want cap to be rounded to a multiple of CAP_INC for sake of simplicity. I.e., if index is 12 and CAP_INC is 10, we have 12 / 10 == 1 so new capacity will be 2 * 10 == 20.
-    vectNewcap(vect, ((index / CAP_INC) + 1) * CAP_INC)
+
+    vectEnsureCap(vect, index + 1)
   /if
 
   vect'arr[index] = value
@@ -87,9 +104,11 @@ func vectPutint(vect ptr spring:Vector, index uintptr, value uintptr) bool
   return newalloc
 /func
 
+
 func vectAppendint(vect ptr spring:Vector, value uintptr) bool
   return vectPutint(vect, vect'len, value)
 /func
+
 
 func vectFree(vect ptr spring:Vector)
 

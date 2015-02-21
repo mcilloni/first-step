@@ -208,6 +208,7 @@ decl listShallowCopy func(list ptr List) ptr List
 decl vectAppend ptr func(vect ptr Vector, item data) bool
 decl vectAppendint func(vect ptr Vector, item uintptr) bool
 decl vectCap func(vect ptr Vector) uintptr
+decl vectEnsureCap func(vect ptr Vector, newMinCap uintptr)
 decl vectExtract func(vect ptr Vector, from uintptr, len intptr) ptr Vector
 decl vectFree func(vect ptr Vector)
 decl vectFreeAll func(vect ptr Vector, freeFunc ptr func(item data))
@@ -216,7 +217,7 @@ decl vectGet ptr func(vect ptr Vector, item uintptr) ptr data
 decl vectGetint func(vect ptr Vector, item uintptr) ptr uintptr
 decl vectLen func(vect ptr Vector) uintptr
 decl vectNew func(cap uintptr) ptr Vector
-decl vectNewcap func(vect ptr Vector, cap uintptr)
+decl vectNewCap func(vect ptr Vector, cap uintptr)
 decl vectPrint func(vect ptr Vector)
 decl vectPrune func(vect ptr Vector)
 decl vectPut ptr func(vect ptr Vector, index uintptr, item data) bool
