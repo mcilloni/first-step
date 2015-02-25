@@ -20,7 +20,7 @@ mut FREE_NONE uint8 = 0
 mut FREE_KEY uint8 = 1
 mut FREE_VALUE uint8 = 10
 
-func node_new(key data, value data, cmp spring:comparer, freewhat uint8) ptr spring:Mnode
+func nodeNew(key data, value data, cmp spring:comparer, freewhat uint8) ptr spring:Mnode
   mut ret = cast<ptr spring:Mnode>(spring:zalloc(size(spring:Mnode)))
   ret'key = key
   ret'value = value
@@ -30,7 +30,7 @@ func node_new(key data, value data, cmp spring:comparer, freewhat uint8) ptr spr
   return ret
 /func
 
-func node_rotateLeft(node ptr spring:Mnode) ptr spring:Mnode
+func nodeRotateLeft(node ptr spring:Mnode) ptr spring:Mnode
   mut ret = node'right
   node'right = ret'left
   ret'left = node
@@ -39,7 +39,7 @@ func node_rotateLeft(node ptr spring:Mnode) ptr spring:Mnode
   return ret
 /func
 
-func node_rotateRight(node ptr spring:Mnode) ptr spring:Mnode
+func nodeRotateRight(node ptr spring:Mnode) ptr spring:Mnode
   mut ret = node'left
   node'left = ret'right
   ret'right = node
@@ -48,28 +48,28 @@ func node_rotateRight(node ptr spring:Mnode) ptr spring:Mnode
   return ret
 /func
 
-func node_colorFlip(node ptr spring:Mnode)
+func nodeColorFlip(node ptr spring:Mnode)
   node'color = !node'color
   node'left'color = !node'left'color
   node'right'color = !node'right'color
 /func
 
-func node_isRed(node ptr spring:Mnode) bool
+func nodeIsRed(node ptr spring:Mnode) bool
   return (node != null) and (node'color == RED)
 /func
 
-func node_isBlack(node ptr spring:Mnode) bool
+func nodeIsBlack(node ptr spring:Mnode) bool
   return (node == null) or (node'color == BLACK)
 /func
 
-func node_free(node ptr spring:Mnode, freeKey ptr func(item data), freeVal ptr func(item data))
+func nodeFree(node ptr spring:Mnode, freeKey ptr func(item data), freeVal ptr func(item data))
 
   if node == null
     return
   /if
 
-  node_free(node'left, freeKey, freeVal)
-  node_free(node'right, freeKey, freeVal)
+  nodeFree(node'left, freeKey, freeVal)
+  nodeFree(node'right, freeKey, freeVal)
 
   if (node'freewhat & FREE_KEY) != 0
     if node'key != null
@@ -87,101 +87,111 @@ func node_free(node ptr spring:Mnode, freeKey ptr func(item data), freeVal ptr f
 
 /func
 
-func node_fixUp(node ptr spring:Mnode) ptr spring:Mnode
-  if node_isRed(node'right)
-	  node = node_rotateLeft(node)
+func nodeFixUp(node ptr spring:Mnode) ptr spring:Mnode
+  if nodeIsRed(node'right)
+	  node = nodeRotateLeft(node)
   /if
 
-  if node_isRed(node'left) and node_isRed(node'left'left)
-	  node = node_rotateRight(node)
-	  node_colorFlip(node)
+  if nodeIsRed(node'left) and nodeIsRed(node'left'left)
+	  node = nodeRotateRight(node)
+	  nodeColorFlip(node)
   /if
 
   return node
 /func
 
-func node_add(node ptr spring:Mnode, keyV data, value data, cmp spring:comparer, freewhat uint8, oldvalue ptr data) ptr spring:Mnode
+func nodeAdd(node ptr spring:Mnode, keyV data, value data, cmp spring:comparer, freewhat uint8, oldvalue ptr data) ptr spring:Mnode
 
   if node == null
     val oldvalue = null
-    return node_new(keyV, value, cmp, freewhat)
+    return nodeNew(keyV, value, cmp, freewhat)
   /if
 
   mut res = node'cmp(keyV,node'key)
   if res == 1
-    node'right = node_add(node'right, keyV, value, node'cmp, freewhat, oldvalue)
+    node'right = nodeAdd(node'right, keyV, value, node'cmp, freewhat, oldvalue)
   else
     if res == -1
-      node'left = node_add(node'left, keyV, value, node'cmp, freewhat, oldvalue)
+      node'left = nodeAdd(node'left, keyV, value, node'cmp, freewhat, oldvalue)
 	  else
       val oldvalue = node'value
 	    node'value = value
 	  /if
   /if
 
-  return node_fixUp(node)
+  return nodeFixUp(node)
 
 /func
 
-func node_moveRedLeft(node ptr spring:Mnode) ptr spring:Mnode
+func nodeMoveRedLeft(node ptr spring:Mnode) ptr spring:Mnode
 
-  node_colorFlip(node)
+  nodeColorFlip(node)
 
-  if (node_isRed(node'right'left))
-    node'right = node_rotateRight(node'right)
-	  node = node_rotateLeft(node)
-	  node_colorFlip(node)
+  if (nodeIsRed(node'right'left))
+    node'right = nodeRotateRight(node'right)
+	  node = nodeRotateLeft(node)
+	  nodeColorFlip(node)
   /if
 
   return node
 
 /func
 
-func node_moveRedRight(node ptr spring:Mnode) ptr spring:Mnode
+func nodeMoveRedRight(node ptr spring:Mnode) ptr spring:Mnode
 
-  node_colorFlip(node)
+  nodeColorFlip(node)
 
-  if node_isRed(node'left'left)
-    node = node_rotateRight(node)
-	  node_colorFlip(node)
+  if nodeIsRed(node'left'left)
+    node = nodeRotateRight(node)
+	  nodeColorFlip(node)
   /if
 
   return node
 
 /func
 
-func node_get(node ptr spring:Mnode, keyV data, valueV ptr data) bool
+func nodeGetnode(node ptr spring:Mnode, keyV data) ptr spring:Mnode
   if node == null
-    return false
+    return null
   /if
 
   mut res = node'cmp(keyV, node'key)
   if res == 0
-    val valueV = node'value
-    return true
+    return node
   else
     if res == -1
-      return node_get(node'left, keyV, valueV)
+      return nodeGetnode(node'left, keyV)
     else
-      return node_get(node'right, keyV, valueV)
+      return nodeGetnode(node'right, keyV)
     /if
   /if
 /func
 
-func node_deleteMin(node ptr spring:Mnode) ptr spring:Mnode
+func nodeGet(node ptr spring:Mnode, keyV data, valueV ptr data) bool
+  mut found = nodeGetnode(node, keyV)
+
+  if found == null
+    return false
+  /if
+
+  val valueV = found'value
+  return true
+/func
+
+func nodeDeleteMin(node ptr spring:Mnode) ptr spring:Mnode
   if node'left == null
     return null
   /if
 
-  if node_isBlack(node'left) and node_isBlack(node'left'left)
-    node= node_moveRedLeft(node)
+  if nodeIsBlack(node'left) and nodeIsBlack(node'left'left)
+    node = nodeMoveRedLeft(node)
   /if
 
-  node'left = node_deleteMin(node'left)
-  return node_fixUp(node)
+  node'left = nodeDeleteMin(node'left)
+  return nodeFixUp(node)
 /func
 
-func node_mkpair(node ptr spring:Mnode) ptr spring:Pair
+func nodeMkpair(node ptr spring:Mnode) ptr spring:Pair
   if node == null
     return null
   /if
@@ -192,57 +202,62 @@ func node_mkpair(node ptr spring:Mnode) ptr spring:Pair
   return ret
 /func
 
-func node_minpair(node ptr spring:Mnode) ptr spring:Pair
+func nodeMinpair(node ptr spring:Mnode) ptr spring:Pair
   if node'left == null
-    return node_mkpair(node)
+    return nodeMkpair(node)
   else
-    return node_minpair(node'left)
+    return nodeMinpair(node'left)
   /if
 /func
 
-func node_min(node ptr spring:Mnode) data
+func nodeMin(node ptr spring:Mnode) data
   if node'left == null
     return node'key
   else
-    return node_min(node'left)
+    return nodeMin(node'left)
   /if
 /func
 
-func node_delete(node ptr spring:Mnode, keyV data, found ptr bool) ptr spring:Mnode
+func nodeDelete(node ptr spring:Mnode, keyV data, found ptr bool) ptr spring:Mnode
 
-  if node'cmp(keyV,node'key) != 0
-    if node_isRed(node'left) and node_isRed(node'left'left)
-      node = node_moveRedLeft(node)
+  if node == null
+    val found = false
+    return null
+  /if
+
+  if node'cmp(keyV,node'key) < 0
+    if !nodeIsRed(node'left) and !nodeIsRed(node'left'left)
+      node = nodeMoveRedLeft(node)
     /if
 
-    node'left = node_delete(node'left, keyV, found)
+    node'left = nodeDelete(node'left, keyV, found)
   else
 
-    if node_isRed(node'left)
-      node = node_rotateRight(node)
+    if nodeIsRed(node'left)
+      node = nodeRotateRight(node)
     /if
 
-    if (node'cmp(keyV, node'key) == 0) and (node'right == null)
+    if node'cmp(keyV, node'key) == 0 and node'right == null
       val found = true
       return null
     /if
 
-    if node_isBlack(node'right) and node_isBlack(node'right'left)
-      node = node_moveRedRight(node)
+    if node'right != null and node'right'left != null and nodeIsBlack(node'right) and nodeIsBlack(node'right'left)
+      node = nodeMoveRedRight(node)
     /if
 
     if node'cmp(keyV, node'key) == 0
-      node_get(node'right, node_min(node'right), ptr node'value)
-      node'key = node_min(node'right)
-      node'right = node_deleteMin(node'right)
+      nodeGet(node'right, nodeMin(node'right), ptr node'value)
+      node'key = nodeMin(node'right)
+      node'right = nodeDeleteMin(node'right)
       val found = true
     else
-      node'right = node_delete(node'right, keyV, found)
+      node'right = nodeDelete(node'right, keyV, found)
     /if
 
   /if
 
-  return node_fixUp(node)
+  return nodeFixUp(node)
 
 /func
 
@@ -257,12 +272,12 @@ func mapGet(map ptr spring:Map, key data, value ptr data) bool
     return false
   /if
 
-  return node_get(map'root,key, value)
+  return nodeGet(map'root,key, value)
 /func
 
 func mapPut(map ptr spring:Map, key data, value data, freewhat uint8) data
   mut oldvalue data = null
-  map'root = node_add(map'root, key, value, map'cmp, freewhat, ptr oldvalue)
+  map'root = nodeAdd(map'root, key, value, map'cmp, freewhat, ptr oldvalue)
   map'root'color = BLACK
 
   if oldvalue == null
@@ -279,7 +294,12 @@ func mapContains(map ptr spring:Map, key data) bool
 
 func mapRemove(map ptr spring:Map, key data) bool
 	mut ret = false
-	map'root = node_delete(map'root, key, ptr ret)
+	mut newVal = nodeDelete(map'root, key, ptr ret)
+  if newVal == null or !ret
+    return false
+  /if
+
+  map'root = newVal
 	map'root'color = BLACK
 
 	if ret
@@ -290,7 +310,7 @@ func mapRemove(map ptr spring:Map, key data) bool
 /func
 
 func mapFirst(map ptr spring:Map) ptr spring:Pair
-  return node_minpair(map'root)
+  return nodeMinpair(map'root)
 /func
 
 func mapFreeSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr func(item data))
@@ -306,7 +326,7 @@ func mapFreeSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr fu
     freeVal = ptr spring:free
   /if
 
-  node_free(map'root, freeKey, freeVal)
+  nodeFree(map'root, freeKey, freeVal)
   spring:free(map)
 /func
 

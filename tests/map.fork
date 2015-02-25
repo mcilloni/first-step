@@ -26,6 +26,7 @@ entry
   mut value data
 
   if spring:mapGet(map, "flare", ptr value)
+    spring:out("flare: ")
     spring:outln(cast<ptr uint8>(value))
   /if
 
