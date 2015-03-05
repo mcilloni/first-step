@@ -295,15 +295,17 @@ func mapContains(map ptr spring:Map, key data) bool
 func mapRemove(map ptr spring:Map, key data) bool
 	mut ret = false
 	mut newVal = nodeDelete(map'root, key, ptr ret)
-  if newVal == null or !ret
-    return false
-  /if
 
-  map'root = newVal
-	map'root'color = BLACK
+  if ret
+    map'root = newVal
 
-	if ret
-	  map'len--
+    if map'root != null
+  	  map'root'color = BLACK
+    /if
+    
+  	if ret
+  	  map'len--
+    /if
   /if
 
 	return ret
