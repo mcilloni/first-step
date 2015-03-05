@@ -302,7 +302,7 @@ func mapRemove(map ptr spring:Map, key data) bool
     if map'root != null
   	  map'root'color = BLACK
     /if
-    
+
   	if ret
   	  map'len--
     /if
@@ -312,7 +312,7 @@ func mapRemove(map ptr spring:Map, key data) bool
 /func
 
 func mapFirst(map ptr spring:Map) ptr spring:Pair
-  return nodeMinpair(map'root)
+  return map'root != null => nodeMinpair(map'root) || null
 /func
 
 func mapFreeSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr func(item data))
