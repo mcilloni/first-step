@@ -188,7 +188,7 @@ func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:Lis
 
 /func
 
-func lnode_free(lnode ptr spring:Lnode)
+func lnodeFree(lnode ptr spring:Lnode)
   while lnode != null
     mut next = lnode'succ
     spring:free(lnode)
@@ -197,12 +197,12 @@ func lnode_free(lnode ptr spring:Lnode)
 /func
 
 func listFree(list ptr spring:List)
-  lnode_free(list'start)
+  lnodeFree(list'start)
 
   spring:free(list)
 /func
 
-func lnode_freeAll(lnode ptr spring:Lnode, freefunc ptr func(item data))
+func lnodeFreeAll(lnode ptr spring:Lnode, freefunc ptr func(item data))
   while lnode != null
     mut next = lnode'succ
     freefunc(cast<data>(lnode'value))
@@ -212,12 +212,12 @@ func lnode_freeAll(lnode ptr spring:Lnode, freefunc ptr func(item data))
 /func
 
 func listFreeAll(list ptr spring:List, freefunc ptr func(item data))
-  lnode_freeAll(list'start, freefunc)
+  lnodeFreeAll(list'start, freefunc)
 
   spring:free(list)
 /func
 
-func lnode_freeContents(lnode ptr spring:Lnode, freefunc ptr func(item data))
+func lnodeFreeContents(lnode ptr spring:Lnode, freefunc ptr func(item data))
   while lnode != null
     mut next = lnode'succ
     freefunc(cast<data>(lnode'value))
@@ -226,7 +226,7 @@ func lnode_freeContents(lnode ptr spring:Lnode, freefunc ptr func(item data))
 /func
 
 func listFreeContents(list ptr spring:List, freefunc ptr func(item data))
-  lnode_freeContents(list'start, freefunc)
+  lnodeFreeContents(list'start, freefunc)
 /func
 
 func listGetint(list ptr spring:List, pos uintptr) ptr uintptr
@@ -285,6 +285,7 @@ func listPopint(list ptr spring:List) uintptr
     spring:memset(list, 0, size(spring:List))
   else
     list'start = next
+    list'len--
   /if
 
   return ret
@@ -293,7 +294,7 @@ func listPopint(list ptr spring:List) uintptr
 mut listPop = cast<ptr func(list ptr spring:List) data>(ptr listPopint)
 
 func listPrune(list ptr spring:List)
-  lnode_free(list'start)
+  lnodeFree(list'start)
   spring:memset(list, 0, size(spring:List))
 /func
 

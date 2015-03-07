@@ -1,0 +1,70 @@
+#  This file is part of First Step.
+#
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with First Step.  If not, see <http://www.gnu.org/licenses/>
+#
+#  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
+
+import spring
+
+func mapDump(map ptr spring:Map)
+  mut iter = spring:mapiterStart(map)
+  mut pair ptr spring:Pair
+
+  mut inside = false
+
+  spring:out("Size: ")
+  spring:outint(spring:mapLen(map))
+  spring:outln(" ")
+
+  spring:out("{ ")
+
+  while (pair = spring:mapiterNext(iter)) != null
+
+    if inside
+      spring:out(", ")
+    else
+      inside = true
+    /if
+
+    spring:out(cast<ptr uint8>(pair'key))
+    spring:out(" : ")
+    spring:out(cast<ptr uint8>(pair'value))
+
+    spring:pairFree(pair)
+  /while
+
+  spring:outln(" }")
+  spring:mapiterFree(iter)
+/func
+
+entry
+  mut map = spring:strmapNew()
+  mut stdout = spring:stdout_file()
+
+  spring:mapPut(map, "potato", "battery", spring:FREE_NONE)
+  spring:mapPut(map, "honey", "poney", spring:FREE_NONE)
+  spring:mapPut(map, "flare", "guaxxa", spring:FREE_NONE)
+  spring:mapPut(map, "guagua", "lelzie", spring:FREE_NONE)
+
+  mapDump(map)
+
+  spring:out("\nDelete potato: ")
+  spring:outln(spring:mapRemove(map, "potato") => "OK\n" || "FAILED\n")
+
+  mapDump(map)
+
+  spring:out("\nDelete tomato: ")
+  spring:outln(spring:mapRemove(map, "tomato") => "OK\n" || "FAILED\n")
+
+  mapDump(map)
+
+  spring:mapFree(map)
+/entry

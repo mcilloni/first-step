@@ -1,0 +1,16 @@
+import spring
+
+entry
+	mut list = spring:listNew()
+
+	spring:listPush(list, "aaa")
+	spring:listPush(list, "bbb")
+
+	spring:outint(spring:listLen(list))
+	spring:outch(10)
+	
+	spring:listPop(list)
+
+	spring:outint(spring:listLen(list))
+	spring:outch(10)
+/entry
