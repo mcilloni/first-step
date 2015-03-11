@@ -1,0 +1,61 @@
+#  This file is part of First Step.
+#
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
+#  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public License
+#  along with First Step.  If not, see <http://www.gnu.org/licenses/>
+#
+#  Copyright (C) Marco Cilloni <marco.cilloni@yahoo.com> 2014
+
+import spring
+
+func rem(list ptr spring:List, item uintptr)
+  if !spring:listRemove(list, item, null)
+    spring:outint(item)
+    spring:outln(" out of index")
+  else
+    spring:listPrint(list)
+  /if
+/func
+
+entry
+  mut stdout spring:FILE = spring:stdout_file()
+  mut list = spring:listNew()
+
+  mut i uint8 = 0
+  while i < 31
+    spring:listAppendint(list, i)
+    i++
+  /while
+
+  spring:out("list[] == ")
+
+  spring:listPrint(list)
+
+  i = 0
+
+  while i < 12
+    rem(list, 5)
+
+    i++
+  /while
+
+  i = 0
+
+  while i < 15
+    rem(list, 0)
+
+    rem(list, spring:listLen(list) - 1)
+
+    i++
+  /while
+
+  spring:listPrint(list)
+
+  spring:listFree(list)
+/entry
