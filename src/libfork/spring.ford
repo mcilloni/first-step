@@ -77,7 +77,7 @@ alias MapIter struct (
 
 # list structures
 alias Lnode struct(
-  prec, succ ptr Lnode,
+  prec, next ptr Lnode,
   value uintptr
 )
 
@@ -185,12 +185,15 @@ decl listAdd ptr func(list ptr List, index uintptr, item data) intptr
 decl listAddint func(list ptr List, index uintptr, item uintptr) intptr
 decl listAppend ptr func(list ptr List, item data) intptr
 decl listAppendint func(list ptr List, item uintptr) intptr
+decl listDeinit func(list ptr List)
+decl listDeinitAll func(list ptr List, freeFunc ptr func(item data))
 decl listExtract func(list ptr List, from uintptr, len intptr) ptr List
 decl listFree func(list ptr List)
 decl listFreeAll func(list ptr List, freeFunc ptr func(item data))
 decl listFreeContents func(list ptr List, freeFunc ptr func(item data))
 decl listGet ptr func(list ptr List, index uintptr) ptr data
 decl listGetint func(list ptr List, index uintptr) ptr uintptr
+decl listInit func(list ptr List) ptr List
 decl listInsert ptr func(list ptr List, index uintptr, item data) intptr
 decl listInsertint func(list ptr List, index uintptr, item uintptr) intptr
 decl listLen func(list ptr List) uintptr
@@ -201,6 +204,7 @@ decl listPrint func(list ptr List)
 decl listPrune func(list ptr List)
 decl listPush ptr func(list ptr List, item data)
 decl listPushint func(list ptr List, item uintptr)
+decl listRemove func(list ptr List, item uintptr, freefunc ptr func(item data)) bool
 decl listShallowCopy func(list ptr List) ptr List
 
 # vector functions
@@ -208,6 +212,7 @@ decl listShallowCopy func(list ptr List) ptr List
 decl vectAppend ptr func(vect ptr Vector, item data) bool
 decl vectAppendint func(vect ptr Vector, item uintptr) bool
 decl vectCap func(vect ptr Vector) uintptr
+decl vectDeinit func(vect ptr Vector)
 decl vectEnsureCap func(vect ptr Vector, newMinCap uintptr)
 decl vectExtract func(vect ptr Vector, from uintptr, len intptr) ptr Vector
 decl vectFree func(vect ptr Vector)
@@ -215,6 +220,7 @@ decl vectFreeAll func(vect ptr Vector, freeFunc ptr func(item data))
 decl vectFreeContents func(vect ptr Vector, freeFunc ptr func(item data))
 decl vectGet ptr func(vect ptr Vector, item uintptr) ptr data
 decl vectGetint func(vect ptr Vector, item uintptr) ptr uintptr
+decl vectInit func(arr ptr Vector, cap uintptr) ptr Vector
 decl vectLen func(vect ptr Vector) uintptr
 decl vectNew func(cap uintptr) ptr Vector
 decl vectNewCap func(vect ptr Vector, cap uintptr)
@@ -226,15 +232,20 @@ decl vectSlice func(vect ptr Vector, from uintptr, len intptr) ptr Vector
 
 # map functions
 
-decl mapNew func(cmp comparer) ptr Map
-decl mapGet func(map ptr Map, key data, value ptr data) bool
-decl mapFirst func(map ptr Map) ptr Pair
-decl mapLen func(map ptr Map) uintptr
-decl mapPut func(map ptr Map, key data, value data, freewhat uint8) data
 decl mapContains func(map ptr Map, key data) bool
-decl mapRemove func(map ptr Map, key data) bool
-decl mapFreeSpec func(map ptr Map, freeKey ptr func(item data), freeVal ptr func(item data))
+decl mapDeinit func(map ptr Map)
+decl mapDeinitSpec func(map ptr Map, freeKey ptr func(item data), freeVal ptr func(item data))
+decl mapFirst func(map ptr Map) ptr Pair
 decl mapFree func(map ptr Map)
+decl mapFreeSpec func(map ptr Map, freeKey ptr func(item data), freeVal ptr func(item data))
+decl mapGet func(map ptr Map, key data, value ptr data) bool
+decl mapInit func(map ptr Map, cmp comparer) ptr Map
+decl mapLen func(map ptr Map) uintptr
+decl mapNew func(cmp comparer) ptr Map
+decl mapPut func(map ptr Map, key data, value data, freewhat uint8) data
+decl mapRemove func(map ptr Map, key data) bool
+
+decl strmapInit func(map ptr Map) ptr Map
 decl strmapNew func() ptr Map
 
 # mapiter functions

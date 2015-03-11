@@ -22,7 +22,7 @@ func listSeekAhead(list ptr spring:List, pos uintptr)
   /if
 
   while list'pos < pos
-    list'current = list'current'succ
+    list'current = list'current'next
     list'pos++
   /while
 
@@ -60,7 +60,7 @@ func listSeek(list ptr spring:List, pos uintptr)
 func listPushint(list ptr spring:List, value uintptr)
   mut new = cast<ptr spring:Lnode>(spring:zalloc(size(spring:Lnode)))
 
-  new'succ = list'start
+  new'next = list'start
   if list'start != null
     list'start'prec = new
   /if
@@ -90,7 +90,7 @@ func listAppendint(list ptr spring:List, value uintptr) intptr
 
   new'value = value
   new'prec = list'end
-  list'end'succ = new
+  list'end'next = new
 
   list'end = new
 
@@ -114,12 +114,12 @@ func listAddint(list ptr spring:List, pos uintptr, value uintptr) intptr
   mut prec = list'current'prec
 
   if prec != null
-    prec'succ = new
+    prec'next = new
   /if
 
   new'prec = prec
   new'value = value
-  new'succ = list'current
+  new'next = list'current
   list'current'prec = new
 
   list'current = cast<ptr spring:Lnode>(list'pos = 0)
@@ -131,8 +131,13 @@ func listAddint(list ptr spring:List, pos uintptr, value uintptr) intptr
 
 mut listAdd = cast<ptr func(list ptr spring:List, index uintptr, item data) intptr>(ptr listAddint)
 
+func listInit(list ptr spring:List) ptr spring:List
+  spring:memset(list, 0, size(spring:List))
+  return list
+/func
+
 func listNew() ptr spring:List
-  return cast<ptr spring:List>(spring:zalloc(size(spring:List)))
+  return spring:listInit(cast<ptr spring:List>(spring:alloc(size(spring:List))))
 /func
 
 func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:List
@@ -152,7 +157,7 @@ func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:Lis
     mut prec = list'current'prec
     mut link1 ptr ptr spring:Lnode
     if prec != null
-      link1 = ptr prec'succ
+      link1 = ptr prec'next
     else
       link1 = ptr list'start
     /if
@@ -161,10 +166,10 @@ func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:Lis
 
     listSeek(list, start + len - 1)
 
-    mut succ = list'current'succ
+    mut next = list'current'next
     mut link2 ptr ptr spring:Lnode
-    if succ != null
-      link2 = ptr succ'prec
+    if next != null
+      link2 = ptr next'prec
     else
       link2 = ptr list'end
     /if
@@ -173,10 +178,10 @@ func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:Lis
 
     extract'len = len
 
-    val link1 = succ
+    val link1 = next
     val link2 = prec
 
-    extract'start'prec = extract'end'succ = null
+    extract'start'prec = extract'end'next = null
 
     list'len = list'len - len
 
@@ -190,36 +195,45 @@ func listExtract(list ptr spring:List, start uintptr, len intptr) ptr spring:Lis
 
 func lnodeFree(lnode ptr spring:Lnode)
   while lnode != null
-    mut next = lnode'succ
+    mut next = lnode'next
     spring:free(lnode)
     lnode = next
   /while
 /func
 
-func listFree(list ptr spring:List)
+func listDeinit(list ptr spring:List)
   lnodeFree(list'start)
+/func
 
-  spring:free(list)
+func listFree(list ptr spring:List)
+  if list != null
+    spring:listDeinit(list)
+
+    spring:free(list)
+  /if
 /func
 
 func lnodeFreeAll(lnode ptr spring:Lnode, freefunc ptr func(item data))
   while lnode != null
-    mut next = lnode'succ
+    mut next = lnode'next
     freefunc(cast<data>(lnode'value))
     spring:free(lnode)
     lnode = next
   /while
 /func
 
-func listFreeAll(list ptr spring:List, freefunc ptr func(item data))
+func listDeinitAll(list ptr spring:List, freefunc ptr func(item data))
   lnodeFreeAll(list'start, freefunc)
+/func
 
+func listFreeAll(list ptr spring:List, freefunc ptr func(item data))
+  spring:listDeinitAll(list, freefunc)
   spring:free(list)
 /func
 
 func lnodeFreeContents(lnode ptr spring:Lnode, freefunc ptr func(item data))
   while lnode != null
-    mut next = lnode'succ
+    mut next = lnode'next
     freefunc(cast<data>(lnode'value))
     lnode = next
   /while
@@ -272,7 +286,7 @@ func listPopint(list ptr spring:List) uintptr
     return 0
   /if
 
-  mut next = list'start'succ
+  mut next = list'start'next
   mut ret = list'start'value
 
   spring:free(list'start)
@@ -328,4 +342,51 @@ func listPrint(list ptr spring:List)
     i++
   /while
   spring:outln(" ]")
+/func
+
+
+func listRemove(list ptr spring:List, item uintptr, freefunc ptr func(item data)) bool
+  mut len = spring:listLen(list)
+
+  if item >= len
+    return false
+  /if
+
+  listSeek(list, item)
+
+  mut prec = list'current'prec
+  mut next = list'current'next
+
+  mut precNodeNext = ptr list'start
+
+  if prec != null
+    precNodeNext = ptr prec'next
+  /if
+
+  mut nextNodePrec = ptr list'end
+
+  if next != null
+    nextNodePrec = ptr next'prec
+  /if
+
+  val precNodeNext = next
+  val nextNodePrec = prec
+
+  if freefunc != null
+    freefunc(cast<data>(list'current'value))
+  /if
+
+  spring:free(list'current)
+
+  list'len--
+
+  if item == 0
+    list'current = next
+    # position is 0 already
+  else
+    list'current = prec
+    list'pos--
+  /if
+
+  return true
 /func

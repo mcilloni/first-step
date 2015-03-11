@@ -32,19 +32,35 @@ func nodeNew(key data, value data, cmp spring:comparer, freewhat uint8) ptr spri
 
 func nodeRotateLeft(node ptr spring:Mnode) ptr spring:Mnode
   mut ret = node'right
+
+  if ret'color == BLACK
+    spring:errln("rotating left a black node")
+    spring:abort()
+  /if
+
   node'right = ret'left
   ret'left = node
-  ret'color = ret'left'color
-  ret'left'color = RED
+#  ret'color = ret'left'color
+  ret'color = node'color
+  node'color = RED
+
   return ret
 /func
 
 func nodeRotateRight(node ptr spring:Mnode) ptr spring:Mnode
   mut ret = node'left
+
+  if ret'color == BLACK
+    spring:errln("rotating right a black node")
+    spring:abort()
+  /if
+
   node'left = ret'right
   ret'right = node
-  ret'color = ret'right'color
-  ret'right'color = RED
+#  ret'color = ret'right'color
+  ret'color = node'color
+#  ret'right'color = RED
+  node'color = RED
   return ret
 /func
 
@@ -94,6 +110,9 @@ func nodeFixUp(node ptr spring:Mnode) ptr spring:Mnode
 
   if nodeIsRed(node'left) and nodeIsRed(node'left'left)
 	  node = nodeRotateRight(node)
+  /if
+
+  if nodeIsRed(node'left) and nodeIsRed(node'right)
 	  nodeColorFlip(node)
   /if
 
@@ -226,7 +245,11 @@ func nodeDelete(node ptr spring:Mnode, keyV data, found ptr bool) ptr spring:Mno
   /if
 
   if node'cmp(keyV,node'key) < 0
-    if !nodeIsRed(node'left) and !nodeIsRed(node'left'left)
+    if node'left == null
+      return null
+    /if
+
+    if nodeIsBlack(node'left) and nodeIsBlack(node'left'left)
       node = nodeMoveRedLeft(node)
     /if
 
@@ -261,10 +284,15 @@ func nodeDelete(node ptr spring:Mnode, keyV data, found ptr bool) ptr spring:Mno
 
 /func
 
-func mapNew(cmp spring:comparer) ptr spring:Map
-  mut map = cast<ptr spring:Map>(spring:zalloc(size(spring:Map)))
+func mapInit(map ptr spring:Map, cmp spring:comparer) ptr spring:Map
   map'cmp = cmp
   return map
+/func
+
+func mapNew(cmp spring:comparer) ptr spring:Map
+  mut map = cast<ptr spring:Map>(spring:zalloc(size(spring:Map)))
+
+  return spring:mapInit(map, cmp)
 /func
 
 func mapGet(map ptr spring:Map, key data, value ptr data) bool
@@ -289,7 +317,7 @@ func mapPut(map ptr spring:Map, key data, value data, freewhat uint8) data
 
 func mapContains(map ptr spring:Map, key data) bool
   mut value data #ignored - will be discarded but needed for mapGet to work
-  return mapGet(map, key, ptr value)
+  return spring:mapGet(map, key, ptr value)
 /func
 
 func mapRemove(map ptr spring:Map, key data) bool
@@ -315,7 +343,11 @@ func mapFirst(map ptr spring:Map) ptr spring:Pair
   return map'root != null => nodeMinpair(map'root) || null
 /func
 
-func mapFreeSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr func(item data))
+func mapDeinit(map ptr spring:Map)
+  spring:mapDeinitSpec(map, null, null)
+/func
+
+func mapDeinitSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr func(item data))
   if map == null
     return
   /if
@@ -329,11 +361,15 @@ func mapFreeSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr fu
   /if
 
   nodeFree(map'root, freeKey, freeVal)
+/func
+
+func mapFreeSpec(map ptr spring:Map, freeKey ptr func(item data), freeVal ptr func(item data))
+  spring:mapDeinitSpec(map, freeKey, freeVal)
   spring:free(map)
 /func
 
 func mapFree(map ptr spring:Map)
-  mapFreeSpec(map, null, null)
+  spring:mapFreeSpec(map, null, null)
 /func
 
 func mapLen(map ptr spring:Map) uintptr
@@ -355,6 +391,10 @@ func strcomparer(s1 data, s2 data) int8
   /if
 /func
 
+func strmapInit(map ptr spring:Map) ptr spring:Map
+  return spring:mapInit(map, ptr strcomparer)
+/func
+
 func strmapNew() ptr spring:Map
-  return mapNew(ptr strcomparer)
+  return spring:mapNew(ptr strcomparer)
 /func

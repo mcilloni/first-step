@@ -14,8 +14,8 @@
 
 import spring
 
-func vectNew(cap uintptr) ptr spring:Vector
-  mut arr = cast<ptr spring:Vector>(spring:zalloc(size(spring:Vector)))
+func vectInit(arr ptr spring:Vector, cap uintptr) ptr spring:Vector
+  spring:memset(arr, 0, size(spring:Vector))
 
   if cap != 0
     arr'arr = cast<ptr uintptr>(spring:zalloc(cap * size(uintptr)))
@@ -23,6 +23,10 @@ func vectNew(cap uintptr) ptr spring:Vector
 
   arr'cap = cap
   return arr
+/func
+
+func vectNew(cap uintptr) ptr spring:Vector
+  return spring:vectInit(cast<ptr spring:Vector>(spring:alloc(size(spring:Vector))), cap)
 /func
 
 func vectNewCap(vect ptr spring:Vector, newcap uintptr)
@@ -109,17 +113,18 @@ func vectAppendint(vect ptr spring:Vector, value uintptr) bool
   return vectPutint(vect, vect'len, value)
 /func
 
+func vectDeinit(vect ptr spring:Vector)
+  if !vect'isSlice
+    spring:free(vect'arr)
+  /if
+/func
 
 func vectFree(vect ptr spring:Vector)
 
   if vect != null
-
-    if !vect'isSlice
-      spring:free(vect'arr)
-    /if
+    spring:vectDeinit(vect)
 
     spring:free(vect)
-
   /if
 
 /func
