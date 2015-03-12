@@ -376,25 +376,10 @@ func mapLen(map ptr spring:Map) uintptr
   return map'len
 /func
 
-func strcomparer(s1 data, s2 data) int8
-  decl strcmp func(str1 data, str2 data) int8
-  mut comp = strcmp(s1, s2)
-
-  if comp > 0
-    return 1
-  else
-    if comp < 0
-      return -1
-    else
-      return 0
-    /if
-  /if
-/func
-
 func strmapInit(map ptr spring:Map) ptr spring:Map
-  return spring:mapInit(map, ptr strcomparer)
+  return spring:mapInit(map, ptr spring:strcomparer)
 /func
 
 func strmapNew() ptr spring:Map
-  return spring:mapNew(ptr strcomparer)
+  return spring:mapNew(ptr spring:strcomparer)
 /func
