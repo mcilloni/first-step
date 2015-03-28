@@ -1,9 +1,9 @@
 #  This file is part of First Step.
-#  
-#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
-#  Foundation, either version 3 of the License, or (at your option) any later version. 
 #
-#  First Step is distributed in the hope that it will be useful, but 
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
 #  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
@@ -27,6 +27,14 @@ func csAppend(cs ptr spring:Charstash, ch uint8)
   val cs'work = ch
   cs'len++
   cs'work++
+/func
+
+func csAppendInt(cs ptr spring:Charstash, num uintptr)
+  mut buf [20] int8
+
+  spring:numtostr(num, ptr buf[0], 20)
+
+  spring:csAppendStr(cs, buf)
 /func
 
 func csAppendStr(cs ptr spring:Charstash, str ptr uint8)
@@ -62,4 +70,3 @@ func csUnleash(cs ptr spring:Charstash) ptr uint8
 func csLen(cs ptr spring:Charstash) uintptr
   return cs'len
 /func
-

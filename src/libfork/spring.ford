@@ -262,6 +262,7 @@ decl FREE_VALUE uint8
 
 # charstash functions
 decl csAppend func(cs ptr Charstash, ch uint8)
+decl csAppendInt func(cs ptr Charstash, num uintptr)
 decl csAppendStr func(cs ptr Charstash, str ptr uint8)
 decl csFree func(cs ptr Charstash)
 decl csLen func(cs ptr Charstash) uintptr

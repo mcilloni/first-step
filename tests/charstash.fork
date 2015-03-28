@@ -1,9 +1,9 @@
 #  This file is part of First Step.
-#  
-#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
-#  Foundation, either version 3 of the License, or (at your option) any later version. 
 #
-#  First Step is distributed in the hope that it will be useful, but 
+#  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+#  Foundation, either version 3 of the License, or (at your option) any later version.
+#
+#  First Step is distributed in the hope that it will be useful, but
 #  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
@@ -22,6 +22,11 @@ entry
     spring:csAppend(cs, 90)
     i++
   /while
+
+  spring:csAppend(cs, 32)
+  spring:csAppendInt(cs, 150)
+  spring:csAppend(cs, 32)
+  spring:csAppendInt(cs, 10000)
 
   mut len = spring:csLen(cs)
   mut str = spring:csUnleash(cs)
