@@ -1,0 +1,3 @@
+build/
+tests/*.elf
+bump.sh

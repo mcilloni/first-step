@@ -9,15 +9,15 @@ FORKL = ../build/forkl
 
 SRCS = $(wildcard *.fork)
 OBJS = $(patsubst %.fork,%.o,$(SRCS))
-BINS = $(patsubst %.fork,%,$(SRCS))
+BINS = $(patsubst %.fork,%.elf,$(SRCS))
 all: $(BINS)
 
 clean:
 	rm -f $(BINS) $(OBJS)
 
-%: %.o
+%.elf: %.o
 	@echo [FORKL] $<
-	@$(FORKL) $<
+	@$(FORKL) -o $@ $<
 
 %.o: %.fork 
 	@echo [FORKC] $<
