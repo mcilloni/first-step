@@ -206,6 +206,8 @@ decl listPrune func(list ptr List)
 decl listPush ptr func(list ptr List, item data)
 decl listPushint func(list ptr List, item uintptr)
 decl listRemove func(list ptr List, item uintptr, freefunc ptr func(item data)) bool
+decl listSeek func(list ptr List, pos uintptr)
+decl listSeekZero func(list ptr List)
 decl listShallowCopy func(list ptr List) ptr List
 
 # vector functions

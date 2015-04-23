@@ -42,10 +42,14 @@ func listSeekBehind(list ptr spring:List, pos uintptr)
 
 /func
 
+func listSeekZero(list ptr spring:List)
+  list'current = list'start
+  list'pos = 0
+/func
+
 func listSeek(list ptr spring:List, pos uintptr)
   if (list'current == null) and (pos == 0)
-    list'current = list'start
-    list'pos = 0
+     spring:listSeekZero(list)
   /if
 
   if pos > list'pos
