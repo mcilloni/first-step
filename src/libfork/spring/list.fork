@@ -247,22 +247,10 @@ func listFreeContents(list ptr spring:List, freefunc ptr func(item data))
   lnodeFreeContents(list'start, freefunc)
 /func
 
-# gigantic hack, because somethings breaks the
-# cursor. Please, future me, fix this!
-func listRepare(list ptr spring:List)
-  if list'len > 0 and list'current == null
-     list'current = list'start
-     list'pos = 0
-  /if
-/func
-
 func listGetint(list ptr spring:List, pos uintptr) ptr uintptr
   if pos >= list'len
     return null
   /if
-
-  # FIXME: hack 
-  listRepare(list)
 
   listSeek(list, pos)
 
