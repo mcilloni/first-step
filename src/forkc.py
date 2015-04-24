@@ -23,7 +23,7 @@ buildpath = os.path.dirname(os.path.abspath(__file__))
 forkc1path = os.path.join(buildpath, 'forkc1')
 
 
-def forkc1(forkfile):
+def forkc1(forkfile, spring):
 
     if not forkfile.endswith('.fork'):
         sys.exit((__file__ +
@@ -33,7 +33,8 @@ def forkc1(forkfile):
     tmpfile = os.path.join(tempfile.gettempdir(), cname)
 
     newenv = os.environ.copy()
-    newenv['FORDPATHS'] = buildpath + '/libfork/ford/'
+    if spring:
+        newenv['FORDPATHS'] = buildpath + '/libfork/ford/'
 
     if 'FORDPATHS' in os.environ:
         newenv['FORDPATHS'] = newenv['FORDPATHS'] \
@@ -105,10 +106,16 @@ def main():
                         help='indicates the alternative name '
                              'for the object file. '
                              'Defaults to <forkfile>.o')
+    parser.add_argument('--no-spring',
+                        dest='spring',
+                        action='store_false',
+                        help='prevents the inclusion of the builtin spring module')
     parser.add_argument('--fordpath',
                         action='version',
                         version=buildpath + '/libfork/ford/',
                         help='dumps the FORDPATH for default .ford files shipped with first-step')
+
+    parser.set_defaults(spring=True)
     args = parser.parse_args()
 
     if len(args.files) > 1 and args.objname:
@@ -121,7 +128,7 @@ def main():
             args.cc = os.environ['CC']
 
     if args.objname:
-        cfile = forkc1(args.files[0])
+        cfile = forkc1(args.files[0], args.spring)
         if not args.emit_c:
             todelete.append(cfile)
             cc(args.cc, cfile, args.objname)
