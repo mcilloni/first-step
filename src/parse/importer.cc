@@ -1,10 +1,10 @@
 /*
  *  This file is part of First Step.
- *  
- *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software 
- *  Foundation, either version 3 of the License, or (at your option) any later version. 
  *
- *  First Step is distributed in the hope that it will be useful, but 
+ *  First Step is free software: you can redistribute it and/or modify it under the terms of the GNU Lesser General Public License as published by the Free Software
+ *  Foundation, either version 3 of the License, or (at your option) any later version.
+ *
+ *  First Step is distributed in the hope that it will be useful, but
  *  WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU Lesser General Public License for more details.
  *
@@ -49,8 +49,8 @@ Pool* importer_getPool(struct importer *impr) {
 
 struct importer* importer_new(Pool *pool) {
   struct importer *importer = new struct importer;
-  *importer = { pool, imports_new(), strmap_new() }; 
-  
+  *importer = { pool, imports_new(), strmap_new() };
+
   std::vector<char*> paths;
   FTS *fts;
   paths.push_back(str_clone(getenv("PWD")));
@@ -71,8 +71,8 @@ struct importer* importer_new(Pool *pool) {
 
   if (!(fts = fts_open(&paths[0], FTS_COMFOLLOW | FTS_LOGICAL | FTS_NOCHDIR, nullptr))) {
     env.fail("Error while parsing module path %s: %s", modPath, strerror(errno));
-  }  
- 
+  }
+
   FTSENT *entry, *children = fts_children(fts, 0);
 
   if (children) {
@@ -82,7 +82,7 @@ struct importer* importer_new(Pool *pool) {
           char *buf = str_clone(entry->fts_path);
           char *base = basename(buf);
           size_t len = strlen(base);
-          if (len > 6 && !strcmp(base + len - 5, ".ford")) { //name + '.ford' at should be at least 6
+          if (len >= 6 && !strcmp(base + len - 5, ".ford")) { //name + '.ford' at should be at least 6
             base[len - 5] = '\0';
             map_put(importer->fordFiles, str_clone(base), str_clone(entry->fts_path), FREE_KEY | FREE_VALUE);
           }
@@ -98,12 +98,12 @@ struct importer* importer_new(Pool *pool) {
           break;
       }
     }
-  } 
+  }
 
   if (errno) {
     env.fail("Error while parsing module path %s: %s", modPath, strerror(errno));
   }
-  
+
   fts_close(fts);
 
   for (auto str : paths) {
@@ -122,7 +122,7 @@ struct pnode* importer_import(struct importer *impr, char *name) {
     return ret;
   }
 
-  char *path; 
+  char *path;
 
   if (!map_get(impr->fordFiles, name, (void**) &path)) {
     return nullptr;
@@ -155,6 +155,5 @@ void fakeFree(void *ignored) {
 void importer_free(struct importer *impr) {
   map_freeSpec(impr->imported, nullptr, fakeFree);
   map_free(impr->fordFiles);
-  delete impr;  
+  delete impr;
 }
-
