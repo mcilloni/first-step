@@ -968,13 +968,19 @@ struct pnode* parser_parse(struct parser *prs, FILE *file) {
 
   struct pnode *root = pnode_newroot(prs->filename, module, imports), *nextDef;
 
+
+  // in case we have only aliases, then we must ensure that the file is not empty
+  auto hasAliases = false;
+
   while ((nextDef = definition(prs, root))) {
     if (nextDef != &declaration_fake_node) {
       pnode_addLeaf(root, nextDef);
+    } else {
+      hasAliases = true;
     }
   }
 
-  if (!array_len(root->leaves)) {
+  if (!array_len(root->leaves) && !hasAliases) {
     pnode_free(root);
     return nullptr;
   }
