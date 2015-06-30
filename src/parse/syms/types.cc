@@ -15,6 +15,8 @@
  *
  */
 
+#define __STDC_LIMIT_MACROS
+
 #include "types.h"
 
 #include <array/array.h>
