@@ -19,6 +19,8 @@
 // I'm not concerned about this because I intend this to be just an experimental, bootstrap compiler, so I don't care about performances, or ugliness, or anything.
 // Future compilers will have a decent EBNF definition for priority and such :(
 
+#define __STDC_LIMIT_MACROS
+
 #include "parse.h"
 
 #include <list/list.h>
