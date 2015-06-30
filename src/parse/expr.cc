@@ -27,6 +27,7 @@
 #include <utils/utils.h>
 
 
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 
