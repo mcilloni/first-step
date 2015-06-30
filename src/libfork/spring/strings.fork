@@ -14,6 +14,10 @@
 
 import spring
 
+
+decl strcmp func(str1, str2 data) int32
+
+
 func strclone(orig ptr uint8) ptr uint8
   if orig == null
     return null
@@ -26,7 +30,6 @@ func strclone(orig ptr uint8) ptr uint8
 /func
 
 func strequals(s1, s2 ptr uint8) bool
-  decl strcmp func(str1 ptr uint8, str2 ptr uint8) int32
   if strcmp(s1,s2) == 0
     return true
   /if
@@ -121,7 +124,6 @@ func strtonum(str ptr uint8) intptr
 /func
 
 func strcomparer(s1 data, s2 data) int8
-  decl strcmp func(str1 data, str2 data) int8
   mut comp = strcmp(s1, s2)
 
   if comp > 0

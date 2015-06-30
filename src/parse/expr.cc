@@ -220,7 +220,7 @@ struct pnode* expr_evalUnary(struct token *tok, struct pnode *operand) {
 }
 
 size_t expr_findReverseLPOp(List *expr) {
-  size_t len = list_len(expr);
+  int64_t len = list_len(expr);
   size_t pos = 0;
   int8_t posPri = INT8_MAX, tmp;
 
