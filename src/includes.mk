@@ -10,7 +10,7 @@ MACHINE = $(shell uname -m)
 INCLUDES := -I$(BPATH)/../ -I$(BPATH)/../parse/ -I$(BPATH)/../../deps/ -g
 OBJDIR := $(BPATH)/../../build
 LIBS := -L$(OBJDIR)
-LDFLAGS := -lcgen -lparse -llex -lsyms -ltreemap -larray -llist -lutils -rdynamic
+LDFLAGS := -lcgen -lparse -llex -lsyms -ltreemap -larray -llist -lutils
 
 ifeq ($(UNAME),NetBSD)
 	LDFLAGS += -lmemstream
@@ -37,9 +37,9 @@ ifeq ($(MACHINE), amd64)
 	AMD64 = yes
 endif
 
-ifdef AMD64
 ifeq (,$(findstring CYGWIN,$(UNAME)))
+	LDFLAGS += -rdynamic
+ifdef AMD64
 	INCLUDES += -fPIC
 endif
 endif
-
